@@ -11,6 +11,11 @@ import sys
 import tempfile
 import xml.etree.ElementTree as ET
 
+try:
+    sys.stdout.reconfigure(encoding='utf-8')   # Windows console is cp1252 by default
+except Exception:
+    pass
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCRIPT = os.path.join(HERE, 'ma2_tc_cut.py')
 DEMO = os.path.join(HERE, 'examples', 'demo_tc.xml')
@@ -112,6 +117,6 @@ os.rmdir(tmp)
 
 print()
 if fails:
-    print(f"FAILED: {len(fails)} checks — {fails}")
+    print(f"FAILED: {len(fails)} checks - {fails}")
     sys.exit(1)
-print("ALL GREEN ✓")
+print("ALL GREEN")

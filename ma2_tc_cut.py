@@ -107,6 +107,10 @@ def ripple_cut(text, cut_in, cut_len):
 
 
 def main():
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')   # so non-ASCII cue names don't crash the Windows console
+    except Exception:
+        pass
     ap = argparse.ArgumentParser(
         description='Ripple-cut a window out of a grandMA2 timecode show (byte-exact XML).')
     ap.add_argument('infile')
