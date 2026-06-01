@@ -11,7 +11,7 @@ a = Analysis(
     ['gui.py'],
     pathex=[],
     binaries=[],
-    datas=[('assets/logo_src.png', 'assets')],
+    datas=[('assets/logo_src.png', 'assets'), ('assets/icon_1024.png', 'assets')],
     # miniaudio is imported lazily inside functions, so name it explicitly;
     # QtMultimedia + its audio backend are pulled in by the PySide6 hook.
     hiddenimports=['miniaudio', 'PySide6.QtMultimedia'],
@@ -30,6 +30,7 @@ exe = EXE(
     strip=False,
     upx=False,
     console=False,          # GUI / windowed app (no console window on Windows)
+    icon='assets/icon.ico', # Windows taskbar / .exe icon
 )
 
 coll = COLLECT(
@@ -45,6 +46,7 @@ if sys.platform == 'darwin':
     app = BUNDLE(
         coll,
         name=f"{APP}.app",
+        icon='assets/icon.icns',
         bundle_identifier="studio.oje.ma2tccut",
         info_plist={
             'NSHighResolutionCapable': True,

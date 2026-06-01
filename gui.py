@@ -334,10 +334,10 @@ class MainWindow(QMainWindow):
 
         # info line divides the timeline from the action blocks
         infrow = QHBoxLayout()
-        self.info_label = QLabel("Drop a show .xml on the cue area and an audio file on the waveform")
+        self.info_label = QLabel("No show loaded")
         self.info_label.setFont(mono_font(theme.FONT_SM)); self.info_label.setStyleSheet(f"color: {theme.TEXT_MUTED};")
         infrow.addWidget(self.info_label); infrow.addStretch(1)
-        self.tip_label = QLabel("↑ drop .xml / audio to load · click empty areas to browse · click to scrub")
+        self.tip_label = QLabel("↑ drop a show .xml on the cues, audio on the waveform · or click to browse")
         self.tip_label.setFont(sans_font(10)); self.tip_label.setStyleSheet(f"color: {theme.TEXT_MUTED};")
         infrow.addWidget(self.tip_label)
         v.addLayout(infrow)
@@ -395,7 +395,7 @@ class MainWindow(QMainWindow):
         v.addLayout(rowL)
 
         bar = QFrame(); bl = QHBoxLayout(bar); bl.setContentsMargins(16, 8, 16, 8); bl.setSpacing(10)
-        self.b_cut = QPushButton("CUT !"); self.b_cut.clicked.connect(self.apply_cut)
+        self.b_cut = QPushButton("CUT!"); self.b_cut.clicked.connect(self.apply_cut)
         self.b_cut.setStyleSheet(primary_btn_qss(theme.ACTION_PRIMARY, theme.ACTION_PRIMARY_HOVER, "#28A85E"))
         self.b_uncut = QPushButton("UNCUT"); self.b_uncut.clicked.connect(self.uncut); self.b_uncut.setEnabled(False)
         self.b_savefile = QPushButton("SAVE FILE"); self.b_savefile.clicked.connect(self.save_file)
@@ -484,7 +484,7 @@ class MainWindow(QMainWindow):
         info = tcshow.summary(self.text); lanes = tcshow.lanes(self.text)
         self.info, self.fps, self.anchor = info, info['fps'], info['first_frame']
         self.info_label.setText(
-            f"{info['name']} · {info['fps']} FPS · {info['first_tc']}–{info['last_tc']} · {info['n_events']} ev / {info['n_subtracks']} trk")
+            f"{info['name']} · {info['fps']} FPS · {info['first_tc']}–{info['last_tc']} · {info['n_events']} cues · {info['n_subtracks']} tracks")
         self.timeline.set_show(info['fps'], lanes, info['first_frame'], info['last_frame'],
                                name=os.path.basename(self.in_path or ""))
         self.timeline.set_grid(self.applied_bpm, self.anchor)
@@ -552,7 +552,7 @@ class MainWindow(QMainWindow):
         res = tcshow.estimate_beat(self.text)
         if res:
             _, bpm = res; self.bpm.setText(f"{bpm:.2f}"); self.applied_bpm = round(bpm, 2)
-            self.bpm_hint.setText(f"auto ≈ {bpm:.1f} BPM (from the cue grid) — type a value and Set to override")
+            self.bpm_hint.setText(f"≈ {bpm:.1f} BPM detected from the cues · type a value + Set to override")
         else:
             self.applied_bpm = 0.0; self.bpm_hint.setText("Couldn't auto-detect BPM — type the track BPM and press Set.")
         self._after_bpm()
@@ -659,8 +659,9 @@ class MainWindow(QMainWindow):
         self._reload_working(); self.timeline.set_cut(None, None)
         self.cin.set_frames(self.anchor, self.fps); self.cout.set_frames(self.anchor, self.fps)
         self.b_uncut.setEnabled(True); self._refresh_save()
+        n = len(self._undo)
         self.report.setPlainText(self._report_text(cut_in, cut_len, deleted, shifted,
-                                 f"✓ CUT APPLIED  (UNCUT to undo · {len(self._undo)} stacked)\n"))
+                                 f"✓ CUT APPLIED · UNCUT to undo ({n} cut{'s' if n != 1 else ''})\n"))
         self.status.setText(f"cut applied · {len(deleted)} deleted · {shifted} shifted")
 
     def uncut(self):
@@ -668,7 +669,8 @@ class MainWindow(QMainWindow):
             return
         self.text = self._undo.pop(); self._reload_working(); self.timeline.set_cut(None, None)
         self.b_uncut.setEnabled(bool(self._undo)); self._refresh_save()
-        self.report.setPlainText("Reverted last cut." + (f"  ({len(self._undo)} stacked)" if self._undo else ""))
+        n = len(self._undo)
+        self.report.setPlainText("Reverted last cut." + (f"  ({n} cut{'s' if n != 1 else ''} left)" if n else ""))
         self.status.setText("reverted")
 
     def _refresh_save(self):
@@ -688,7 +690,7 @@ class MainWindow(QMainWindow):
         if not out_path.lower().endswith(".xml"):
             out_path += ".xml"
         if os.path.abspath(out_path) == os.path.abspath(self.in_path):
-            QMessageBox.warning(self, "Output", "Refusing to overwrite the original."); return
+            QMessageBox.warning(self, "Output", "Won't overwrite the original — choose a different name."); return
         try:
             data = (b'\xef\xbb\xbf' if self.has_bom else b'') + self.text.encode('utf-8')
             with open(out_path, 'wb') as fh:
@@ -696,7 +698,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Couldn't save", str(e)); return
         base = os.path.splitext(os.path.basename(out_path))[0]
-        QMessageBox.information(self, "Saved",
+        QMessageBox.information(self, "Cut saved",
             f"Saved:\n{out_path}\n\nImport into grandMA2 (empty slot, filename first, no .xml):\n\n"
             f'    Import \"{base}\" At Timecode <N>')
         self.status.setText(f"saved {os.path.basename(out_path)}")
@@ -741,6 +743,7 @@ def make_window():
 
 def main():
     app = QApplication(sys.argv); app.setApplicationName(APP_NAME); app.setFont(sans_font(theme.FONT_BASE))
+    app.setWindowIcon(QIcon(asset_path("icon_1024.png")))
     w = make_window(); w.show()
     for arg in sys.argv[1:]:
         if os.path.isfile(arg):

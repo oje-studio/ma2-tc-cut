@@ -70,6 +70,10 @@ pip install -r requirements-gui.txt
 pyinstaller --noconfirm MA2TimecodeCut.spec   # -> dist/
 ```
 
+The app icon ships pre-built in `assets/` (`.icns` for macOS, `.ico` for
+Windows). To regenerate it after editing the source, run
+`python assets/build_icon.py` (needs Pillow, already in `requirements-gui.txt`).
+
 The CLI below stays dependency-free for show laptops; the GUI is just a layer on
 top of the same core.
 

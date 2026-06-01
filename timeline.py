@@ -307,7 +307,7 @@ class TimelineWidget(QWidget):
         if not self.audio_peaks:
             p.setFont(sans_font(theme.FONT_SM)); p.setPen(QColor(theme.TEXT_MUTED))
             p.drawText(LBL_W, int(top), W - PAD_R - LBL_W, audio_h, Qt.AlignCenter,
-                       "click or drop an audio file here")
+                       "Click or drop an audio file here")
             return
         yc = top + audio_h / 2; half = audio_h / 2 - 5
         m = len(self.audio_peaks)
