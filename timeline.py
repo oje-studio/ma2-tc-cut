@@ -15,11 +15,12 @@ import theme
 from fonts import mono_font, sans_font
 
 LBL_W = 134
-AXIS_H = 26
+AXIS_H = 30
 PAD_R = 14
 LANE_MIN = 28
 AUDIO_H = 54
 BARS_H = 18
+HANDLE_H = 11
 GRID_BAR = "#343434"
 GRID_PHRASE = "#4a4a4a"
 AUDIO_EXT = (".wav", ".mp3", ".flac", ".ogg", ".aif", ".aiff", ".m4a")
@@ -44,6 +45,7 @@ class TimelineWidget(QWidget):
     showRequested = Signal()
     audioRequested = Signal()
     fileDropped = Signal(str)
+    cutDragged = Signal(int, int)        # cut window moved by its handle (cut_in, cut_out)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -64,6 +66,8 @@ class TimelineWidget(QWidget):
         self._prev_ph = None
         self._flash = {}
         self._audio_top = None
+        self._win_drag = None
+        self._drag_mode = None        # 'move' | 'left' | 'right'
         self._flash_timer = QTimer(self)
         self._flash_timer.setInterval(45)
         self._flash_timer.timeout.connect(self._decay)
@@ -180,7 +184,7 @@ class TimelineWidget(QWidget):
 
         if not self.lanes:
             self._audio_top = None
-            p.setPen(QColor(theme.TEXT_DIM)); p.setFont(sans_font(13))
+            p.setPen(QColor(theme.TEXT_MUTED)); p.setFont(sans_font(13))
             p.drawText(self.rect(), Qt.AlignCenter, "Click or drop a grandMA2 timecode .xml here")
             p.end(); return
 
@@ -205,13 +209,17 @@ class TimelineWidget(QWidget):
 
         if bf > 0:
             self._draw_grid_lines(p, grid_bottom, bf)
-        self._draw_tc_ruler(p, W, plot_w, grid_bottom)
+        # when the bar grid is on it provides the vertical lines; the TC ruler
+        # then draws labels only (no full-height lines) so they don't double up
+        self._draw_tc_ruler(p, W, plot_w, grid_bottom, draw_lines=(bf <= 0))
 
-        # show filename in the top-left gutter
+        # top-left gutter: CUES label + show filename (mirrors the AUDIO band)
+        p.setFont(sans_font(theme.FONT_SM)); p.setPen(QColor(theme.OPERATOR_LIGHTING))
+        p.drawText(10, 4, LBL_W - 14, 13, Qt.AlignVCenter | Qt.AlignLeft, "CUES")
         if self.show_name:
-            p.setFont(sans_font(theme.FONT_XS)); p.setPen(QColor(theme.TEXT_DIM))
+            p.setFont(sans_font(theme.FONT_XS)); p.setPen(QColor(theme.TEXT_MUTED))
             nm = QFontMetrics(p.font()).elidedText(self.show_name, Qt.ElideMiddle, LBL_W - 14)
-            p.drawText(10, 2, LBL_W - 14, AXIS_H - 4, Qt.AlignVCenter | Qt.AlignLeft, nm)
+            p.drawText(10, 17, LBL_W - 14, 13, Qt.AlignVCenter | Qt.AlignLeft, nm)
 
         for i, lane in enumerate(self.lanes):
             y0 = AXIS_H + i * lane_h
@@ -254,7 +262,7 @@ class TimelineWidget(QWidget):
 
     def _draw_bars_ruler(self, p, W, y, h, bf):
         p.setPen(QPen(QColor(theme.BORDER_SUBTLE), 1)); p.drawLine(LBL_W, int(y), W - PAD_R, int(y))
-        p.setFont(sans_font(theme.FONT_XS)); p.setPen(QColor(theme.TEXT_DIM))
+        p.setFont(sans_font(theme.FONT_XS)); p.setPen(QColor(theme.TEXT_MUTED))
         p.drawText(10, int(y), LBL_W - 14, h, Qt.AlignVCenter | Qt.AlignLeft, "BARS")
         bar_px = bf / (self.last - self.first) * self._plot_w()
         step = next((s for s in (1, 2, 4, 8, 16, 32, 64) if s * bar_px >= 34), 64)
@@ -263,21 +271,22 @@ class TimelineWidget(QWidget):
         while fr <= self.last + bf:
             if fr >= self.first and k % step == 0:
                 x = self._x(fr)
-                p.setPen(QColor(theme.TEXT_MUTED if k % 4 == 0 else theme.TEXT_DIM))
+                p.setPen(QColor(theme.TEXT_PRIMARY if k % 4 == 0 else theme.TEXT_MUTED))
                 p.drawText(int(x) + 3, int(y), 40, h, Qt.AlignVCenter | Qt.AlignLeft, str(k + 1))
             k += 1; fr = self.anchor + k * bf
 
-    def _draw_tc_ruler(self, p, W, plot_w, grid_bottom):
+    def _draw_tc_ruler(self, p, W, plot_w, grid_bottom, draw_lines=True):
         p.setFont(mono_font(theme.FONT_XS)); fm = QFontMetrics(p.font()); last_right = -1e9
         for i in range(7):
             fr = self.first + (self.last - self.first) * i / 6
             x = LBL_W + plot_w * i / 6
-            p.setPen(QPen(QColor(theme.BORDER_SUBTLE), 1)); p.drawLine(int(x), AXIS_H, int(x), int(grid_bottom))
+            if draw_lines:
+                p.setPen(QPen(QColor(theme.BORDER_SUBTLE), 1)); p.drawLine(int(x), AXIS_H, int(x), int(grid_bottom))
             label = _tc(fr, self.fps); tw = fm.horizontalAdvance(label)
             tx = LBL_W if i == 0 else (int(W - PAD_R - tw) if i == 6 else int(x - tw / 2))
             if tx <= last_right + 6:
                 continue
-            p.setPen(QColor(theme.TEXT_DIM)); p.drawText(tx, AXIS_H - 9, label); last_right = tx + tw
+            p.setPen(QColor(theme.TEXT_MUTED)); p.drawText(tx, AXIS_H - 9, label); last_right = tx + tw
 
     def _draw_lane_label(self, p, i, y0, lane_h, name):
         level = self._flash.get(i, 0.0)
@@ -292,11 +301,11 @@ class TimelineWidget(QWidget):
         p.setFont(sans_font(theme.FONT_SM)); p.setPen(QColor(theme.OPERATOR_AUDIO))
         p.drawText(10, int(top) + 4, LBL_W - 14, 16, Qt.AlignLeft, "AUDIO")
         if self.audio_name:
-            p.setFont(sans_font(theme.FONT_XS)); p.setPen(QColor(theme.TEXT_DIM))
+            p.setFont(sans_font(theme.FONT_XS)); p.setPen(QColor(theme.TEXT_MUTED))
             nm = QFontMetrics(p.font()).elidedText(self.audio_name, Qt.ElideMiddle, LBL_W - 14)
             p.drawText(10, int(top) + 20, LBL_W - 14, 16, Qt.AlignLeft, nm)
         if not self.audio_peaks:
-            p.setFont(sans_font(theme.FONT_SM)); p.setPen(QColor(theme.TEXT_DIM))
+            p.setFont(sans_font(theme.FONT_SM)); p.setPen(QColor(theme.TEXT_MUTED))
             p.drawText(LBL_W, int(top), W - PAD_R - LBL_W, audio_h, Qt.AlignCenter,
                        "click or drop an audio file here")
             return
@@ -327,16 +336,24 @@ class TimelineWidget(QWidget):
         edge = QColor(theme.SEMANTIC_DANGER); xa, xb = self._x(a), self._x(b)
         for x in (xa, xb):
             p.setPen(QPen(edge, 2)); p.drawLine(int(x), AXIS_H, int(x), H - 4)
+        # draggable handle bar across the top of the window
+        p.setBrush(edge); p.setPen(Qt.NoPen)
+        p.drawRect(QRectF(xa, AXIS_H, max(2.0, xb - xa), HANDLE_H))
+        cxm = (xa + xb) / 2
+        p.setBrush(QColor(theme.with_alpha(theme.TEXT_BRIGHT, 0.9)))
+        for dx in (-4, 0, 4):
+            p.drawEllipse(QPointF(cxm + dx, AXIS_H + HANDLE_H / 2), 1.0, 1.0)
+        ly = AXIS_H + HANDLE_H + 12
         p.setFont(mono_font(theme.FONT_XS, bold=True)); fm = QFontMetrics(p.font()); p.setPen(edge)
         la, lb = _tc(a, self.fps), _tc(b, self.fps)
         ax = int(xa - 4 - fm.horizontalAdvance(la))
         if ax < LBL_W + 2:
             ax = int(xa + 4)
-        p.drawText(ax, AXIS_H + 12, la)
+        p.drawText(ax, ly, la)
         bx = int(xb + 4)
         if bx + fm.horizontalAdvance(lb) > W - PAD_R:
             bx = int(xb - 4 - fm.horizontalAdvance(lb))
-        p.drawText(bx, AXIS_H + 12, lb)
+        p.drawText(bx, ly, lb)
         length = b - a; chip = f"-{length}f / {length / self.fps:.2f}s"
         cw = fm.horizontalAdvance(chip)
         cx = min(max((xa + xb) / 2 - cw / 2, LBL_W + 2), W - PAD_R - cw)
@@ -348,21 +365,64 @@ class TimelineWidget(QWidget):
         return None
 
     # ---------- interaction ----------
+    def _handle_zone(self, x, y):
+        """Which part of the cut-window handle is under the cursor: left / right edge
+        (resize) or middle (move). None if not over the handle."""
+        win = self._window()
+        if not win:
+            return None
+        xa, xb = self._x(win[0]), self._x(win[1])
+        if not (AXIS_H <= y <= AXIS_H + HANDLE_H and xa - 4 <= x <= xb + 4):
+            return None
+        edge = min(9.0, (xb - xa) / 2)
+        if x <= xa + edge:
+            return 'left'
+        if x >= xb - edge:
+            return 'right'
+        return 'move'
+
     def mousePressEvent(self, e):
         if not self.lanes:
             self.showRequested.emit(); return
         x, y = e.position().x(), e.position().y()
         if x < LBL_W:
             return
+        zone = self._handle_zone(x, y)
+        if zone:
+            self._drag_mode = zone
+            self._win_drag = self._frame_at(x) - self.cut_in
+            self.setCursor(Qt.ClosedHandCursor if zone == 'move' else Qt.SizeHorCursor)
+            return
         in_audio = self._audio_top is not None and y >= self._audio_top
         if in_audio and not self.audio_peaks:
             self.audioRequested.emit(); return
-        if self.audio_peaks:
-            self.seekRequested.emit(self._snap(self._frame_at(x)))
+        self.seekRequested.emit(self._snap(self._frame_at(x)))
 
     def mouseMoveEvent(self, e):
-        if self.audio_peaks and (e.buttons() & Qt.LeftButton) and e.position().x() >= LBL_W:
-            self.seekRequested.emit(self._snap(self._frame_at(e.position().x())))
+        x, y = e.position().x(), e.position().y()
+        if self._drag_mode and (e.buttons() & Qt.LeftButton):
+            f = self._snap(self._frame_at(x))
+            if self._drag_mode == 'move':
+                length = self.cut_out - self.cut_in
+                new_in = max(self.first, min(self._snap(self._frame_at(x) - self._win_drag), self.last - length))
+                self.cut_in, self.cut_out = new_in, new_in + length
+            elif self._drag_mode == 'left':
+                self.cut_in = max(self.first, min(f, self.cut_out - 1))
+            else:  # 'right'
+                self.cut_out = min(self.last, max(f, self.cut_in + 1))
+            self.update()
+            self.cutDragged.emit(self.cut_in, self.cut_out)
+            return
+        z = self._handle_zone(x, y)
+        self.setCursor(Qt.OpenHandCursor if z == 'move' else
+                       (Qt.SizeHorCursor if z in ('left', 'right') else Qt.ArrowCursor))
+        if (e.buttons() & Qt.LeftButton) and x >= LBL_W:
+            self.seekRequested.emit(self._snap(self._frame_at(x)))
+
+    def mouseReleaseEvent(self, e):
+        if self._drag_mode:
+            self._drag_mode = self._win_drag = None
+            self.setCursor(Qt.ArrowCursor)
 
     def dragEnterEvent(self, e):
         if e.mimeData().hasUrls():

@@ -14,12 +14,13 @@ from PySide6.QtMultimedia import QAudioFormat, QAudioSink, QMediaDevices, QAudio
 
 
 class ClickMixDevice(QIODevice):
-    def __init__(self, samples, sr, ch):
+    def __init__(self, samples, sr, ch, min_frames=0):
         super().__init__()
-        self.samples = samples
+        self.samples = samples                   # may be None (pure silence)
         self.sr = sr
         self.ch = ch
-        self.total = len(samples) // ch          # frames
+        self.audio_total = (len(samples) // ch) if samples is not None else 0
+        self.total = max(self.audio_total, int(min_frames))   # play to the longer of show/audio
         self.cursor = 0
         self.metro_on = False
         self.beat = 0.0                           # frames per beat
@@ -59,7 +60,14 @@ class ClickMixDevice(QIODevice):
             return bytes()
         nf = max(1, int(maxlen) // (2 * self.ch))
         end = min(self.cursor + nf, self.total)
-        chunk = array.array('h', self.samples[self.cursor * self.ch:end * self.ch])
+        if self.samples is not None and self.cursor < self.audio_total:
+            aend = min(end, self.audio_total)
+            chunk = array.array('h', self.samples[self.cursor * self.ch:aend * self.ch])
+            if aend < end:
+                chunk.frombytes(bytes(2 * self.ch * (end - aend)))      # pad silence past the audio
+        else:
+            chunk = array.array('h')
+            chunk.frombytes(bytes(2 * self.ch * (end - self.cursor)))   # pure silence
         if self.metro_on and self.beat > 0:
             # a click that began in a previous buffer and spills into this one
             kp = int(self.cursor // self.beat)
@@ -99,16 +107,21 @@ class AudioEngine(QObject):
         self._timer.setInterval(33)
         self._timer.timeout.connect(self._tick)
 
-    def load(self, samples, sr, ch):
+    def load(self, samples, sr, ch, min_frames=0):
         self.stop()
         self.sr, self.ch = sr, ch
         fmt = QAudioFormat()
         fmt.setSampleRate(sr)
         fmt.setChannelCount(ch)
         fmt.setSampleFormat(QAudioFormat.SampleFormat.Int16)
-        self.dev = ClickMixDevice(samples, sr, ch)
+        self.dev = ClickMixDevice(samples, sr, ch, min_frames)
         self.dev.open(QIODevice.ReadOnly)
         self.sink = QAudioSink(QMediaDevices.defaultAudioOutput(), fmt)
+
+    def load_silent(self, total_frames, sr=44100, ch=2):
+        """A silent stream of `total_frames` — lets Play / metronome / playhead
+        run even before any audio file is loaded."""
+        self.load(None, sr, ch, total_frames)
 
     def set_volume(self, g):
         if self.sink:

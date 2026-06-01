@@ -10,9 +10,11 @@ to preview the edit on the file, then SAVE FILE.
 import os
 import sys
 
-from PySide6.QtCore import Qt, QTimer, QPointF
+import math
+
+from PySide6.QtCore import Qt, QTimer, QPointF, QRectF, Signal
 from PySide6.QtGui import (QPixmap, QPainter, QColor, QShortcut, QKeySequence,
-                           QIcon, QPolygonF, QPen)
+                           QIcon, QPolygonF, QPen, QDoubleValidator)
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QGroupBox, QLabel, QLineEdit, QPushButton, QFileDialog, QPlainTextEdit,
@@ -96,6 +98,14 @@ def dot_sep():
     s = QLabel("·"); s.setStyleSheet(f"color: {theme.TEXT_DIM}; font-size: 18px;"); return s
 
 
+def panel():
+    """A titleless surface card (replaces QGroupBox where the label is redundant)."""
+    f = QFrame(); f.setObjectName("panel")
+    f.setStyleSheet(f"QFrame#panel {{ background: {theme.BG_SURFACE}; "
+                    f"border: 1px solid {theme.BORDER_SUBTLE}; border-radius: {theme.RADIUS_LG}px; }}")
+    return f
+
+
 def build_qss():
     t = theme
     return f"""
@@ -129,6 +139,85 @@ def primary_btn_qss(bg, hover, press):
             f"border:none;border-radius:{theme.RADIUS_MD}px;padding:10px 14px;}}"
             f"QPushButton:hover{{background:{hover};}}QPushButton:pressed{{background:{press};}}"
             f"QPushButton:disabled{{background:{theme.BG_RAISED};color:{theme.TEXT_DISABLED};}}")
+
+
+def secondary_btn_qss():
+    t = theme
+    return (f"QPushButton{{background:{t.BG_RAISED};color:{t.TEXT_MUTED};font-weight:600;"
+            f"border:1px solid {t.BORDER};border-radius:{t.RADIUS_MD}px;padding:10px 14px;}}"
+            f"QPushButton:hover{{background:#2e2e2e;border-color:{t.BORDER_STRONG};}}"
+            f"QPushButton:disabled{{color:{t.TEXT_DISABLED};border-color:{t.BORDER_SUBTLE};}}")
+
+
+def seg_qss():
+    t = theme
+    return (f"QPushButton{{background:{t.BG_RAISED};color:{t.TEXT_MUTED};"
+            f"border:1px solid {t.BORDER};border-radius:{t.RADIUS_SM}px;padding:5px 11px;}}"
+            f"QPushButton:hover{{border-color:{t.BORDER_STRONG};}}"
+            f"QPushButton:checked{{background:{t.with_alpha(t.SEMANTIC_INFO, 0.16)};"
+            f"color:{t.SEMANTIC_INFO};border-color:{t.SEMANTIC_INFO};}}")
+
+
+def seg_button(text, tip=""):
+    b = QPushButton(text); b.setCheckable(True); b.setStyleSheet(seg_qss()); b.setFont(sans_font(theme.FONT_BASE))
+    if tip:
+        b.setToolTip(tip)
+    return b
+
+
+class VolumeKnob(QWidget):
+    """Flat themed rotary knob, 0–200% with a center detent at 100%."""
+    valueChanged = Signal(int)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._val = 100
+        self.setFixedSize(40, 40)
+        self.setCursor(Qt.SizeVerCursor)
+        self._drag_y = None
+        self._drag_v = 100
+
+    def value(self):
+        return self._val
+
+    def setValue(self, v):
+        v = max(0, min(200, int(round(v))))
+        if v != self._val:
+            self._val = v
+            self.valueChanged.emit(v)
+        self.update()
+
+    def mousePressEvent(self, e):
+        self._drag_y = e.position().y(); self._drag_v = self._val
+
+    def mouseMoveEvent(self, e):
+        if self._drag_y is not None:
+            self.setValue(self._drag_v + (self._drag_y - e.position().y()) * 1.5)
+
+    def mouseReleaseEvent(self, e):
+        self._drag_y = None
+
+    def mouseDoubleClickEvent(self, e):
+        self.setValue(100)
+
+    def wheelEvent(self, e):
+        self.setValue(self._val + (5 if e.angleDelta().y() > 0 else -5))
+
+    def paintEvent(self, _):
+        p = QPainter(self); p.setRenderHint(QPainter.Antialiasing, True)
+        r = QRectF(self.rect()).adjusted(4, 4, -4, -4)
+        frac = self._val / 200.0
+        # 270° track, 7:30 (225°) clockwise to 4:30 (-45°)
+        pen = QPen(QColor(theme.BORDER), 3); pen.setCapStyle(Qt.RoundCap); p.setPen(pen)
+        p.drawArc(r, 225 * 16, -270 * 16)
+        accent = theme.SEMANTIC_INFO if self._val == 100 else (theme.ACTION_PRIMARY if self._val < 100 else theme.SEMANTIC_WARNING)
+        pen2 = QPen(QColor(accent), 3); pen2.setCapStyle(Qt.RoundCap); p.setPen(pen2)
+        p.drawArc(r, 225 * 16, int(-270 * frac) * 16)
+        ang = math.radians(225 - 270 * frac)
+        cx, cy = r.center().x(), r.center().y(); rr = r.width() / 2 - 2
+        px, py = cx + rr * math.cos(ang), cy - rr * math.sin(ang)
+        p.setBrush(QColor(theme.TEXT_BRIGHT)); p.setPen(Qt.NoPen)
+        p.drawEllipse(QPointF(px, py), 3, 3)
 
 
 class MainWindow(QMainWindow):
@@ -165,7 +254,10 @@ class MainWindow(QMainWindow):
         header = QFrame(); header.setStyleSheet(f"background: {theme.BG_HEADER};")
         hv = QVBoxLayout(header); hv.setContentsMargins(16, 8, 16, 8); hv.setSpacing(8)
 
-        r1 = QHBoxLayout(); r1.addWidget(brand_mark()); r1.addStretch(1)
+        # brand · transport + metronome (left-center) · snap · volume (far right)
+        r1 = QHBoxLayout(); r1.setSpacing(8)
+        r1.addWidget(brand_mark()); r1.addStretch(1)
+
         self.play_btn = QPushButton("▶"); self.play_btn.setFixedWidth(44); self.play_btn.clicked.connect(self._toggle_play)
         r1.addWidget(self.play_btn); r1.addWidget(dot_sep())
         self.tc_label = QLabel(DASH_TC); self.tc_label.setFont(mono_font(theme.FONT_TC, bold=True))
@@ -174,41 +266,36 @@ class MainWindow(QMainWindow):
         self.bar_label = QLabel(""); self.bar_label.setFont(mono_font(theme.FONT_SM, bold=True))
         self.bar_label.setStyleSheet(f"color: {theme.SEMANTIC_INFO}; letter-spacing: 1px;"); self.bar_label.setMinimumWidth(80)
         r1.addWidget(self.bar_label)
-        hv.addLayout(r1)
-
-        r2 = QHBoxLayout(); r2.setSpacing(8)
-        r2.addWidget(self._mk("Snap", theme.TEXT_MUTED))
-        self.snap_grp = QButtonGroup(self)
-        seg = (f"QPushButton{{background:{theme.BG_RAISED};color:{theme.TEXT_MUTED};"
-               f"border:1px solid {theme.BORDER};border-radius:{theme.RADIUS_SM}px;padding:4px 9px;}}"
-               f"QPushButton:checked{{background:{theme.with_alpha(theme.SEMANTIC_INFO, 0.16)};"
-               f"color:{theme.SEMANTIC_INFO};border-color:{theme.SEMANTIC_INFO};}}")
-        for mode, glyph, tip in [("off", "○", "No snap"), ("bar", "▮", "Snap to bar"),
-                                 ("beat", "♩", "Snap to beat"), ("sec", "⏱", "Snap to second")]:
-            b = QPushButton(glyph); b.setCheckable(True); b.setToolTip(tip); b.setStyleSheet(seg)
-            b.setFont(sans_font(theme.FONT_MD))
-            b.clicked.connect(lambda _=False, mm=mode: self.timeline.set_snap(mm))
-            self.snap_grp.addButton(b); r2.addWidget(b)
-            if mode == "off":
-                b.setChecked(True)
-        r2.addSpacing(10)
+        r1.addSpacing(8)
         self.metro = QPushButton(); self.metro.setCheckable(True); self.metro.setEnabled(False)
         self.metro.setIcon(QIcon(metro_icon(theme.TEXT_MUTED))); self.metro.setToolTip("Metronome (click mixed into the song)")
         self.metro.setStyleSheet(
             f"QPushButton{{background:{theme.BG_RAISED};border:1px solid {theme.BORDER};"
             f"border-radius:{theme.RADIUS_SM}px;padding:4px 10px;}}"
             f"QPushButton:checked{{background:{theme.SEMANTIC_WARNING};border-color:{theme.SEMANTIC_WARNING};}}")
-        self.metro.toggled.connect(self._on_metro_toggled); r2.addWidget(self.metro)
-        r2.addSpacing(10); r2.addWidget(self._mk("Vol", theme.TEXT_MUTED))
-        self.vol = QDial(); self.vol.setRange(0, 200); self.vol.setValue(100)
-        self.vol.setNotchesVisible(True); self.vol.setWrapping(False); self.vol.setFixedSize(38, 38)
-        self.vol.valueChanged.connect(self._on_volume); r2.addWidget(self.vol)
+        self.metro.toggled.connect(self._on_metro_toggled); r1.addWidget(self.metro)
+        r1.addStretch(1)
+
+        r1.addWidget(self._mk("Snap", theme.TEXT_MUTED))
+        self.snap_grp = QButtonGroup(self)
+        snapseg = (f"QPushButton{{background:{theme.BG_RAISED};color:{theme.TEXT_MUTED};"
+                   f"border:1px solid {theme.BORDER};border-radius:{theme.RADIUS_SM}px;padding:4px 9px;}}"
+                   f"QPushButton:hover{{border-color:{theme.BORDER_STRONG};}}"
+                   f"QPushButton:checked{{background:{theme.with_alpha(theme.SEMANTIC_INFO, 0.16)};"
+                   f"color:{theme.SEMANTIC_INFO};border-color:{theme.SEMANTIC_INFO};}}")
+        for mode, glyph, tip in [("off", "○", "No snap"), ("bar", "▮", "Snap to bar"),
+                                 ("beat", "♩", "Snap to beat"), ("sec", "⏱", "Snap to second")]:
+            b = QPushButton(glyph); b.setCheckable(True); b.setToolTip(tip); b.setStyleSheet(snapseg)
+            b.setFont(sans_font(theme.FONT_MD))
+            b.clicked.connect(lambda _=False, mm=mode: self.timeline.set_snap(mm))
+            self.snap_grp.addButton(b); r1.addWidget(b)
+            if mode == "off":
+                b.setChecked(True)
+        r1.addSpacing(16); r1.addWidget(self._mk("Vol", theme.TEXT_MUTED))
+        self.vol = VolumeKnob(); self.vol.valueChanged.connect(self._on_volume); r1.addWidget(self.vol)
         self.vol_lbl = QLabel("100%"); self.vol_lbl.setFont(mono_font(theme.FONT_XS))
-        self.vol_lbl.setStyleSheet(f"color: {theme.TEXT_MUTED};"); self.vol_lbl.setFixedWidth(40); r2.addWidget(self.vol_lbl)
-        r2.addStretch(1)
-        self.info_label = QLabel("Drop a show .xml and an audio file below"); self.info_label.setFont(mono_font(theme.FONT_SM))
-        self.info_label.setStyleSheet(f"color: {theme.TEXT_MUTED};"); r2.addWidget(self.info_label)
-        hv.addLayout(r2)
+        self.vol_lbl.setStyleSheet(f"color: {theme.TEXT_MUTED};"); self.vol_lbl.setFixedWidth(40); r1.addWidget(self.vol_lbl)
+        hv.addLayout(r1)
         outer.addWidget(header)
 
         body = QWidget(); v = QVBoxLayout(body); v.setContentsMargins(16, 12, 16, 10); v.setSpacing(12)
@@ -220,26 +307,37 @@ class MainWindow(QMainWindow):
         self.timeline.showRequested.connect(self.browse_input)
         self.timeline.audioRequested.connect(lambda: self.load_audio())
         self.timeline.fileDropped.connect(self._on_drop)
-        v.addWidget(self.timeline)
-        tip = QLabel("⤓  Drop a show .xml or an audio file anywhere on the timeline to load / replace "
-                     "· click empty areas to browse · click to scrub")
-        tip.setFont(sans_font(10)); tip.setStyleSheet(f"color: {theme.TEXT_DIM};")
-        v.addWidget(tip)
+        self.timeline.cutDragged.connect(self._on_cut_dragged)
+        v.addWidget(self.timeline, 1)
+
+        # info line divides the timeline from the action blocks
+        infrow = QHBoxLayout()
+        self.info_label = QLabel("Drop a show .xml on the cue area and an audio file on the waveform")
+        self.info_label.setFont(mono_font(theme.FONT_SM)); self.info_label.setStyleSheet(f"color: {theme.TEXT_MUTED};")
+        infrow.addWidget(self.info_label); infrow.addStretch(1)
+        self.tip_label = QLabel("↑ drop .xml / audio to load · click empty areas to browse · click to scrub")
+        self.tip_label.setFont(sans_font(10)); self.tip_label.setStyleSheet(f"color: {theme.TEXT_DIM};")
+        infrow.addWidget(self.tip_label)
+        v.addLayout(infrow)
 
         rowL = QHBoxLayout(); rowL.setSpacing(12)
-        g_cut = QGroupBox("CUT WINDOW"); gc = QVBoxLayout(g_cut)
+        g_cut = panel(); gc = QVBoxLayout(g_cut); gc.setContentsMargins(22, 18, 22, 18); gc.setSpacing(12)
         modes = QHBoxLayout()
-        self.rb_tc = QRadioButton("By timecode"); self.rb_bars = QRadioButton("By bars"); self.rb_tc.setChecked(True)
+        self.rb_tc = seg_button("By timecode"); self.rb_bars = seg_button("By bars"); self.rb_tc.setChecked(True)
         mg = QButtonGroup(self); mg.addButton(self.rb_tc); mg.addButton(self.rb_bars)
         modes.addWidget(self.rb_tc); modes.addWidget(self.rb_bars); modes.addStretch(1); gc.addLayout(modes)
         self.stack = QStackedWidget()
-        pg_tc = QWidget(); ptc = QGridLayout(pg_tc); ptc.setContentsMargins(0, 4, 0, 0)
-        ptc.addWidget(QLabel("Cut in"), 0, 0); self.cin = TCField(); ptc.addWidget(self.cin, 0, 1, 1, 2)
-        self.rb_out = QRadioButton("Cut out"); self.rb_dur = QRadioButton("Duration"); self.rb_out.setChecked(True)
-        lg = QButtonGroup(self); lg.addButton(self.rb_out); lg.addButton(self.rb_dur)
+        pg_tc = QWidget(); ptc = QGridLayout(pg_tc); ptc.setContentsMargins(0, 8, 0, 0)
+        ptc.setVerticalSpacing(10); ptc.setHorizontalSpacing(12)
+        ptc.addWidget(self._mk("Cut in", theme.TEXT_MUTED), 0, 0); self.cin = TCField(); ptc.addWidget(self.cin, 0, 1)
+        lenrow = QHBoxLayout()
+        self.rb_out = seg_button("Cut out"); self.rb_dur = seg_button("Duration"); self.rb_out.setChecked(True)
+        llg = QButtonGroup(self); llg.addButton(self.rb_out); llg.addButton(self.rb_dur)
+        lenrow.addWidget(self.rb_out); lenrow.addWidget(self.rb_dur); lenrow.addStretch(1)
+        ptc.addWidget(self._mk("End by", theme.TEXT_MUTED), 1, 0); ptc.addLayout(lenrow, 1, 1)
         self.cout = TCField(); self.dur = QDoubleSpinBox(); self.dur.setRange(0.0, 36000.0); self.dur.setDecimals(3); self.dur.setSuffix(" s")
-        ptc.addWidget(self.rb_out, 1, 0); ptc.addWidget(self.cout, 1, 1, 1, 2)
-        ptc.addWidget(self.rb_dur, 2, 0); ptc.addWidget(self.dur, 2, 1, 1, 2); ptc.setColumnStretch(1, 1)
+        self.lenstack = QStackedWidget(); self.lenstack.addWidget(self.cout); self.lenstack.addWidget(self.dur)
+        ptc.addWidget(self.lenstack, 2, 1); ptc.setColumnStretch(1, 1)
         self.stack.addWidget(pg_tc)
         pg_b = QWidget(); pb = QGridLayout(pg_b); pb.setContentsMargins(0, 4, 0, 0)
         pb.addWidget(QLabel("From bar"), 0, 0); self.spin_from = QSpinBox(); self.spin_from.setRange(1, 99999); self.spin_from.setValue(1); pb.addWidget(self.spin_from, 0, 1)
@@ -247,8 +345,10 @@ class MainWindow(QMainWindow):
         self.bars_readout = QLabel(""); self.bars_readout.setFont(mono_font(theme.FONT_SM)); self.bars_readout.setStyleSheet(f"color: {theme.TEXT_DIM};")
         pb.addWidget(self.bars_readout, 2, 0, 1, 2); pb.setColumnStretch(1, 1); self.stack.addWidget(pg_b)
         gc.addWidget(self.stack)
-        bpmrow = QHBoxLayout(); bpmrow.addWidget(QLabel("BPM"))
-        self.bpm = QDoubleSpinBox(); self.bpm.setRange(0.0, 400.0); self.bpm.setDecimals(2); self.bpm.setSpecialValueText("—"); self.bpm.setFixedWidth(90)
+        bpmrow = QHBoxLayout(); bpmrow.addWidget(self._mk("BPM", theme.TEXT_MUTED))
+        self.bpm = QLineEdit(); self.bpm.setFont(mono_font(theme.FONT_MD)); self.bpm.setFixedWidth(116)
+        self.bpm.setPlaceholderText("—"); self.bpm.setValidator(QDoubleValidator(0.0, 400.0, 2))
+        self.bpm.returnPressed.connect(self._apply_bpm)
         self.b_set = QPushButton("Set"); self.b_set.clicked.connect(self._apply_bpm)
         self.b_autobpm = QPushButton("AUTO"); self.b_autobpm.setToolTip("Re-detect BPM from the cue grid")
         self.b_autobpm.setStyleSheet(
@@ -261,23 +361,24 @@ class MainWindow(QMainWindow):
         self.bpm_hint = QLabel(""); self.bpm_hint.setFont(sans_font(10)); self.bpm_hint.setWordWrap(True)
         self.bpm_hint.setStyleSheet(f"color: {theme.TEXT_DIM};"); gc.addWidget(self.bpm_hint); gc.addStretch(1)
         rowL.addWidget(g_cut, 0)
-        g_prev = QGroupBox("PREVIEW"); gp = QVBoxLayout(g_prev)
+        g_prev = panel(); gp = QVBoxLayout(g_prev); gp.setContentsMargins(16, 14, 16, 14)
         self.report = QPlainTextEdit(); self.report.setReadOnly(True); self.report.setFont(mono_font(theme.FONT_SM)); self.report.setMinimumHeight(220)
         gp.addWidget(self.report); rowL.addWidget(g_prev, 1)
-        v.addLayout(rowL); v.addStretch(1)
+        v.addLayout(rowL)
 
         bar = QFrame(); bl = QHBoxLayout(bar); bl.setContentsMargins(16, 8, 16, 8); bl.setSpacing(10)
         self.b_cut = QPushButton("CUT !"); self.b_cut.clicked.connect(self.apply_cut)
         self.b_cut.setStyleSheet(primary_btn_qss(theme.ACTION_PRIMARY, theme.ACTION_PRIMARY_HOVER, "#28A85E"))
         self.b_uncut = QPushButton("UNCUT"); self.b_uncut.clicked.connect(self.uncut); self.b_uncut.setEnabled(False)
         self.b_savefile = QPushButton("SAVE FILE"); self.b_savefile.clicked.connect(self.save_file)
-        self.b_savefile.setStyleSheet(primary_btn_qss(theme.SEMANTIC_INFO, "#93c5fd", "#5a96d6"))
         bl.addWidget(self.b_cut, 2); bl.addWidget(self.b_uncut, 1); bl.addWidget(self.b_savefile, 2)
+        self._refresh_save()
         outer.addWidget(bar)
 
         footer = QFrame(); footer.setStyleSheet(f"background: {theme.BG_HEADER};")
         fl = QHBoxLayout(footer); fl.setContentsMargins(16, 6, 16, 6)
-        cr = QLabel("ØJE STUDIO"); cr.setFont(sans_font(10)); cr.setStyleSheet(f"color: {theme.TEXT_DISABLED}; letter-spacing: 1px;")
+        cr = QLabel("© 2026 ØJE STUDIO · MA2 TIMECODE CUT v0.1.0 · MIT")
+        cr.setFont(sans_font(10)); cr.setStyleSheet(f"color: {theme.TEXT_DISABLED}; letter-spacing: 1px;")
         fl.addWidget(cr); fl.addStretch(1)
         self.status = QLabel(""); self.status.setFont(mono_font(theme.FONT_SM)); self.status.setStyleSheet(f"color: {theme.TEXT_MUTED};")
         fl.addWidget(self.status); outer.addWidget(footer)
@@ -299,12 +400,19 @@ class MainWindow(QMainWindow):
         if ok:
             self._on_mode(); self._on_len_mode()
 
+    def _fit_height(self):
+        """Grow the window's minimum height so the whole layout fits with no scroll
+        (the timeline's own minimum grows with the track count)."""
+        need = self.timeline.minimumHeight() + 560
+        self.setMinimumHeight(need)
+        if self.height() < need:
+            self.resize(self.width(), need)
+
     def _on_mode(self, *_):
         self.stack.setCurrentIndex(1 if self.rb_bars.isChecked() else 0); self._schedule()
 
     def _on_len_mode(self, *_):
-        out = self.rb_out.isChecked()
-        self.cout.setEnabled(out and self.text is not None); self.dur.setEnabled((not out) and self.text is not None); self._schedule()
+        self.lenstack.setCurrentIndex(0 if self.rb_out.isChecked() else 1); self._schedule()
 
     def _schedule(self, *_):
         if self.text is not None:
@@ -331,7 +439,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Can't read file", str(e)); return
         self.in_path, self.text, self.has_bom = path, text, has_bom
-        self._undo = []; self.b_uncut.setEnabled(False)
+        self._undo = []; self.b_uncut.setEnabled(False); self._refresh_save()
         self._reload_working(reset_audio=(self.audio_path is None))
         self._set_loaded(True); self._auto_bpm()
         self.cin.set_frames(self.anchor, self.fps); self.cout.set_frames(self.anchor, self.fps)
@@ -346,12 +454,26 @@ class MainWindow(QMainWindow):
                                name=os.path.basename(self.in_path or ""))
         self.timeline.set_grid(self.applied_bpm, self.anchor)
         if reset_audio:
-            self.audio_path = None; self._song = None; self.engine.stop()
-            self.timeline.clear_audio(); self.play_btn.setEnabled(False)
-            self.tc_label.setText(DASH_TC); self.bar_label.setText("")
+            self.audio_path = None; self._song = None
+            self.timeline.clear_audio()
         elif self.audio_path:
             self.timeline.set_audio(self.timeline.audio_peaks, self.timeline.audio_dur)
-            self.timeline.set_playhead(self.anchor); self._update_head(self.anchor)
+        self._engine_reload()
+
+    def _engine_reload(self):
+        """(Re)build the playback stream: the song if loaded, else silence — always
+        as long as max(show, audio) — so Play/metronome/playhead run regardless."""
+        if self.info is None:
+            return
+        if self._song is not None:
+            samples, sr, ch = self._song
+            self.engine.load(samples, sr, ch, int((self.timeline.last - self.timeline.first) / self.fps * sr))
+        else:
+            self.engine.load_silent(int((self.timeline.last - self.timeline.first) / self.fps * 44100))
+        self.engine.set_volume(min(1.0, self.vol.value() / 100.0))
+        self._apply_metro()
+        self.play_btn.setEnabled(True)
+        self.timeline.set_playhead(self.first_frame()); self._update_head(self.first_frame())
 
     def load_audio(self, path=None):
         if self.text is None:
@@ -365,15 +487,12 @@ class MainWindow(QMainWindow):
         try:
             samples, sr, ch = audio.decode(path)
             peaks = audio.peaks_from(samples, ch); dur = (len(samples) / ch) / sr if sr else 0.0
-            self.engine.load(samples, sr, ch)
         except Exception as e:
             self.status.setText(""); QMessageBox.warning(self, "Couldn't load audio", str(e)); return
         self.audio_path = path; self._song = (samples, sr, ch)
         self.timeline.set_audio(peaks, dur, name=os.path.basename(path))
-        self.play_btn.setEnabled(True); self._update_metro_enabled()
-        self.engine.set_volume(min(1.0, self.vol.value() / 100.0))
-        self._apply_metro()
-        self.timeline.set_playhead(self.first_frame()); self._update_head(self.first_frame())
+        self._update_metro_enabled()
+        self._engine_reload()
         self.status.setText("")
 
     def first_frame(self):
@@ -381,7 +500,7 @@ class MainWindow(QMainWindow):
 
     # ---------- BPM ----------
     def _update_metro_enabled(self):
-        ok = self.applied_bpm > 0 and self._song is not None
+        ok = self.applied_bpm > 0 and self.engine.dev is not None
         self.metro.setEnabled(ok)
         if not ok and self.metro.isChecked():
             self.metro.setChecked(False)
@@ -389,6 +508,7 @@ class MainWindow(QMainWindow):
     def _after_bpm(self):
         self.timeline.set_grid(self.applied_bpm, self.anchor)
         self._update_metro_enabled(); self._update_head(self.timeline.playhead); self._apply_metro()
+        self._fit_height()
 
     def _auto_bpm_click(self):
         self._auto_bpm(); self._recompute()
@@ -396,14 +516,17 @@ class MainWindow(QMainWindow):
     def _auto_bpm(self):
         res = tcshow.estimate_beat(self.text)
         if res:
-            _, bpm = res; self.bpm.setValue(round(bpm, 2)); self.applied_bpm = round(bpm, 2)
+            _, bpm = res; self.bpm.setText(f"{bpm:.2f}"); self.applied_bpm = round(bpm, 2)
             self.bpm_hint.setText(f"auto ≈ {bpm:.1f} BPM (from the cue grid) — type a value and Set to override")
         else:
             self.applied_bpm = 0.0; self.bpm_hint.setText("Couldn't auto-detect BPM — type the track BPM and press Set.")
         self._after_bpm()
 
     def _apply_bpm(self):
-        self.bpm.interpretText(); self.applied_bpm = self.bpm.value()
+        try:
+            self.applied_bpm = float(self.bpm.text().replace(",", ".") or 0)
+        except ValueError:
+            self.applied_bpm = 0.0
         self.bpm_hint.setText(f"BPM set to {self.applied_bpm:g}"); self._after_bpm(); self._recompute()
 
     # ---------- compute / preview ----------
@@ -462,6 +585,21 @@ class MainWindow(QMainWindow):
         L += ["", f"SHIFT {shifted} cues left by {cut_len} frames."]
         return "\n".join(L)
 
+    def _on_cut_dragged(self, a, b):
+        """Cut window moved/resized by its handle → sync the fields, recompute live."""
+        if self.rb_bars.isChecked():
+            bf = self._bar_frames()
+            if bf > 0:
+                self.spin_from.setValue(max(1, round((a - self.anchor) / bf) + 1))
+                self.spin_count.setValue(max(1, round((b - a) / bf)))
+        else:
+            self.cin.set_frames(a, self.fps)
+            if self.rb_out.isChecked():
+                self.cout.set_frames(b, self.fps)
+            else:
+                self.dur.setValue((b - a) / self.fps)
+        self._recompute()
+
     def _recompute(self):
         if self.text is None:
             return
@@ -485,7 +623,7 @@ class MainWindow(QMainWindow):
         self._undo.append(self.text); self.text = new_text
         self._reload_working(); self.timeline.set_cut(None, None)
         self.cin.set_frames(self.anchor, self.fps); self.cout.set_frames(self.anchor, self.fps)
-        self.b_uncut.setEnabled(True)
+        self.b_uncut.setEnabled(True); self._refresh_save()
         self.report.setPlainText(self._report_text(cut_in, cut_len, deleted, shifted,
                                  f"✓ CUT APPLIED  (UNCUT to undo · {len(self._undo)} stacked)\n"))
         self.status.setText(f"cut applied · {len(deleted)} deleted · {shifted} shifted")
@@ -494,9 +632,15 @@ class MainWindow(QMainWindow):
         if not self._undo:
             return
         self.text = self._undo.pop(); self._reload_working(); self.timeline.set_cut(None, None)
-        self.b_uncut.setEnabled(bool(self._undo))
+        self.b_uncut.setEnabled(bool(self._undo)); self._refresh_save()
         self.report.setPlainText("Reverted last cut." + (f"  ({len(self._undo)} stacked)" if self._undo else ""))
         self.status.setText("reverted")
+
+    def _refresh_save(self):
+        if self._undo:
+            self.b_savefile.setStyleSheet(primary_btn_qss(theme.SEMANTIC_INFO, "#93c5fd", "#5a96d6"))
+        else:
+            self.b_savefile.setStyleSheet(secondary_btn_qss())
 
     def save_file(self):
         if not self._undo and QMessageBox.question(self, "No cut applied",
@@ -531,13 +675,13 @@ class MainWindow(QMainWindow):
         self.play_btn.setText("⏸" if playing else "▶")
 
     def _on_position(self, af):
-        if self.fps is None or self._song is None:
+        if self.fps is None or self.engine.dev is None:
             return
         frame = self.first_frame() + af / self.engine.sr * self.fps
         self.timeline.set_playhead(frame); self._update_head(frame)
 
     def _seek_to_frame(self, frame):
-        if self._song is None:
+        if self.engine.dev is None:
             return
         af = int((frame - self.first_frame()) / self.fps * self.engine.sr)
         self.engine.seek(af); self.timeline.set_playhead(frame); self._update_head(frame)
@@ -551,7 +695,7 @@ class MainWindow(QMainWindow):
         self._apply_metro()
 
     def _apply_metro(self):
-        on = self.metro.isChecked() and self.applied_bpm > 0 and self._song is not None
+        on = self.metro.isChecked() and self.applied_bpm > 0 and self.engine.dev is not None
         beat_audio = (60.0 / self.applied_bpm) * self.engine.sr if self.applied_bpm > 0 else 0.0
         self.engine.set_metro(on, beat_audio)
 
