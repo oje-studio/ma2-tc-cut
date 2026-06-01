@@ -35,6 +35,8 @@ and a compiler usually aren't available.
 
 Prefer a UI over the command line? There's a PySide6 desktop app:
 
+![MA2 Timecode Cut — timeline of cues, BPM bar grid, song waveform and a ripple-cut window over a chorus](docs/screenshot-main.png)
+
 - **Timeline** of every cue across subtracks, with a BPM **bar grid** and a
   **waveform** of the song under it (drag-and-drop, or click, to load the `.xml`
   and the audio).
@@ -45,17 +47,39 @@ Prefer a UI over the command line? There's a PySide6 desktop app:
 - **CUT! → verify → UNCUT / SAVE FILE**: apply the cut to the working file, check
   it on the timeline, undo if wrong, then write a byte-exact XML.
 
+![Timeline close-up — cue lanes per subtrack, bar ruler, waveform and the draggable red cut window with timecode labels](docs/screenshot-timeline.png)
+
 It's a layer on top of the same core; the CLI below stays dependency-free for
 show laptops.
 
-**Download** a prebuilt `.dmg` (macOS) or `.zip` (Windows) from the
-[Releases](https://github.com/oje-studio/ma2-tc-cut/releases) page. Builds are
-currently unsigned, so on first launch:
+**Download** a prebuilt build for macOS or Windows from the
+[Releases](https://github.com/oje-studio/ma2-tc-cut/releases) page.
 
-- **macOS:** right-click the app → *Open* (or `xattr -dr com.apple.quarantine "MA2 Timecode Cut.app"`).
-- **Windows:** *More info* → *Run anyway* on the SmartScreen prompt.
+### First launch — clearing the quarantine
 
-**Run from source:**
+The builds are **unsigned and un-notarized** (no paid Apple/Microsoft developer
+certificate), so the OS quarantines them on download. This is expected — here's
+how to get past it.
+
+**macOS** — if you get *"MA2 Timecode Cut" is damaged and can't be opened* or
+*…can't be opened because it is from an unidentified developer*, the app isn't
+actually broken; it's just quarantined. Do **one** of:
+
+- **Right-click the app → Open**, then *Open* in the dialog (needed only once), **or**
+- strip the quarantine flag in Terminal, then open it normally:
+
+  ```
+  xattr -dr com.apple.quarantine "/Applications/MA2 Timecode Cut.app"
+  ```
+
+  Point the path at wherever the app lives (e.g. `~/Downloads/"MA2 Timecode Cut.app"`).
+  Use this if right-click → Open doesn't appear. **Or**
+- open it once, then go to **System Settings → Privacy & Security → Open Anyway**.
+
+**Windows** — on the blue **SmartScreen** prompt click **More info → Run anyway**.
+(Or right-click the `.exe` → *Properties* → tick **Unblock** → *OK* before launching.)
+
+**Run from source** (no quarantine, always works):
 
 ```
 pip install -r requirements-gui.txt
