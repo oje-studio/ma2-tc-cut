@@ -1,24 +1,26 @@
 #!/usr/bin/env python3
 """
-MA2 timecode ripple-cut: вырезает окно [cut_in; cut_out) из тайм-код шоу
-grandMA2 и сдвигает все последующие события влево (как cut time в Ableton).
+MA2 timecode ripple-cut: removes the window [cut_in; cut_out) from a grandMA2
+timecode show and slides every later event left (like "cut time" in Ableton).
 
-`time` в XML = номер КАДРА при frame_format шоу (напр. 30 FPS), а НЕ миллисекунды.
-fps читается из файла автоматически (тег <Timecode frame_format="...">).
+`time` in the XML is a FRAME NUMBER at the show's frame_format (e.g. 30 FPS),
+NOT milliseconds. The fps is read from the file automatically (the
+<Timecode frame_format="..."> tag).
 
-Без внешних зависимостей — только стандартная библиотека. Работает на любом
-Python 3, в т.ч. на шоу-лэптопе / MA-onPC без pip и компилятора.
+No external dependencies — standard library only. Runs on any Python 3,
+including a show laptop / MA onPC machine without pip or a compiler.
 
-Правит ТОЛЬКО строки <Event ...> (атрибуты index/time) и удаляет вырезанные
-блоки <Event>...</Event> целиком. Всё остальное — BOM, декларация, stylesheet,
-namespace, schemaLocation, отступы (табы), концы строк и отсутствие финального
-перевода строки — сохраняется БАЙТ-В-БАЙТ, чтобы импорт в MA2 не капризничал.
+It edits ONLY the <Event ...> lines (the index/time attributes) and removes the
+cut <Event>...</Event> blocks whole. Everything else — BOM, declaration,
+stylesheet, namespace, schemaLocation, indentation (tabs), line endings, and the
+absence of a trailing newline — is preserved BYTE-FOR-BYTE so the MA2 import
+doesn't choke.
 
-ВАЖНО (музыкальная корректность): TC-рез корректен, только если он зеркалит
-монтаж аудио — та же точка входа и та же длина. Длину задавай в ЦЕЛЫХ тактах/
-долях, а не в круглых секундах: «14.000 с» почти никогда не равно целому числу
-тактов, и тогда всё после реза поедет мимо доли. Точку входа сажай на доунбит.
-Для покадровой точности используй --cut-out (без округления секунд).
+IMPORTANT (musical correctness): a timecode cut is only correct if it mirrors the
+audio edit — same in-point, same length. Give the length in WHOLE bars/beats, not
+round seconds: "14.000 s" is almost never a whole number of bars, and then
+everything after the cut drifts off the beat. Put the in-point on a downbeat. For
+frame accuracy use --cut-out (no second-rounding).
 """
 import argparse
 import re
@@ -33,7 +35,7 @@ CUE_NAME   = re.compile(r'<Cue\b[^>]*\bname="([^"]*)"')
 
 
 def tc_to_frames(tc, fps):
-    """'HH:MM:SS:FF' -> абсолютный номер кадра. Допускает короткие формы (SS:FF и т.п.)."""
+    """'HH:MM:SS:FF' -> absolute frame number. Accepts short forms (SS:FF etc.)."""
     parts = [int(p) for p in str(tc).split(':')]
     while len(parts) < 4:
         parts = [0] + parts
@@ -49,14 +51,14 @@ def frames_to_tc(fr, fps):
 
 
 def ripple_cut(text, cut_in, cut_len):
-    """Возвращает (новый_текст, deleted, shifted). text — без BOM. Концы строк сохраняются."""
+    """Return (new_text, deleted, shifted). `text` is without BOM. Line endings preserved."""
     eol = '\r\n' if '\r\n' in text else '\n'
     lines = text.split(eol)
     n = len(lines)
     cut_end = cut_in + cut_len
 
     out, deleted, shifted = [], [], 0
-    idx = 0          # счётчик index внутри текущего SubTrack
+    idx = 0          # index counter within the current SubTrack
     i = 0
     while i < n:
         line = lines[i]
@@ -78,7 +80,7 @@ def ripple_cut(text, cut_in, cut_len):
                     j += 1
             t = int(TIME_ATTR.search(line).group(2))
 
-            if cut_in <= t < cut_end:                    # внутри реза -> удалить
+            if cut_in <= t < cut_end:                    # inside the cut -> delete
                 name = '?'
                 for bl in block:
                     cm = CUE_NAME.search(bl)
@@ -88,7 +90,7 @@ def ripple_cut(text, cut_in, cut_len):
                 i = j + 1
                 continue
 
-            new_t = t - cut_len if t >= cut_end else t   # за окном -> сдвиг влево
+            new_t = t - cut_len if t >= cut_end else t   # past the window -> shift left
             if new_t != t:
                 shifted += 1
             head = TIME_ATTR.sub(lambda z: z.group(1) + str(new_t) + z.group(3), block[0], count=1)
@@ -106,16 +108,16 @@ def ripple_cut(text, cut_in, cut_len):
 
 def main():
     ap = argparse.ArgumentParser(
-        description='Ripple-рез окна из тайм-код шоу grandMA2 (байт-в-байт XML).')
+        description='Ripple-cut a window out of a grandMA2 timecode show (byte-exact XML).')
     ap.add_argument('infile')
     ap.add_argument('outfile')
     ap.add_argument('--cut-in', required=True,
-                    help='начало реза, абсолютный TC HH:MM:SS:FF')
+                    help='start of the cut, absolute TC HH:MM:SS:FF')
     g = ap.add_mutually_exclusive_group()
     g.add_argument('--cut-out',
-                   help='конец реза, абсолютный TC HH:MM:SS:FF (покадрово, без округления)')
+                   help='end of the cut, absolute TC HH:MM:SS:FF (frame-accurate, no rounding)')
     g.add_argument('--dur', type=float,
-                   help='длина реза в секундах (округляется до кадров). По умолчанию 30')
+                   help='cut length in seconds (rounded to frames). Default 30')
     args = ap.parse_args()
 
     raw = open(args.infile, 'rb').read()
@@ -125,14 +127,14 @@ def main():
 
     m = FRAME_FMT.search(text)
     if not m:
-        sys.exit('frame_format не найден — это точно TC-шоу grandMA2?')
+        sys.exit('frame_format not found — is this really a grandMA2 timecode show?')
     fps = int(m.group(1))
 
     cut_in = tc_to_frames(args.cut_in, fps)
     if args.cut_out is not None:
         cut_out = tc_to_frames(args.cut_out, fps)
         if cut_out <= cut_in:
-            sys.exit(f'--cut-out ({args.cut_out}) должен быть позже --cut-in ({args.cut_in})')
+            sys.exit(f'--cut-out ({args.cut_out}) must be later than --cut-in ({args.cut_in})')
         cut_len = cut_out - cut_in
         dur_s = cut_len / fps
     else:
@@ -144,8 +146,8 @@ def main():
 
     cut_end = cut_in + cut_len
     print(f"fps={fps}  cut {frames_to_tc(cut_in, fps)} .. {frames_to_tc(cut_end, fps)}"
-          f"  ({cut_len} кадров / {dur_s:.3f}s)")
-    print(f"удалено событий в окне: {len(deleted)}   сдвинуто влево: {shifted}")
+          f"  ({cut_len} frames / {dur_s:.3f}s)")
+    print(f"deleted events in window: {len(deleted)}   shifted left: {shifted}")
     for t, nm in sorted(deleted):
         print(f"  DEL {frames_to_tc(t, fps)}  {nm}")
 

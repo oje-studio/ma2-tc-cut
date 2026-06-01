@@ -1,8 +1,8 @@
 # ma2-tc-cut
 
-Ripple-рез (вырезать кусок и сдвинуть остальное влево, как *cut time* в Ableton)
-для тайм-код шоу **grandMA2** — прямо в экспортированном XML, **байт-в-байт**, без
-внешних зависимостей.
+Ripple cut (remove a chunk and slide the rest left, like *cut time* in Ableton)
+for **grandMA2** timecode shows — straight in the exported XML, **byte-for-byte
+safe**, with zero dependencies.
 
 ```
 python3 ma2_tc_cut.py SHOW.xml SHOW_cut.xml --cut-in 06:31:14:21 --cut-out 06:31:26:07
@@ -10,105 +10,128 @@ python3 ma2_tc_cut.py SHOW.xml SHOW_cut.xml --cut-in 06:31:14:21 --cut-out 06:31
 
 ---
 
-## Зачем
+## Why
 
-Когда из песни вырезают кусок (например, лишний проход припева), тайм-код шоу
-нужно «схлопнуть»: удалить кьюшки, попавшие в вырезанное окно, а всё, что после, —
-подвинуть влево на длину выреза. Руками в редакторе тайм-кода это долго и
-ошибкоопасно. Этот скрипт делает рез по всем сабтрекам сразу и сохраняет файл так,
-что MA2 импортирует его без претензий.
+When a section gets cut out of a song (say, an extra chorus pass), the timecode
+show has to collapse with it: delete the cues that fall inside the removed window,
+and pull everything after it left by the length of the cut. Doing that by hand in
+the timecode editor is slow and error-prone. This tool does the ripple across every
+subtrack at once and writes the file back so grandMA2 re-imports it without complaints.
 
-## Ключевой факт о формате
+## The one thing to know about the format
 
-В `<Event time="...">` хранится **номер кадра**, а НЕ миллисекунды.
-Единица = `1 / frame_format`. При `frame_format="30 FPS"` рез в 30 секунд = **900
-кадров**, а не 30000. fps читается из файла автоматически — на 25fps-шоу скрипт
-подхватит 25 без правок.
+`<Event time="...">` stores a **frame number**, not milliseconds. The unit is
+`1 / frame_format`. At `frame_format="30 FPS"` a 30-second cut is **900 frames**,
+not 30000. The fps is read from the file automatically — on a 25fps show the tool
+picks up 25 with no changes.
 
-## Установка
+## Install
 
-Не требуется. Только Python 3 (стандартная библиотека). Копируешь `ma2_tc_cut.py` —
-и всё. Специально без `lxml`, чтобы запускалось на шоу-лэптопе / MA-onPC, где pip
-и компилятор обычно недоступны.
+Nothing to install. Python 3, standard library only. Copy `ma2_tc_cut.py` and you're
+done. Deliberately no `lxml`, so it runs on a show laptop / MA onPC machine where pip
+and a compiler usually aren't available.
 
-## Использование
+## Export from grandMA2
 
-```
-python3 ma2_tc_cut.py <infile.xml> <outfile.xml> --cut-in <TC> (--cut-out <TC> | --dur <сек>)
-```
+The tool operates on the XML that grandMA2 exports from a **Timecode pool** object.
 
-- `--cut-in HH:MM:SS:FF` — начало реза, **абсолютный** тайм-код (как в файле).
-- `--cut-out HH:MM:SS:FF` — конец реза. **Покадрово, без округления — предпочтительно.**
-- `--dur <секунды>` — длина реза в секундах (округляется до кадров). По умолчанию 30.
-
-Окно реза — полуинтервал `[cut_in; cut_out)`: событие ровно на `cut_out` остаётся
-и сдвигается, ровно на `cut_in` — удаляется.
-
-Пример вывода:
+**Command line** (one line, unambiguous):
 
 ```
-fps=30  cut 06:31:14:21 .. 06:31:26:07  (346 кадров / 11.533s)
-удалено событий в окне: 9   сдвинуто влево: 46
+Export Timecode 14 "tc_show"
+```
+
+- `14` — the number of the Timecode pool object to export.
+- `"tc_show"` — output filename, **without** extension (MA appends `.xml`).
+
+grandMA2 writes the file into the **`gma2/importexport`** folder on the currently
+selected drive (internal, USB, or the onPC data folder). Copy `tc_show.xml` from there
+to the machine where you run this tool — USB stick, network share, or directly from the
+onPC folder.
+
+> GUI alternative: in the Timecode pool you can also export via the object's edit/menu,
+> but the command line above is a single unambiguous line.
+
+## Usage
+
+```
+python3 ma2_tc_cut.py <infile.xml> <outfile.xml> --cut-in <TC> (--cut-out <TC> | --dur <seconds>)
+```
+
+- `--cut-in HH:MM:SS:FF` — start of the cut, **absolute** timecode (as stored in the file).
+- `--cut-out HH:MM:SS:FF` — end of the cut. **Frame-accurate, no rounding — preferred.**
+- `--dur <seconds>` — length of the cut in seconds (rounded to frames). Defaults to 30.
+
+The cut window is the half-open interval `[cut_in; cut_out)`: an event exactly on
+`cut_out` is kept and shifted; one exactly on `cut_in` is removed.
+
+Example output:
+
+```
+fps=30  cut 06:31:14:21 .. 06:31:26:07  (346 frames / 11.533s)
+deleted events in window: 9   shifted left: 46
   DEL 06:31:16:05  Tambora CH In 6
   ...
 ```
 
-Оригинал не трогается — пишется новый файл.
+The original is never touched — a new file is written.
 
-## ⚠️ Музыкальная корректность (главные грабли)
+## ⚠️ Musical correctness (the real gotcha)
 
-Скрипт двигает **свет**, но не аудио. Рез будет «в такт», только если соблюдено:
+The tool moves **light**, not audio. The cut lands "on the beat" only if:
 
-1. **Рез зеркалит монтаж аудио.** Свет режь тем же куском `[cut_in; cut_out)`, что и
-   дорожку. Если аудио не резали (или порезали в другом месте/на другую длину) — свет
-   и музыка разъедутся.
-2. **Длина = целое число тактов/долей, а не круглых секунд.** Музыкальная склейка
-   всегда на тактовой сетке. «14.000 с» почти никогда не равно целому числу тактов:
-   например, при ~84 BPM это 19.5 долей — полдоли мимо, и всё после реза «не в такт».
-   Считай в тактах. (4 такта при 84 BPM ≈ 346 кадров ≈ 11.5 с.)
-3. **Точку входа сажай на доунбит.** `cut_in` должен попасть на реальную долю, а не
-   на «круглую» секунду между ударами.
+1. **The cut mirrors the audio edit.** Cut the light with the same `[cut_in; cut_out)`
+   window as the track. If the audio wasn't cut (or was cut at a different point / by a
+   different length), light and music drift apart.
+2. **The length is a whole number of bars/beats, not round seconds.** A musical splice
+   always lands on the bar grid. "14.000 s" is almost never a whole number of bars — e.g.
+   at ~84 BPM that's 19.5 beats, half a beat off, and everything after the cut is off the
+   beat. Think in bars. (4 bars at 84 BPM ≈ 346 frames ≈ 11.5 s.)
+3. **Put the in-point on a downbeat.** `cut_in` must land on a real beat, not on a "round"
+   second between hits.
 
-Подсказка: моменты, где несколько сабтреков срабатывают одновременно, — почти всегда
-доунбиты. По интервалам между ними можно прикинуть тактовую сетку и выбрать края реза.
+Hint: moments where several subtracks fire at the same time are almost always downbeats.
+The spacing between them lets you estimate the bar grid and pick clean cut edges.
 
-## Импорт обратно в grandMA2
+## Import back into grandMA2
 
-Синтаксис Import — **имя файла первым** (это и есть «NAME»), назначение после;
-расширение `.xml` НЕ пишется (MA дописывает сам):
+Import syntax puts the **filename first** (that's the "NAME"), destination after; the
+`.xml` extension is **not** written (MA adds it):
 
 ```
 Import "SHOW_cut" At Timecode 40
 ```
 
-`Import Timecode 40 "..."` даст `Error #12: EXPECTED NAME` — порядок аргументов обратный
-к `Export`. Импортируй в пустой слот, оригинал держи как бэкап, сверь по длине.
+`Import Timecode 40 "..."` gives `Error #12: EXPECTED NAME` — the argument order is the
+reverse of `Export`. Import into an empty slot, keep the original as a backup, and check
+the length.
 
-## Что сохраняется байт-в-байт
+## What is preserved byte-for-byte
 
-Меняются только атрибуты `index`/`time` в строках `<Event>` и вырезаются целые блоки
-`<Event>…</Event>`. Нетронуты: BOM, XML-декларация, `<?xml-stylesheet?>`, namespace и
-`xsi:schemaLocation`, атрибуты `command`/`pressed`/`step`, имена кьюшек, отступы
-(табы), концы строк (LF/CRLF) и отсутствие финального перевода строки.
-`index` переиндексируется 0-based внутри каждого сабтрека; `step` не трогается.
+Only the `index`/`time` attributes on `<Event>` lines change, and whole
+`<Event>…</Event>` blocks are removed. Untouched: BOM, XML declaration,
+`<?xml-stylesheet?>`, namespace and `xsi:schemaLocation`, the `command`/`pressed`/`step`
+attributes, cue names, indentation (tabs), line endings (LF/CRLF), and the absence of a
+trailing newline. `index` is renumbered 0-based within each subtrack; `step` is left alone.
 
-## Проверка
+## Verify
 
 ```
 python3 selftest.py
 ```
 
-Гоняет рез на `examples/demo_tc.xml` (синтетика, без реальных данных) и проверяет:
-корректность ripple, переиндексацию, монотонность, сохранение BOM, эквивалентность
-`--cut-out` и `--dur`, и что в файле изменились только строки `<Event>`.
+Runs a cut on `examples/demo_tc.xml` (synthetic, no real show data) and checks: ripple
+correctness, renumbering, monotonicity, BOM preservation, `--cut-out` ≡ `--dur`
+equivalence, and that only `<Event>` lines changed.
 
-## Ограничения
+## Limitations
 
-- Двигает только тайм-код события. Фейды/длительности кьюшек и аудио — на тебе.
-- Не «склеивает» свет на стыке: что попало в окно — удаляется (это и есть вырезать).
-- Заточено под структуру экспорта grandMA2 (`<Timecode>/<Track>/<SubTrack>/<Event>`),
-  один `<Cue>` на событие. На grandMA3 формат другой.
+- Moves timecode events only. Cue fade times and the audio are on you.
+- Doesn't "stitch" light across the seam: whatever lands in the window is deleted (that's
+  what cutting is).
+- Built for the grandMA2 export structure (`<Timecode>/<Track>/<SubTrack>/<Event>`), one
+  `<Cue>` per event. grandMA3 uses a different format.
 
-## Лицензия
+## License
 
-MIT — см. [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).

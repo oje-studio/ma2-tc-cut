@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Само-тест ma2_tc_cut.py на синтетическом examples/demo_tc.xml.
+"""Self-test for ma2_tc_cut.py against the synthetic examples/demo_tc.xml.
 
-Запуск:  python3 selftest.py     (код возврата 0 = OK, 1 = провал)
-Никаких зависимостей, никаких реальных данных шоу.
+Run:  python3 selftest.py     (exit code 0 = OK, 1 = failure)
+No dependencies, no real show data.
 """
 import os
 import re
@@ -46,8 +46,8 @@ print("ma2_tc_cut selftest")
 run(out_dur, '--dur', '10')
 run(out_co, '--cut-out', '00:02:06:20')
 
-# 1) --cut-out эквивалентен --dur 10 (байт-в-байт)
-check('--cut-out == --dur 10 (байт-в-байт)', open(out_dur, 'rb').read() == open(out_co, 'rb').read())
+# 1) --cut-out is equivalent to --dur 10 (byte-for-byte)
+check('--cut-out == --dur 10 (byte-for-byte)', open(out_dur, 'rb').read() == open(out_co, 'rb').read())
 
 # 2) well-formed + BOM
 ob = open(out_dur, 'rb').read()
@@ -55,28 +55,28 @@ try:
     ET.parse(out_dur); wf = True
 except Exception:
     wf = False
-check('выход — валидный XML', wf)
-check('BOM сохранён', ob.startswith(b'\xef\xbb\xbf'))
-check('нет CR (LF-only сохранён)', b'\r' not in ob)
-check('хвост </MA> без финального \\n', ob.endswith(b'</MA>') and not ob.endswith(b'\n'))
+check('output is valid XML', wf)
+check('BOM preserved', ob.startswith(b'\xef\xbb\xbf'))
+check('no CR (LF-only preserved)', b'\r' not in ob)
+check('ends with </MA>, no trailing newline', ob.endswith(b'</MA>') and not ob.endswith(b'\n'))
 
-# 3) семантика ripple
+# 3) ripple semantics
 st = subtracks(out_dur)
 total = sum(len(s) for s in st)
-check('событий 8 -> 6', total == 6)
-check('SubTrack0 времена = [3000,3300,3600,3900]', [e[1] for e in st[0]] == [3000, 3300, 3600, 3900])
-check('SubTrack1 времена = [3000,3750]', [e[1] for e in st[1]] == [3000, 3750])
+check('events 8 -> 6', total == 6)
+check('SubTrack0 times = [3000,3300,3600,3900]', [e[1] for e in st[0]] == [3000, 3300, 3600, 3900])
+check('SubTrack1 times = [3000,3750]', [e[1] for e in st[1]] == [3000, 3750])
 ok_idx = all([e[0] for e in s] == list(range(len(s))) for s in st)
-check('index 0-based и непрерывный', ok_idx)
+check('index 0-based and contiguous', ok_idx)
 ok_mono = all([e[1] for e in s] == sorted(e[1] for e in s) for s in st)
-check('время монотонно и >= 0', ok_mono and all(e[1] >= 0 for s in st for e in s))
-# step едет с событием и НЕ переиндексируется:
-# Chorus(step4) уехал 3900->3600, Post(step5) уехал 4200->3900.
-# На 3600 теперь index=2, но step=4 — значит step независим от index.
+check('time monotonic and >= 0', ok_mono and all(e[1] >= 0 for s in st for e in s))
+# step travels with its event and is NOT renumbered:
+# Chorus(step4) moved 3900->3600, Post(step5) moved 4200->3900.
+# At 3600 index is now 2 but step is 4 -> step is independent of index.
 steps0 = {e[1]: e[2] for e in st[0]}
-check('step едет с событием, не переиндексирован', steps0[3600] == '4' and steps0[3900] == '5')
+check('step travels with event, not renumbered', steps0[3600] == '4' and steps0[3900] == '5')
 
-# 4) байт-в-байт: вырезать из оригинала окно и сравнить 1:1
+# 4) byte-for-byte: prune the window from the original and compare 1:1
 def load(p):
     raw = open(p, 'rb').read()
     return raw[3:].decode('utf-8').split('\n') if raw.startswith(b'\xef\xbb\xbf') else raw.decode('utf-8').split('\n')
@@ -99,9 +99,9 @@ kl = load(out_dur)
 norm = lambda s: re.sub(r'\b(index|time)="\d+"', r'\1="_"', s)
 stray = sum(1 for a, b in zip(pruned, kl)
             if a != b and not (re.search(r'<Event\b', a) and norm(a) == norm(b)))
-check('удалено ровно 2 блока', removed == 2)
-check('после вырезания длины совпали', len(pruned) == len(kl))
-check('изменились только index/time в <Event> (0 посторонних)', stray == 0)
+check('exactly 2 blocks removed', removed == 2)
+check('lengths match after pruning', len(pruned) == len(kl))
+check('only index/time changed on <Event> (0 stray)', stray == 0)
 
 for f in (out_dur, out_co):
     os.remove(f)
@@ -109,6 +109,6 @@ os.rmdir(tmp)
 
 print()
 if fails:
-    print(f"ПРОВАЛ: {len(fails)} проверок — {fails}")
+    print(f"FAILED: {len(fails)} checks — {fails}")
     sys.exit(1)
-print("ВСЁ ЗЕЛЁНОЕ ✓")
+print("ALL GREEN ✓")
