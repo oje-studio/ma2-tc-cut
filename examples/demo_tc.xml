@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="styles/timecode@sheet.xsl"?>
+<MA xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.malighting.de/grandma2/xml/MA" xsi:schemaLocation="http://schemas.malighting.de/grandma2/xml/MA http://schemas.malighting.de/grandma2/xml/3.9.61/MA.xsd" major_vers="3" minor_vers="9" stream_vers="61">
+	<Info datetime="2026-06-01T00:00:00" showfile="demo" />
+	<Timecode index="0" name="DEMO SONG" slot="TC Slot 1" frame_format="30 FPS">
+		<Track index="0" active="true" expanded="true">
+			<Object name="Track A 1.1">
+				<No>30</No>
+				<No>1</No>
+				<No>1</No>
+				<No>1</No>
+			</Object>
+			<SubTrack index="0">
+				<Event index="0" time="3000" command="Goto" pressed="true" step="1">
+					<Cue name="Intro 1">
+						<No>1</No>
+						<No>1</No>
+						<No>1</No>
+					</Cue>
+				</Event>
+				<Event index="1" time="3300" command="Goto" pressed="true" step="2">
+					<Cue name="Verse 2">
+						<No>1</No>
+						<No>1</No>
+						<No>2</No>
+					</Cue>
+				</Event>
+				<Event index="2" time="3600" command="Goto" pressed="true" step="3">
+					<Cue name="PreChorus 3">
+						<No>1</No>
+						<No>1</No>
+						<No>3</No>
+					</Cue>
+				</Event>
+				<Event index="3" time="3900" command="Goto" pressed="true" step="4">
+					<Cue name="Chorus 4">
+						<No>1</No>
+						<No>1</No>
+						<No>4</No>
+					</Cue>
+				</Event>
+				<Event index="4" time="4200" command="Goto" pressed="true" step="5">
+					<Cue name="Post 5">
+						<No>1</No>
+						<No>1</No>
+						<No>5</No>
+					</Cue>
+				</Event>
+			</SubTrack>
+		</Track>
+		<Track index="1" active="true" expanded="true">
+			<Object name="Track B 1.2">
+				<No>30</No>
+				<No>1</No>
+				<No>1</No>
+				<No>2</No>
+			</Object>
+			<SubTrack index="0">
+				<Event index="0" time="3000" command="Goto" pressed="true" step="1">
+					<Cue name="FX A 1">
+						<No>1</No>
+						<No>2</No>
+						<No>1</No>
+					</Cue>
+				</Event>
+				<Event index="1" time="3650" command="Goto" pressed="true" step="3">
+					<Cue name="FX B 3">
+						<No>1</No>
+						<No>2</No>
+						<No>3</No>
+					</Cue>
+				</Event>
+				<Event index="2" time="4050" command="Goto" pressed="true" step="5">
+					<Cue name="FX C 5">
+						<No>1</No>
+						<No>2</No>
+						<No>5</No>
+					</Cue>
+				</Event>
+			</SubTrack>
+		</Track>
+	</Timecode>
+</MA>
