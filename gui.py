@@ -31,7 +31,7 @@ from timeline import TimelineWidget, AUDIO_EXT
 from player import AudioEngine
 
 APP_NAME = "MA2 Timecode Cut"
-VERSION = "v0.1.0"
+VERSION = "v0.1.1"
 DASH_TC = "––:––:––:––"
 
 
@@ -407,7 +407,7 @@ class MainWindow(QMainWindow):
 
         footer = QFrame(); footer.setStyleSheet(f"background: {theme.BG_HEADER};")
         fl = QHBoxLayout(footer); fl.setContentsMargins(16, 6, 16, 6)
-        cr = QLabel("© 2026 ØJE STUDIO · MA2 TIMECODE CUT v0.1.0 · MIT")
+        cr = QLabel(f"© 2026 ØJE STUDIO · MA2 TIMECODE CUT {VERSION} · MIT")
         cr.setFont(sans_font(10)); cr.setStyleSheet(f"color: {theme.TEXT_MUTED}; letter-spacing: 1px;")
         fl.addWidget(cr); fl.addStretch(1)
         self.status = QLabel(""); self.status.setFont(mono_font(theme.FONT_SM)); self.status.setStyleSheet(f"color: {theme.TEXT_MUTED};")
