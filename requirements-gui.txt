@@ -1,3 +1,4 @@
 # Desktop GUI + packaging (the CLI core ma2_tc_cut.py needs none of this).
-PySide6>=6.6
+PySide6>=6.6          # includes QtMultimedia (audio playback) via PySide6-Addons
+miniaudio>=1.59       # decode wav/mp3/flac/ogg → waveform peaks (no system ffmpeg)
 pyinstaller>=6.0

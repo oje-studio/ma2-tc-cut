@@ -10,6 +10,8 @@ FRAME_FMT = re.compile(r'frame_format="[^"]*?(\d+)')
 TC_NAME   = re.compile(r'<Timecode\b[^>]*\bname="([^"]*)"')
 SUBTRACK  = re.compile(r'<SubTrack\b')
 EVENT     = re.compile(r'<Event\b[^>]*\btime="(\d+)"')
+OBJ_NAME  = re.compile(r'<Object\b[^>]*\bname="([^"]*)"')
+CUE_NAME  = re.compile(r'<Cue\b[^>]*\bname="([^"]*)"')
 
 
 def read_show(path):
@@ -108,3 +110,33 @@ def estimate_beat(text):
     while bpm < 70.0:
         bpm *= 2.0
     return fps * 60.0 / bpm, bpm
+
+
+def lanes(text):
+    """
+    Per-subtrack lanes for the timeline:
+    [{'name': <object/track label>, 'events': [(frame, cue_name), ...]}, ...]
+    """
+    eol = '\r\n' if '\r\n' in text else '\n'
+    out, cur, pending, obj = [], None, None, None
+    for line in text.split(eol):
+        mo = OBJ_NAME.search(line)
+        if mo:
+            obj = mo.group(1)
+            continue
+        if SUBTRACK.search(line):
+            cur = {'name': obj or f'Track {len(out) + 1}', 'events': []}
+            out.append(cur)
+            obj, pending = None, None
+            continue
+        if cur is None:
+            continue
+        me = EVENT.search(line)
+        if me:
+            pending = int(me.group(1))
+            continue
+        mc = CUE_NAME.search(line)
+        if mc and pending is not None:
+            cur['events'].append((pending, mc.group(1)))
+            pending = None
+    return out

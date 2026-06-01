@@ -11,8 +11,10 @@ a = Analysis(
     ['gui.py'],
     pathex=[],
     binaries=[],
-    datas=[],
-    hiddenimports=[],
+    datas=[('assets/logo_src.png', 'assets')],
+    # miniaudio is imported lazily inside functions, so name it explicitly;
+    # QtMultimedia + its audio backend are pulled in by the PySide6 hook.
+    hiddenimports=['miniaudio', 'PySide6.QtMultimedia'],
     excludes=['tkinter', 'test', 'unittest', 'pydoc_data'],
     noarchive=False,
 )

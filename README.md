@@ -33,10 +33,20 @@ and a compiler usually aren't available.
 
 ## Desktop app (macOS & Windows)
 
-Prefer a UI over the command line? There's a small PySide6 desktop app: pick the
-show file, set the cut window, **Preview** exactly which cues get deleted/shifted
-before committing, optionally check it against a BPM (whole-bars warning), then
-save a byte-exact cut file.
+Prefer a UI over the command line? There's a PySide6 desktop app:
+
+- **Timeline** of every cue across subtracks, with a BPM **bar grid** and a
+  **waveform** of the song under it (drag-and-drop, or click, to load the `.xml`
+  and the audio).
+- **Cut by timecode or by bars** (from bar N, remove M bars), with a live preview
+  of exactly which cues get deleted/shifted and a whole-bars warning.
+- **Play / scrub** the audio with a moving playhead, and a **sample-accurate
+  metronome** mixed into the stream (instant on/off, no drift).
+- **CUT! → verify → UNCUT / SAVE FILE**: apply the cut to the working file, check
+  it on the timeline, undo if wrong, then write a byte-exact XML.
+
+It's a layer on top of the same core; the CLI below stays dependency-free for
+show laptops.
 
 **Download** a prebuilt `.dmg` (macOS) or `.zip` (Windows) from the
 [Releases](https://github.com/oje-studio/ma2-tc-cut/releases) page. Builds are
