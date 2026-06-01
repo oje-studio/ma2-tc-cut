@@ -115,7 +115,7 @@ def build_qss():
     QGroupBox::title {{ subcontrol-origin: margin; left: 12px; padding: 0 4px;
         color: {t.TEXT_DIM}; font-weight: 600; letter-spacing: 1px; }}
     QLabel {{ background: transparent; }}
-    QLineEdit, QDoubleSpinBox, QSpinBox {{ background: #232323; color: {t.TEXT_PRIMARY};
+    QLineEdit, QDoubleSpinBox, QSpinBox {{ background: {t.BG_INPUT}; color: {t.TEXT_PRIMARY};
         border: 1px solid {t.BORDER_STRONG}; border-radius: {t.RADIUS_MD}px; padding: 5px 8px;
         selection-background-color: {t.with_alpha(t.SEMANTIC_INFO, 0.35)}; }}
     QLineEdit:focus, QDoubleSpinBox:focus, QSpinBox:focus {{ border: 1px solid {t.SEMANTIC_INFO}; }}
@@ -124,19 +124,19 @@ def build_qss():
     QRadioButton {{ background: transparent; spacing: 6px; }}
     QPushButton {{ background: {t.BG_RAISED}; color: {t.TEXT_PRIMARY};
         border: 1px solid {t.BORDER}; border-radius: {t.RADIUS_MD}px; padding: 7px 14px; }}
-    QPushButton:hover {{ background: #2e2e2e; border-color: {t.BORDER_STRONG}; }}
-    QPushButton:pressed {{ background: #1a1a1a; }}
+    QPushButton:hover {{ background: {t.BG_HOVER}; border-color: {t.BORDER_STRONG}; }}
+    QPushButton:pressed {{ background: {t.BG_SURFACE}; }}
     QPushButton:focus {{ border: 1px solid {t.SEMANTIC_INFO}; }}
     QPushButton:disabled {{ color: {t.TEXT_DISABLED}; border-color: {t.BORDER_SUBTLE}; }}
     QScrollBar:vertical {{ background: {t.BG_APP}; width: 12px; margin: 0; }}
-    QScrollBar::handle:vertical {{ background: {t.BORDER}; border-radius: 6px; min-height: 30px; }}
+    QScrollBar::handle:vertical {{ background: {t.BORDER}; border-radius: {t.RADIUS_MD}px; min-height: 30px; }}
     QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{ height: 0; }}
     QToolTip {{ background: {t.BG_RAISED}; color: {t.TEXT_PRIMARY}; border: 1px solid {t.BORDER}; }}
     """
 
 
 def primary_btn_qss(bg, hover, press):
-    return (f"QPushButton{{background:{bg};color:#0f0f0f;font-weight:700;letter-spacing:1px;"
+    return (f"QPushButton{{background:{bg};color:{theme.BG_APP};font-weight:700;letter-spacing:1px;"
             f"border:none;border-radius:{theme.RADIUS_MD}px;padding:10px 14px;}}"
             f"QPushButton:hover{{background:{hover};}}QPushButton:pressed{{background:{press};}}"
             f"QPushButton:focus{{border:2px solid {theme.TEXT_BRIGHT};}}"
@@ -147,7 +147,7 @@ def secondary_btn_qss():
     t = theme
     return (f"QPushButton{{background:{t.BG_RAISED};color:{t.TEXT_MUTED};font-weight:600;"
             f"border:1px solid {t.BORDER};border-radius:{t.RADIUS_MD}px;padding:10px 14px;}}"
-            f"QPushButton:hover{{background:#2e2e2e;border-color:{t.BORDER_STRONG};}}"
+            f"QPushButton:hover{{background:{t.BG_HOVER};border-color:{t.BORDER_STRONG};}}"
             f"QPushButton:focus{{border-color:{t.SEMANTIC_INFO};}}"
             f"QPushButton:disabled{{color:{t.TEXT_DISABLED};border-color:{t.BORDER_SUBTLE};}}")
 
@@ -379,8 +379,8 @@ class MainWindow(QMainWindow):
         self.b_set = QPushButton("Set"); self.b_set.clicked.connect(self._apply_bpm)
         self.b_autobpm = QPushButton("AUTO"); self.b_autobpm.setToolTip("Re-detect BPM from the cue grid")
         self.b_autobpm.setStyleSheet(
-            f"QPushButton{{background:{theme.SEMANTIC_WARNING};color:#1a1a1a;font-weight:700;"
-            f"border:none;border-radius:{theme.RADIUS_MD}px;padding:7px 12px;}}QPushButton:hover{{background:#ffbe4d;}}"
+            f"QPushButton{{background:{theme.SEMANTIC_WARNING};color:{theme.BG_APP};font-weight:700;"
+            f"border:none;border-radius:{theme.RADIUS_MD}px;padding:7px 12px;}}QPushButton:hover{{background:{theme.SEMANTIC_WARNING_HOVER};}}"
             f"QPushButton:focus{{border:2px solid {theme.TEXT_BRIGHT};}}"
             f"QPushButton:disabled{{background:{theme.BG_RAISED};color:{theme.TEXT_DISABLED};}}")
         self.b_autobpm.clicked.connect(self._auto_bpm_click)
@@ -396,7 +396,7 @@ class MainWindow(QMainWindow):
 
         bar = QFrame(); bl = QHBoxLayout(bar); bl.setContentsMargins(16, 8, 16, 8); bl.setSpacing(10)
         self.b_cut = QPushButton("CUT!"); self.b_cut.clicked.connect(self.apply_cut)
-        self.b_cut.setStyleSheet(primary_btn_qss(theme.ACTION_PRIMARY, theme.ACTION_PRIMARY_HOVER, "#28A85E"))
+        self.b_cut.setStyleSheet(primary_btn_qss(theme.ACTION_PRIMARY, theme.ACTION_PRIMARY_HOVER, theme.ACTION_PRIMARY_ACTIVE))
         self.b_uncut = QPushButton("UNCUT"); self.b_uncut.clicked.connect(self.uncut); self.b_uncut.setEnabled(False)
         self.b_savefile = QPushButton("SAVE FILE"); self.b_savefile.clicked.connect(self.save_file)
         bl.addWidget(self.b_cut, 2); bl.addWidget(self.b_uncut, 1); bl.addWidget(self.b_savefile, 2)
@@ -675,7 +675,7 @@ class MainWindow(QMainWindow):
 
     def _refresh_save(self):
         if self._undo:
-            self.b_savefile.setStyleSheet(primary_btn_qss(theme.SEMANTIC_INFO, "#93c5fd", "#5a96d6"))
+            self.b_savefile.setStyleSheet(primary_btn_qss(theme.SEMANTIC_INFO, theme.SEMANTIC_INFO_HOVER, theme.SEMANTIC_INFO_ACTIVE))
         else:
             self.b_savefile.setStyleSheet(secondary_btn_qss())
 
@@ -728,7 +728,7 @@ class MainWindow(QMainWindow):
 
     # ---------- metronome (live mix — instant toggle) ----------
     def _on_metro_toggled(self, on):
-        self.metro.setIcon(QIcon(metro_icon("#1a1a1a" if on else theme.TEXT_MUTED)))
+        self.metro.setIcon(QIcon(metro_icon(theme.BG_APP if on else theme.TEXT_MUTED)))
         self._apply_metro()
 
     def _apply_metro(self):

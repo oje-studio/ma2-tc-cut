@@ -21,8 +21,8 @@ LANE_MIN = 28
 AUDIO_H = 54
 BARS_H = 18
 HANDLE_H = 11
-GRID_BAR = "#343434"
-GRID_PHRASE = "#4a4a4a"
+GRID_BAR = "#343434"             # local: dim bar line, between BORDER_SUBTLE and BORDER
+GRID_PHRASE = theme.BORDER_STRONG  # brighter phrase line (every 4 bars)
 AUDIO_EXT = (".wav", ".mp3", ".flac", ".ogg", ".aif", ".aiff", ".m4a")
 
 

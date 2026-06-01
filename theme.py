@@ -20,7 +20,8 @@ from typing import Dict
 # ── Backgrounds ───────────────────────────────────────────────────────
 BG_APP        = "#0f0f0f"   # window / app background
 BG_SURFACE    = "#1a1a1a"   # cards, panels, table bg
-BG_RAISED     = "#242424"   # hover, raised buttons
+BG_RAISED     = "#242424"   # raised buttons (base)
+BG_HOVER      = "#2e2e2e"   # raised button hover (one step above BG_RAISED)
 BG_OVERLAY    = "#000000"   # modal backdrop (use with_alpha)
 BG_INPUT      = "#1e1e1e"   # text inputs, combos
 BG_HEADER     = "#161616"   # status bars, table header
@@ -43,11 +44,18 @@ SEMANTIC_WARNING = "#F5A524"   # DUP badge, warnings, attention
 SEMANTIC_SUCCESS = "#36B37E"   # active cue border, ready, START
 SEMANTIC_INFO    = "#7AB7FF"   # info, links, neutral highlight
 
+# Hover/active shades for the bright CTA fills, so buttons derive their
+# pressed/hover states from tokens instead of one-off hexes.
+SEMANTIC_INFO_HOVER    = "#93C5FD"   # SAVE FILE hover
+SEMANTIC_INFO_ACTIVE   = "#5A96D6"   # SAVE FILE pressed
+SEMANTIC_WARNING_HOVER = "#FFBE4D"   # AUTO hover
+
 # Apply button — solid, brighter green than the active-cue green so it
 # reads as the primary call-to-action without competing with the
 # in-table "this cue is live" signal.
 ACTION_PRIMARY      = "#2EBD6B"
 ACTION_PRIMARY_HOVER = "#37D079"
+ACTION_PRIMARY_ACTIVE = "#28A85E"   # pressed CUT!
 
 # ── Operator role colors ──────────────────────────────────────────────
 # Semantic per-role colors. Names are matched case-insensitively; the
