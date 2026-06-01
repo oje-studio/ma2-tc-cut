@@ -328,6 +328,8 @@ class MainWindow(QMainWindow):
         self.timeline.seekRequested.connect(self._seek_to_frame)
         self.timeline.showRequested.connect(self.browse_input)
         self.timeline.audioRequested.connect(lambda: self.load_audio())
+        self.timeline.ejectShowRequested.connect(self.unload_show)
+        self.timeline.ejectAudioRequested.connect(self.unload_audio)
         self.timeline.fileDropped.connect(self._on_drop)
         self.timeline.cutDragged.connect(self._on_cut_dragged)
         v.addWidget(self.timeline, 1)
@@ -425,7 +427,15 @@ class MainWindow(QMainWindow):
         a = m.addAction("Open Show…"); a.setShortcut("Ctrl+O"); a.triggered.connect(self.browse_input)
         a = m.addAction("Open Audio…"); a.setShortcut("Ctrl+Shift+O"); a.triggered.connect(lambda: self.load_audio())
         m.addSeparator()
+        self.act_close_show = m.addAction("Close Show"); self.act_close_show.triggered.connect(self.unload_show)
+        self.act_close_audio = m.addAction("Close Audio"); self.act_close_audio.triggered.connect(self.unload_audio)
+        m.addSeparator()
         a = m.addAction("Save Cut…"); a.setShortcut("Ctrl+S"); a.triggered.connect(self.save_file)
+        self._refresh_close_actions()
+
+    def _refresh_close_actions(self):
+        self.act_close_show.setEnabled(self.text is not None)
+        self.act_close_audio.setEnabled(self._song is not None)
 
     def _set_loaded(self, ok):
         for w in (self.cin, self.cout, self.dur, self.bpm, self.b_set, self.b_autobpm,
@@ -479,6 +489,7 @@ class MainWindow(QMainWindow):
         self._set_loaded(True); self._auto_bpm()
         self.cin.set_frames(self.anchor, self.fps); self.cout.set_frames(self.anchor, self.fps)
         self._recompute()
+        self._refresh_close_actions()
 
     def _reload_working(self, reset_audio=False):
         info = tcshow.summary(self.text); lanes = tcshow.lanes(self.text)
@@ -505,7 +516,7 @@ class MainWindow(QMainWindow):
             self.engine.load(samples, sr, ch, int((self.timeline.last - self.timeline.first) / self.fps * sr))
         else:
             self.engine.load_silent(int((self.timeline.last - self.timeline.first) / self.fps * 44100))
-        self.engine.set_volume(min(1.0, self.vol.value() / 100.0))
+        self.engine.set_volume(self.vol.value() / 100.0)
         self._apply_metro()
         self.play_btn.setEnabled(True)
         self.timeline.set_playhead(self.first_frame()); self._update_head(self.first_frame())
@@ -528,7 +539,39 @@ class MainWindow(QMainWindow):
         self.timeline.set_audio(peaks, dur, name=os.path.basename(path))
         self._update_metro_enabled()
         self._engine_reload()
+        self._refresh_close_actions()
         self.status.setText("")
+
+    def unload_audio(self):
+        """Drop the loaded song; the timeline keeps the cues and the engine
+        falls back to a silent stream so Play / metronome still work."""
+        if self._song is None and self.audio_path is None:
+            return
+        self.audio_path = None; self._song = None
+        self.timeline.clear_audio()
+        self._engine_reload()
+        self._update_metro_enabled()
+        self._refresh_close_actions()
+        self.status.setText("audio unloaded")
+
+    def unload_show(self):
+        """Close the show and return to the initial empty state (drops audio too,
+        since the timeline and engine are built around the show)."""
+        if self.text is None and self.in_path is None:
+            return
+        self.engine.unload()
+        self.in_path = self.audio_path = self.text = self.info = None
+        self.has_bom = False; self.fps = None; self.anchor = 0
+        self.applied_bpm = 0.0; self._song = None; self._undo = []
+        self.timeline.reset()
+        self.metro.setChecked(False); self._update_metro_enabled()
+        self.play_btn.setEnabled(False); self.play_btn.setText("▶")
+        self.b_uncut.setEnabled(False); self._refresh_save()
+        self._set_loaded(False)
+        self.info_label.setText("No show loaded")
+        self.report.setPlainText("")
+        self._refresh_close_actions()
+        self.status.setText("show unloaded")
 
     def first_frame(self):
         return self.info['first_frame'] if self.info else 0
@@ -724,7 +767,7 @@ class MainWindow(QMainWindow):
         self.engine.seek(af); self.timeline.set_playhead(frame); self._update_head(frame)
 
     def _on_volume(self, v):
-        self.engine.set_volume(min(1.0, v / 100.0)); self.timeline.set_gain(v / 100.0); self.vol_lbl.setText(f"{v}%")
+        self.engine.set_volume(v / 100.0); self.timeline.set_gain(v / 100.0); self.vol_lbl.setText(f"{v}%")
 
     # ---------- metronome (live mix — instant toggle) ----------
     def _on_metro_toggled(self, on):

@@ -24,6 +24,8 @@ class ClickMixDevice(QIODevice):
         self.cursor = 0
         self.metro_on = False
         self.beat = 0.0                           # frames per beat
+        self.gain = 1.0                           # software boost for volume > 100%
+        self._lut = None                          # clip lookup table, built when gain != 1
         ln = int(sr * 0.04)
         self.click_len = ln
 
@@ -39,6 +41,19 @@ class ClickMixDevice(QIODevice):
     def set_metro(self, on, beat_frames):
         self.metro_on = bool(on)
         self.beat = float(beat_frames)
+
+    def set_gain(self, g):
+        """Software gain for the >100% range (QAudioSink only attenuates).
+        Precompute a clip lookup table so readData() stays a cheap mapping."""
+        g = max(0.0, float(g))
+        self.gain = g
+        if g == 1.0:
+            self._lut = None
+            return
+        lo, hi = -32768, 32767
+        self._lut = array.array('h', (
+            lo if int(v * g) < lo else (hi if int(v * g) > hi else int(v * g))
+            for v in range(lo, hi + 1)))
 
     def seek(self, frame):
         self.cursor = max(0, min(self.total, int(frame)))
@@ -85,6 +100,10 @@ class ClickMixDevice(QIODevice):
                     self._add(chunk, (bp - self.cursor) * self.ch,
                               self._down if k % 4 == 0 else self._off)
                 k += 1
+        if self._lut is not None:                 # boost > 100% (with clipping)
+            lut = self._lut
+            for i in range(len(chunk)):
+                chunk[i] = lut[chunk[i] + 32768]
         self.cursor = end
         return chunk.tobytes()
 
@@ -124,8 +143,11 @@ class AudioEngine(QObject):
         self.load(None, sr, ch, total_frames)
 
     def set_volume(self, g):
+        # 0–100% via the sink (hardware, free); >100% boosted in software.
         if self.sink:
             self.sink.setVolume(max(0.0, min(1.0, g)))
+        if self.dev:
+            self.dev.set_gain(max(1.0, g))
 
     def set_metro(self, on, beat_frames):
         if self.dev:
@@ -160,6 +182,12 @@ class AudioEngine(QObject):
             self.sink.stop()
         self._playing = False
         self._timer.stop()
+
+    def unload(self):
+        """Tear the stream down completely (used when the show is closed)."""
+        self.stop()
+        self.dev = None
+        self.sink = None
 
     def is_playing(self):
         return self._playing

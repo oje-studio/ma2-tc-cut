@@ -44,6 +44,8 @@ class TimelineWidget(QWidget):
     seekRequested = Signal(int)
     showRequested = Signal()
     audioRequested = Signal()
+    ejectShowRequested = Signal()        # eject glyph in the CUES gutter
+    ejectAudioRequested = Signal()       # eject glyph in the AUDIO gutter
     fileDropped = Signal(str)
     cutDragged = Signal(int, int)        # cut window moved by its handle (cut_in, cut_out)
 
@@ -68,6 +70,9 @@ class TimelineWidget(QWidget):
         self._audio_top = None
         self._win_drag = None
         self._drag_mode = None        # 'move' | 'left' | 'right'
+        self._eject_show_rect = None  # set in paint when a show is loaded
+        self._eject_audio_rect = None # set in paint when audio is loaded
+        self._hover_eject = None      # 'show' | 'audio' | None (hover highlight)
         self._flash_timer = QTimer(self)
         self._flash_timer.setInterval(45)
         self._flash_timer.timeout.connect(self._decay)
@@ -105,6 +110,18 @@ class TimelineWidget(QWidget):
         self.audio_dur = 0.0
         self.audio_name = ""
         self.playhead = self._prev_ph = None
+        self.update()
+
+    def reset(self):
+        """Back to the initial empty state — no show, no audio, no grid/cut."""
+        self.lanes = []
+        self.audio_peaks = []; self.audio_dur = 0.0; self.audio_name = ""
+        self.show_name = ""
+        self.bpm = 0.0
+        self.cut_in = self.cut_out = self.playhead = self._prev_ph = None
+        self._flash.clear()
+        self._eject_show_rect = self._eject_audio_rect = self._hover_eject = None
+        self._recalc_min_height()
         self.update()
 
     def set_grid(self, bpm, anchor=None):
@@ -182,6 +199,7 @@ class TimelineWidget(QWidget):
         p.setPen(QPen(QColor(theme.BORDER_SUBTLE), 1))
         p.drawRect(0, 0, W - 1, H - 1)
 
+        self._eject_show_rect = self._eject_audio_rect = None
         if not self.lanes:
             self._audio_top = None
             p.setPen(QColor(theme.TEXT_MUTED)); p.setFont(sans_font(13))
@@ -215,8 +233,9 @@ class TimelineWidget(QWidget):
 
         # top-left gutter: CUES label + show filename (mirrors the AUDIO band)
         p.setFont(sans_font(theme.FONT_SM)); p.setPen(QColor(theme.OPERATOR_LIGHTING))
-        p.drawText(10, 4, LBL_W - 14, 13, Qt.AlignVCenter | Qt.AlignLeft, "CUES")
+        p.drawText(10, 4, LBL_W - 30, 13, Qt.AlignVCenter | Qt.AlignLeft, "CUES")
         if self.show_name:
+            self._eject_show_rect = self._draw_eject(p, LBL_W - 13, 10, self._hover_eject == 'show')
             p.setFont(sans_font(theme.FONT_XS)); p.setPen(QColor(theme.TEXT_MUTED))
             nm = QFontMetrics(p.font()).elidedText(self.show_name, Qt.ElideMiddle, LBL_W - 14)
             p.drawText(10, 17, LBL_W - 14, 13, Qt.AlignVCenter | Qt.AlignLeft, nm)
@@ -295,12 +314,22 @@ class TimelineWidget(QWidget):
         nm = QFontMetrics(p.font()).elidedText(name, Qt.ElideRight, LBL_W - 14)
         p.drawText(10, int(y0), LBL_W - 14, int(lane_h), Qt.AlignVCenter | Qt.AlignLeft, nm)
 
+    def _draw_eject(self, p, cx, cy, hot):
+        """Eject glyph (triangle + bar) centred at (cx, cy). Returns its hit rect."""
+        col = QColor(theme.TEXT_PRIMARY if hot else theme.TEXT_MUTED)
+        p.setPen(Qt.NoPen); p.setBrush(col)
+        p.drawPolygon(QPolygonF([QPointF(cx, cy - 4.5),
+                                 QPointF(cx - 4.5, cy + 1), QPointF(cx + 4.5, cy + 1)]))
+        p.drawRect(QRectF(cx - 4.5, cy + 2.5, 9, 2))
+        return QRectF(cx - 9, cy - 9, 18, 18)
+
     def _draw_audio_band(self, p, W, top, audio_h, win):
         p.setPen(QPen(QColor(theme.BORDER), 1)); p.drawLine(LBL_W, int(top), W - PAD_R, int(top))
         # gutter: AUDIO + filename underneath
         p.setFont(sans_font(theme.FONT_SM)); p.setPen(QColor(theme.OPERATOR_AUDIO))
-        p.drawText(10, int(top) + 4, LBL_W - 14, 16, Qt.AlignLeft, "AUDIO")
+        p.drawText(10, int(top) + 4, LBL_W - 30, 16, Qt.AlignLeft, "AUDIO")
         if self.audio_name:
+            self._eject_audio_rect = self._draw_eject(p, LBL_W - 13, int(top) + 11, self._hover_eject == 'audio')
             p.setFont(sans_font(theme.FONT_XS)); p.setPen(QColor(theme.TEXT_MUTED))
             nm = QFontMetrics(p.font()).elidedText(self.audio_name, Qt.ElideMiddle, LBL_W - 14)
             p.drawText(10, int(top) + 20, LBL_W - 14, 16, Qt.AlignLeft, nm)
@@ -382,9 +411,14 @@ class TimelineWidget(QWidget):
         return 'move'
 
     def mousePressEvent(self, e):
+        x, y = e.position().x(), e.position().y()
+        pt = QPointF(x, y)
+        if self._eject_show_rect is not None and self._eject_show_rect.contains(pt):
+            self.ejectShowRequested.emit(); return
+        if self._eject_audio_rect is not None and self._eject_audio_rect.contains(pt):
+            self.ejectAudioRequested.emit(); return
         if not self.lanes:
             self.showRequested.emit(); return
-        x, y = e.position().x(), e.position().y()
         if x < LBL_W:
             return
         zone = self._handle_zone(x, y)
@@ -413,6 +447,14 @@ class TimelineWidget(QWidget):
             self.update()
             self.cutDragged.emit(self.cut_in, self.cut_out)
             return
+        pt = QPointF(x, y)
+        hov = ('show' if (self._eject_show_rect is not None and self._eject_show_rect.contains(pt))
+               else 'audio' if (self._eject_audio_rect is not None and self._eject_audio_rect.contains(pt))
+               else None)
+        if hov != self._hover_eject:
+            self._hover_eject = hov; self.update()
+        if hov:
+            self.setCursor(Qt.PointingHandCursor); return
         z = self._handle_zone(x, y)
         self.setCursor(Qt.OpenHandCursor if z == 'move' else
                        (Qt.SizeHorCursor if z in ('left', 'right') else Qt.ArrowCursor))
@@ -423,6 +465,11 @@ class TimelineWidget(QWidget):
         if self._drag_mode:
             self._drag_mode = self._win_drag = None
             self.setCursor(Qt.ArrowCursor)
+
+    def leaveEvent(self, e):
+        if self._hover_eject is not None:
+            self._hover_eject = None
+            self.update()
 
     def dragEnterEvent(self, e):
         if e.mimeData().hasUrls():
