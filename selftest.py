@@ -57,7 +57,10 @@ except Exception:
     wf = False
 check('output is valid XML', wf)
 check('BOM preserved', ob.startswith(b'\xef\xbb\xbf'))
-check('no CR (LF-only preserved)', b'\r' not in ob)
+# the tool preserves the input's line-ending convention — assert that, not "always LF"
+# (so the test is correct even if git checks the fixture out as CRLF on Windows)
+demo_has_cr = b'\r' in open(DEMO, 'rb').read()
+check('line endings preserved (CR matches input)', (b'\r' in ob) == demo_has_cr)
 check('ends with </MA>, no trailing newline', ob.endswith(b'</MA>') and not ob.endswith(b'\n'))
 
 # 3) ripple semantics

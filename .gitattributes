@@ -1,0 +1,5 @@
+# Byte-exact fixtures and tests depend on stable line endings across platforms.
+# Force LF on checkout everywhere so Windows git doesn't rewrite the demo to CRLF.
+# (A real grandMA2 export is LF; the tool itself preserves whatever the input uses.)
+* text=auto eol=lf
+*.xml text eol=lf
