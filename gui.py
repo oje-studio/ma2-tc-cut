@@ -115,10 +115,10 @@ def build_qss():
     QGroupBox::title {{ subcontrol-origin: margin; left: 12px; padding: 0 4px;
         color: {t.TEXT_DIM}; font-weight: 600; letter-spacing: 1px; }}
     QLabel {{ background: transparent; }}
-    QLineEdit, QDoubleSpinBox, QSpinBox {{ background: {t.BG_INPUT}; color: {t.TEXT_PRIMARY};
-        border: 1px solid {t.BORDER}; border-radius: {t.RADIUS_MD}px; padding: 5px 8px;
+    QLineEdit, QDoubleSpinBox, QSpinBox {{ background: #232323; color: {t.TEXT_PRIMARY};
+        border: 1px solid {t.BORDER_STRONG}; border-radius: {t.RADIUS_MD}px; padding: 5px 8px;
         selection-background-color: {t.with_alpha(t.SEMANTIC_INFO, 0.35)}; }}
-    QLineEdit:focus, QDoubleSpinBox:focus, QSpinBox:focus {{ border-color: {t.SEMANTIC_INFO}; }}
+    QLineEdit:focus, QDoubleSpinBox:focus, QSpinBox:focus {{ border: 1px solid {t.SEMANTIC_INFO}; }}
     QPlainTextEdit {{ background: {t.BG_HEADER}; color: {t.TEXT_PRIMARY};
         border: 1px solid {t.BORDER_SUBTLE}; border-radius: {t.RADIUS_MD}px; padding: 8px; }}
     QRadioButton {{ background: transparent; spacing: 6px; }}
@@ -126,6 +126,7 @@ def build_qss():
         border: 1px solid {t.BORDER}; border-radius: {t.RADIUS_MD}px; padding: 7px 14px; }}
     QPushButton:hover {{ background: #2e2e2e; border-color: {t.BORDER_STRONG}; }}
     QPushButton:pressed {{ background: #1a1a1a; }}
+    QPushButton:focus {{ border: 1px solid {t.SEMANTIC_INFO}; }}
     QPushButton:disabled {{ color: {t.TEXT_DISABLED}; border-color: {t.BORDER_SUBTLE}; }}
     QScrollBar:vertical {{ background: {t.BG_APP}; width: 12px; margin: 0; }}
     QScrollBar::handle:vertical {{ background: {t.BORDER}; border-radius: 6px; min-height: 30px; }}
@@ -135,9 +136,10 @@ def build_qss():
 
 
 def primary_btn_qss(bg, hover, press):
-    return (f"QPushButton{{background:{bg};color:white;font-weight:700;letter-spacing:1px;"
+    return (f"QPushButton{{background:{bg};color:#0f0f0f;font-weight:700;letter-spacing:1px;"
             f"border:none;border-radius:{theme.RADIUS_MD}px;padding:10px 14px;}}"
             f"QPushButton:hover{{background:{hover};}}QPushButton:pressed{{background:{press};}}"
+            f"QPushButton:focus{{border:2px solid {theme.TEXT_BRIGHT};}}"
             f"QPushButton:disabled{{background:{theme.BG_RAISED};color:{theme.TEXT_DISABLED};}}")
 
 
@@ -146,6 +148,7 @@ def secondary_btn_qss():
     return (f"QPushButton{{background:{t.BG_RAISED};color:{t.TEXT_MUTED};font-weight:600;"
             f"border:1px solid {t.BORDER};border-radius:{t.RADIUS_MD}px;padding:10px 14px;}}"
             f"QPushButton:hover{{background:#2e2e2e;border-color:{t.BORDER_STRONG};}}"
+            f"QPushButton:focus{{border-color:{t.SEMANTIC_INFO};}}"
             f"QPushButton:disabled{{color:{t.TEXT_DISABLED};border-color:{t.BORDER_SUBTLE};}}")
 
 
@@ -154,6 +157,7 @@ def seg_qss():
     return (f"QPushButton{{background:{t.BG_RAISED};color:{t.TEXT_MUTED};"
             f"border:1px solid {t.BORDER};border-radius:{t.RADIUS_SM}px;padding:5px 11px;}}"
             f"QPushButton:hover{{border-color:{t.BORDER_STRONG};}}"
+            f"QPushButton:focus{{border-color:{t.SEMANTIC_INFO};}}"
             f"QPushButton:checked{{background:{t.with_alpha(t.SEMANTIC_INFO, 0.16)};"
             f"color:{t.SEMANTIC_INFO};border-color:{t.SEMANTIC_INFO};}}")
 
@@ -174,6 +178,8 @@ class VolumeKnob(QWidget):
         self._val = 100
         self.setFixedSize(40, 40)
         self.setCursor(Qt.SizeVerCursor)
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.setAccessibleName("Volume")
         self._drag_y = None
         self._drag_v = 100
 
@@ -203,6 +209,14 @@ class VolumeKnob(QWidget):
     def wheelEvent(self, e):
         self.setValue(self._val + (5 if e.angleDelta().y() > 0 else -5))
 
+    def keyPressEvent(self, e):
+        if e.key() in (Qt.Key_Up, Qt.Key_Right):
+            self.setValue(self._val + 5)
+        elif e.key() in (Qt.Key_Down, Qt.Key_Left):
+            self.setValue(self._val - 5)
+        else:
+            super().keyPressEvent(e)
+
     def paintEvent(self, _):
         p = QPainter(self); p.setRenderHint(QPainter.Antialiasing, True)
         r = QRectF(self.rect()).adjusted(4, 4, -4, -4)
@@ -218,6 +232,9 @@ class VolumeKnob(QWidget):
         px, py = cx + rr * math.cos(ang), cy - rr * math.sin(ang)
         p.setBrush(QColor(theme.TEXT_BRIGHT)); p.setPen(Qt.NoPen)
         p.drawEllipse(QPointF(px, py), 3, 3)
+        if self.hasFocus():
+            p.setBrush(Qt.NoBrush); p.setPen(QPen(QColor(theme.SEMANTIC_INFO), 1.5))
+            p.drawEllipse(QRectF(self.rect()).adjusted(1.5, 1.5, -1.5, -1.5))
 
 
 class MainWindow(QMainWindow):
@@ -243,6 +260,7 @@ class MainWindow(QMainWindow):
         self._debounce.setInterval(120); self._debounce.timeout.connect(self._recompute)
 
         self._build()
+        self._build_menu()
         self._set_loaded(False)
         self._sc = QShortcut(QKeySequence(Qt.Key_Space), self); self._sc.activated.connect(self._toggle_play)
 
@@ -259,6 +277,7 @@ class MainWindow(QMainWindow):
         r1.addWidget(brand_mark()); r1.addStretch(1)
 
         self.play_btn = QPushButton("▶"); self.play_btn.setFixedWidth(44); self.play_btn.clicked.connect(self._toggle_play)
+        self.play_btn.setAccessibleName("Play / Pause")
         r1.addWidget(self.play_btn); r1.addWidget(dot_sep())
         self.tc_label = QLabel(DASH_TC); self.tc_label.setFont(mono_font(theme.FONT_TC, bold=True))
         self.tc_label.setStyleSheet(f"color: {theme.TEXT_BRIGHT}; letter-spacing: 2px;")
@@ -269,9 +288,11 @@ class MainWindow(QMainWindow):
         r1.addSpacing(8)
         self.metro = QPushButton(); self.metro.setCheckable(True); self.metro.setEnabled(False)
         self.metro.setIcon(QIcon(metro_icon(theme.TEXT_MUTED))); self.metro.setToolTip("Metronome (click mixed into the song)")
+        self.metro.setAccessibleName("Metronome")
         self.metro.setStyleSheet(
             f"QPushButton{{background:{theme.BG_RAISED};border:1px solid {theme.BORDER};"
             f"border-radius:{theme.RADIUS_SM}px;padding:4px 10px;}}"
+            f"QPushButton:focus{{border-color:{theme.SEMANTIC_INFO};}}"
             f"QPushButton:checked{{background:{theme.SEMANTIC_WARNING};border-color:{theme.SEMANTIC_WARNING};}}")
         self.metro.toggled.connect(self._on_metro_toggled); r1.addWidget(self.metro)
         r1.addStretch(1)
@@ -281,12 +302,13 @@ class MainWindow(QMainWindow):
         snapseg = (f"QPushButton{{background:{theme.BG_RAISED};color:{theme.TEXT_MUTED};"
                    f"border:1px solid {theme.BORDER};border-radius:{theme.RADIUS_SM}px;padding:4px 9px;}}"
                    f"QPushButton:hover{{border-color:{theme.BORDER_STRONG};}}"
+                   f"QPushButton:focus{{border-color:{theme.SEMANTIC_INFO};}}"
                    f"QPushButton:checked{{background:{theme.with_alpha(theme.SEMANTIC_INFO, 0.16)};"
                    f"color:{theme.SEMANTIC_INFO};border-color:{theme.SEMANTIC_INFO};}}")
         for mode, glyph, tip in [("off", "○", "No snap"), ("bar", "▮", "Snap to bar"),
                                  ("beat", "♩", "Snap to beat"), ("sec", "⏱", "Snap to second")]:
             b = QPushButton(glyph); b.setCheckable(True); b.setToolTip(tip); b.setStyleSheet(snapseg)
-            b.setFont(sans_font(theme.FONT_MD))
+            b.setAccessibleName(tip); b.setFont(sans_font(theme.FONT_MD))
             b.clicked.connect(lambda _=False, mm=mode: self.timeline.set_snap(mm))
             self.snap_grp.addButton(b); r1.addWidget(b)
             if mode == "off":
@@ -316,7 +338,7 @@ class MainWindow(QMainWindow):
         self.info_label.setFont(mono_font(theme.FONT_SM)); self.info_label.setStyleSheet(f"color: {theme.TEXT_MUTED};")
         infrow.addWidget(self.info_label); infrow.addStretch(1)
         self.tip_label = QLabel("↑ drop .xml / audio to load · click empty areas to browse · click to scrub")
-        self.tip_label.setFont(sans_font(10)); self.tip_label.setStyleSheet(f"color: {theme.TEXT_DIM};")
+        self.tip_label.setFont(sans_font(10)); self.tip_label.setStyleSheet(f"color: {theme.TEXT_MUTED};")
         infrow.addWidget(self.tip_label)
         v.addLayout(infrow)
 
@@ -329,37 +351,43 @@ class MainWindow(QMainWindow):
         self.stack = QStackedWidget()
         pg_tc = QWidget(); ptc = QGridLayout(pg_tc); ptc.setContentsMargins(0, 8, 0, 0)
         ptc.setVerticalSpacing(10); ptc.setHorizontalSpacing(12)
-        ptc.addWidget(self._mk("Cut in", theme.TEXT_MUTED), 0, 0); self.cin = TCField(); ptc.addWidget(self.cin, 0, 1)
+        ptc.addWidget(self._mk("Cut in", theme.TEXT_MUTED), 0, 0)
+        self.cin = TCField(); self.cin.setAccessibleName("Cut in"); ptc.addWidget(self.cin, 0, 1)
         lenrow = QHBoxLayout()
         self.rb_out = seg_button("Cut out"); self.rb_dur = seg_button("Duration"); self.rb_out.setChecked(True)
         llg = QButtonGroup(self); llg.addButton(self.rb_out); llg.addButton(self.rb_dur)
         lenrow.addWidget(self.rb_out); lenrow.addWidget(self.rb_dur); lenrow.addStretch(1)
         ptc.addWidget(self._mk("End by", theme.TEXT_MUTED), 1, 0); ptc.addLayout(lenrow, 1, 1)
-        self.cout = TCField(); self.dur = QDoubleSpinBox(); self.dur.setRange(0.0, 36000.0); self.dur.setDecimals(3); self.dur.setSuffix(" s")
+        self.cout = TCField(); self.cout.setAccessibleName("Cut out")
+        self.dur = QDoubleSpinBox(); self.dur.setRange(0.0, 36000.0); self.dur.setDecimals(3); self.dur.setSuffix(" s")
+        self.dur.setAccessibleName("Duration seconds")
         self.lenstack = QStackedWidget(); self.lenstack.addWidget(self.cout); self.lenstack.addWidget(self.dur)
         ptc.addWidget(self.lenstack, 2, 1); ptc.setColumnStretch(1, 1)
         self.stack.addWidget(pg_tc)
         pg_b = QWidget(); pb = QGridLayout(pg_b); pb.setContentsMargins(0, 4, 0, 0)
-        pb.addWidget(QLabel("From bar"), 0, 0); self.spin_from = QSpinBox(); self.spin_from.setRange(1, 99999); self.spin_from.setValue(1); pb.addWidget(self.spin_from, 0, 1)
-        pb.addWidget(QLabel("Remove bars"), 1, 0); self.spin_count = QSpinBox(); self.spin_count.setRange(1, 99999); self.spin_count.setValue(4); pb.addWidget(self.spin_count, 1, 1)
+        pb.addWidget(QLabel("From bar"), 0, 0); self.spin_from = QSpinBox(); self.spin_from.setRange(1, 99999); self.spin_from.setValue(1)
+        self.spin_from.setAccessibleName("From bar"); pb.addWidget(self.spin_from, 0, 1)
+        pb.addWidget(QLabel("Remove bars"), 1, 0); self.spin_count = QSpinBox(); self.spin_count.setRange(1, 99999); self.spin_count.setValue(4)
+        self.spin_count.setAccessibleName("Remove bars"); pb.addWidget(self.spin_count, 1, 1)
         self.bars_readout = QLabel(""); self.bars_readout.setFont(mono_font(theme.FONT_SM)); self.bars_readout.setStyleSheet(f"color: {theme.TEXT_DIM};")
         pb.addWidget(self.bars_readout, 2, 0, 1, 2); pb.setColumnStretch(1, 1); self.stack.addWidget(pg_b)
         gc.addWidget(self.stack)
         bpmrow = QHBoxLayout(); bpmrow.addWidget(self._mk("BPM", theme.TEXT_MUTED))
         self.bpm = QLineEdit(); self.bpm.setFont(mono_font(theme.FONT_MD)); self.bpm.setFixedWidth(116)
-        self.bpm.setPlaceholderText("—"); self.bpm.setValidator(QDoubleValidator(0.0, 400.0, 2))
+        self.bpm.setPlaceholderText("—"); self.bpm.setValidator(QDoubleValidator(0.0, 400.0, 2)); self.bpm.setAccessibleName("BPM")
         self.bpm.returnPressed.connect(self._apply_bpm)
         self.b_set = QPushButton("Set"); self.b_set.clicked.connect(self._apply_bpm)
         self.b_autobpm = QPushButton("AUTO"); self.b_autobpm.setToolTip("Re-detect BPM from the cue grid")
         self.b_autobpm.setStyleSheet(
             f"QPushButton{{background:{theme.SEMANTIC_WARNING};color:#1a1a1a;font-weight:700;"
             f"border:none;border-radius:{theme.RADIUS_MD}px;padding:7px 12px;}}QPushButton:hover{{background:#ffbe4d;}}"
+            f"QPushButton:focus{{border:2px solid {theme.TEXT_BRIGHT};}}"
             f"QPushButton:disabled{{background:{theme.BG_RAISED};color:{theme.TEXT_DISABLED};}}")
         self.b_autobpm.clicked.connect(self._auto_bpm_click)
         bpmrow.addWidget(self.bpm); bpmrow.addWidget(self.b_set); bpmrow.addWidget(self.b_autobpm); bpmrow.addStretch(1)
         gc.addLayout(bpmrow)
         self.bpm_hint = QLabel(""); self.bpm_hint.setFont(sans_font(10)); self.bpm_hint.setWordWrap(True)
-        self.bpm_hint.setStyleSheet(f"color: {theme.TEXT_DIM};"); gc.addWidget(self.bpm_hint); gc.addStretch(1)
+        self.bpm_hint.setStyleSheet(f"color: {theme.TEXT_MUTED};"); gc.addWidget(self.bpm_hint); gc.addStretch(1)
         rowL.addWidget(g_cut, 0)
         g_prev = panel(); gp = QVBoxLayout(g_prev); gp.setContentsMargins(16, 14, 16, 14)
         self.report = QPlainTextEdit(); self.report.setReadOnly(True); self.report.setFont(mono_font(theme.FONT_SM)); self.report.setMinimumHeight(220)
@@ -378,7 +406,7 @@ class MainWindow(QMainWindow):
         footer = QFrame(); footer.setStyleSheet(f"background: {theme.BG_HEADER};")
         fl = QHBoxLayout(footer); fl.setContentsMargins(16, 6, 16, 6)
         cr = QLabel("© 2026 ØJE STUDIO · MA2 TIMECODE CUT v0.1.0 · MIT")
-        cr.setFont(sans_font(10)); cr.setStyleSheet(f"color: {theme.TEXT_DISABLED}; letter-spacing: 1px;")
+        cr.setFont(sans_font(10)); cr.setStyleSheet(f"color: {theme.TEXT_MUTED}; letter-spacing: 1px;")
         fl.addWidget(cr); fl.addStretch(1)
         self.status = QLabel(""); self.status.setFont(mono_font(theme.FONT_SM)); self.status.setStyleSheet(f"color: {theme.TEXT_MUTED};")
         fl.addWidget(self.status); outer.addWidget(footer)
@@ -391,6 +419,13 @@ class MainWindow(QMainWindow):
 
     def _mk(self, txt, col):
         lb = QLabel(txt); lb.setStyleSheet(f"color: {col};"); return lb
+
+    def _build_menu(self):
+        m = self.menuBar().addMenu("&File")
+        a = m.addAction("Open Show…"); a.setShortcut("Ctrl+O"); a.triggered.connect(self.browse_input)
+        a = m.addAction("Open Audio…"); a.setShortcut("Ctrl+Shift+O"); a.triggered.connect(lambda: self.load_audio())
+        m.addSeparator()
+        a = m.addAction("Save Cut…"); a.setShortcut("Ctrl+S"); a.triggered.connect(self.save_file)
 
     def _set_loaded(self, ok):
         for w in (self.cin, self.cout, self.dur, self.bpm, self.b_set, self.b_autobpm,
