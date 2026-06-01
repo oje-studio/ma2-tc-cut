@@ -4,6 +4,10 @@ __pycache__/
 .venv/
 venv/
 
+# PyInstaller build output
+build/
+dist/
+
 # Сгенерированные резы (выход скрипта)
 *_cut.xml
 

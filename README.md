@@ -31,6 +31,38 @@ Nothing to install. Python 3, standard library only. Copy `ma2_tc_cut.py` and yo
 done. Deliberately no `lxml`, so it runs on a show laptop / MA onPC machine where pip
 and a compiler usually aren't available.
 
+## Desktop app (macOS & Windows)
+
+Prefer a UI over the command line? There's a small PySide6 desktop app: pick the
+show file, set the cut window, **Preview** exactly which cues get deleted/shifted
+before committing, optionally check it against a BPM (whole-bars warning), then
+save a byte-exact cut file.
+
+**Download** a prebuilt `.dmg` (macOS) or `.zip` (Windows) from the
+[Releases](https://github.com/oje-studio/ma2-tc-cut/releases) page. Builds are
+currently unsigned, so on first launch:
+
+- **macOS:** right-click the app → *Open* (or `xattr -dr com.apple.quarantine "MA2 Timecode Cut.app"`).
+- **Windows:** *More info* → *Run anyway* on the SmartScreen prompt.
+
+**Run from source:**
+
+```
+pip install -r requirements-gui.txt
+python gui.py
+```
+
+**Build it yourself** (PyInstaller can't cross-compile — build macOS on a Mac,
+Windows on Windows; CI does both via `.github/workflows/build.yml`):
+
+```
+pip install -r requirements-gui.txt
+pyinstaller --noconfirm MA2TimecodeCut.spec   # -> dist/
+```
+
+The CLI below stays dependency-free for show laptops; the GUI is just a layer on
+top of the same core.
+
 ## Export from grandMA2
 
 The tool operates on the XML that grandMA2 exports from a **Timecode pool** object.
