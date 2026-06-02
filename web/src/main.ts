@@ -102,3 +102,28 @@ document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]:not([data-open-tool])
     }
   });
 });
+
+// ---- logo → back to top ----
+document
+  .querySelector("[data-to-top]")
+  ?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+// ---- scroll-spy: highlight the nav link for the section currently in view ----
+const spyLinks = [...document.querySelectorAll<HTMLAnchorElement>('.nav a[href^="#"]')];
+const spySections = spyLinks
+  .map((a) => document.getElementById(a.getAttribute("href")!.slice(1)))
+  .filter((s): s is HTMLElement => s !== null);
+if (spySections.length) {
+  const spy = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          const id = "#" + e.target.id;
+          spyLinks.forEach((a) => a.classList.toggle("active", a.getAttribute("href") === id));
+        }
+      }
+    },
+    { rootMargin: "-45% 0px -50% 0px", threshold: 0 },
+  );
+  spySections.forEach((s) => spy.observe(s));
+}

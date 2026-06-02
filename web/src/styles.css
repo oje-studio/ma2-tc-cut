@@ -99,6 +99,10 @@ a:hover {
 .nav-logo {
   display: inline-flex;
   align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 .nav-logo img {
   height: 22px;
@@ -132,8 +136,12 @@ a:hover {
   font-size: 13px;
   letter-spacing: 0.4px;
 }
-.nav a:hover {
+.nav a:hover,
+.nav a.active {
   color: var(--text-primary);
+}
+.nav a.active {
+  font-weight: 600;
 }
 .nav a.ext::after {
   content: " ↗";
