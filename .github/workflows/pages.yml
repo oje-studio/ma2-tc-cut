@@ -1,8 +1,8 @@
 name: Deploy web to Pages
 
-# Builds web/ (the soft.oje.studio app) and publishes it to GitHub Pages.
+# Builds web/ (the tools.oje.studio app) and publishes it to GitHub Pages.
 # One-time setup: repo Settings → Pages → Source = "GitHub Actions",
-# then add a DNS record:  soft.oje.studio  CNAME  oje-studio.github.io
+# then add a DNS record:  tools.oje.studio  CNAME  oje-studio.github.io
 on:
   push:
     branches: [main]
