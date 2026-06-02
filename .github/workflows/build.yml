@@ -41,9 +41,16 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           cd dist
-          hdiutil create -volname "MA2 Timecode Cut" \
-            -srcfolder "MA2 Timecode Cut.app" -ov -format UDZO \
-            "MA2-Timecode-Cut-macOS.dmg"
+          # hdiutil intermittently fails with "Resource busy" on hosted runners
+          # (Spotlight/indexer touching the freshly written .app) — retry a few times.
+          for i in 1 2 3 4 5; do
+            hdiutil create -volname "MA2 Timecode Cut" \
+              -srcfolder "MA2 Timecode Cut.app" -ov -format UDZO \
+              "MA2-Timecode-Cut-macOS.dmg" && break
+            echo "hdiutil attempt $i failed; retrying in 10s…"
+            sleep 10
+          done
+          test -f "MA2-Timecode-Cut-macOS.dmg"
 
       - name: Package Windows (.zip)
         if: runner.os == 'Windows'
