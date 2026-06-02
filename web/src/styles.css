@@ -1050,8 +1050,7 @@ footer.site .wrap {
   .info-tip {
     font-size: 15px;
   }
-  .tc-input,
-  .num-input {
+  .tc-input {
     font-size: 17px;
     padding: 9px 12px;
   }
@@ -1088,8 +1087,7 @@ footer.site .wrap {
   .seg {
     font-size: 16px;
   }
-  .tc-input,
-  .num-input {
+  .tc-input {
     font-size: 18px;
   }
   .field-val .tc-input {
@@ -1116,8 +1114,7 @@ footer.site .wrap {
   .seg {
     font-size: 18px;
   }
-  .tc-input,
-  .num-input {
+  .tc-input {
     font-size: 20px;
   }
   .field-val .tc-input {
