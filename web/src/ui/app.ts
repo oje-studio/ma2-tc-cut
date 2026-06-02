@@ -1,7 +1,7 @@
 // MA2 Timecode Cut — the tool UI. Port of gui.py (MainWindow), wired to the
 // shared TS core. Pure DOM + the canvas Timeline + the Web Audio Player.
 import { tcToFrames, framesToTc } from "../core/frames.ts";
-import { rippleCut } from "../core/cut.ts";
+import { rippleCut, rippleInsert } from "../core/cut.ts";
 import { decodeShow, encodeShow, summary, lanes, estimateBeat } from "../core/tcshow.ts";
 import type { ShowSummary } from "../core/tcshow.ts";
 import { decodeAudio, estimateBpmFromPeaks } from "./audio.ts";
@@ -65,6 +65,12 @@ export class ToolApp {
   private cutBtn!: HTMLButtonElement;
   private uncutBtn!: HTMLButtonElement;
   private saveBtn!: HTMLButtonElement;
+  private tabCut!: HTMLButtonElement;
+  private tabInsert!: HTMLButtonElement;
+  private cutMode: "cut" | "insert" = "cut";
+  private cinLabel!: HTMLElement;
+  private endLabel!: HTMLElement;
+  private endSeg!: HTMLElement;
   private endOut!: HTMLButtonElement;
   private endDur!: HTMLButtonElement;
   private coutField!: HTMLElement;
@@ -92,7 +98,7 @@ export class ToolApp {
     // header
     const brand = h("div", { class: "brand" },
       h("span", { class: "brand-mark" }, "Ø"),
-      h("span", { class: "brand-name" }, "TIMECODE CUT"),
+      h("span", { class: "brand-name" }, "TIMECODE TOOLS"),
       h("span", { class: "brand-ver" }, `v${APP_VERSION}`),
     );
 
@@ -147,8 +153,12 @@ export class ToolApp {
 
     // BPM control — built here so it can sit in the transport
     this.bpmInput = h("input", { class: "num-input bpm-in", value: "", placeholder: "—", "aria-label": "BPM", spellcheck: "false" }) as HTMLInputElement;
+    const halfBtn = h("button", { class: "bpm-mul", title: "Halve BPM", "aria-label": "Halve BPM" }, "÷2");
+    const dblBtn = h("button", { class: "bpm-mul", title: "Double BPM", "aria-label": "Double BPM" }, "×2");
+    halfBtn.addEventListener("click", () => this.scaleBpm(0.5));
+    dblBtn.addEventListener("click", () => this.scaleBpm(2));
     this.autoBtn = h("button", { class: "btn-auto on", title: "Auto-detect BPM — from the audio if loaded, else the cue grid" }, "AUTO");
-    const bpmCtl = h("div", { class: "bpm-ctl" }, h("span", { class: "bpm-cap" }, "BPM"), this.bpmInput, this.autoBtn);
+    const bpmCtl = h("div", { class: "bpm-ctl" }, h("span", { class: "bpm-cap" }, "BPM"), this.bpmInput, halfBtn, dblBtn, this.autoBtn);
 
     const header = h("div", { class: "header" }, brand, transport, bpmCtl, h("div", { class: "spacer" }), zoomWrap, snapWrap, vol);
 
@@ -160,25 +170,31 @@ export class ToolApp {
     // timeline
     const tlWrap = h("div", { class: "tl-wrap" }, this.timeline.el);
 
-    // cut panel
-    // unified cut spec — Cut in + End by, each with an independent unit toggle
+    // cut panel — two tabs: Cut (ripple-delete) and Insert (open a gap)
+    this.tabCut = h("button", { class: "seg active" }, "Cut");
+    this.tabInsert = h("button", { class: "seg" }, "Insert");
+    const tabRow = h("div", { class: "seg-row" }, this.tabCut, this.tabInsert);
+
+    // Cut in / Insert at — a point with an independent TC/BAR toggle
     this.cinInput = h("input", { class: "tc-input", value: "00:00:00:00", "aria-label": "Cut in", spellcheck: "false" }) as HTMLInputElement;
-    const cinRow = h("div", { class: "field" }, h("label", {}, "Cut in"),
+    this.cinLabel = h("label", {}, "Cut in");
+    const cinRow = h("div", { class: "field" }, this.cinLabel,
       h("div", { class: "field-val" }, this.cinInput, this.buildUnit("cin")));
 
     this.endOut = h("button", { class: "seg active" }, "Cut out");
     this.endDur = h("button", { class: "seg" }, "Duration");
-    const endSeg = h("div", { class: "seg-row small" }, this.endOut, this.endDur);
+    this.endSeg = h("div", { class: "seg-row small" }, this.endOut, this.endDur);
     this.coutInput = h("input", { class: "tc-input", value: "00:00:04:00", "aria-label": "Cut out", spellcheck: "false" }) as HTMLInputElement;
-    this.durInput = h("input", { class: "tc-input", value: "4.000", "aria-label": "Duration", spellcheck: "false" }) as HTMLInputElement;
+    this.durInput = h("input", { class: "tc-input", value: "4.000", "aria-label": "Duration / length", spellcheck: "false" }) as HTMLInputElement;
     this.coutField = h("div", { class: "field-val" }, this.coutInput, this.buildUnit("cout"));
     this.durField = h("div", { class: "field-val" }, this.durInput, this.buildUnit("dur"));
     this.endStack = h("div", { class: "end-val" }, this.coutField);
-    const endRow = h("div", { class: "field" }, h("label", {}, "End by"),
-      h("div", { class: "end-wrap" }, endSeg, this.endStack));
+    this.endLabel = h("label", {}, "End by");
+    const endRow = h("div", { class: "field" }, this.endLabel,
+      h("div", { class: "end-wrap" }, this.endSeg, this.endStack));
     const cutStack = h("div", { class: "mode-stack" }, cinRow, endRow);
 
-    const cutPanel = h("div", { class: "panel cut-panel" }, cutStack);
+    const cutPanel = h("div", { class: "panel cut-panel" }, tabRow, cutStack);
 
     // preview
     this.report = h("pre", { class: "report" }, "Load a grandMA2 timecode .xml to begin.") as HTMLPreElement;
@@ -252,6 +268,8 @@ export class ToolApp {
     this.knob.onChange = (v) => this.onVolume(v);
     this.engine.onState = (p) => this.onState(p);
 
+    this.tabCut.addEventListener("click", () => this.setCutMode("cut"));
+    this.tabInsert.addEventListener("click", () => this.setCutMode("insert"));
     this.endOut.addEventListener("click", () => this.setEndMode(false));
     this.endDur.addEventListener("click", () => this.setEndMode(true));
 
@@ -260,7 +278,7 @@ export class ToolApp {
       i.addEventListener("blur", () => this.reformat());
     }
 
-    this.cutBtn.addEventListener("click", () => this.applyCut());
+    this.cutBtn.addEventListener("click", () => (this.cutMode === "insert" ? this.applyInsert() : this.applyCut()));
     this.uncutBtn.addEventListener("click", () => this.doUncut());
     this.saveBtn.addEventListener("click", () => this.saveFile());
 
@@ -478,43 +496,59 @@ export class ToolApp {
 
   private recompute(): void {
     if (!this.text) return;
+    const insert = this.cutMode === "insert";
     const w = this.cutWindow();
     if (!w || w.len <= 0) {
       this.timeline.setCut(null, null);
       this.report.textContent = this.barsNeedBpm()
         ? "Set a BPM to use bar units."
-        : "Cut out must be later than cut in.";
+        : insert
+          ? "Set an insert point and a positive length."
+          : "Cut out must be later than cut in.";
       this.cutBtn.disabled = true;
       return;
     }
     const { cin, len } = w;
     const cout = cin + len;
     this.timeline.setCut(cin, cout);
-    const { deleted, shifted } = rippleCut(this.text, cin, len);
 
-    const lines: string[] = ["PENDING — press CUT! to apply", ""];
-    lines.push(`Cut window:  ${framesToTc(cin, this.fps)}  →  ${framesToTc(cout, this.fps)}`);
-    lines.push(`Length:      ${len} frames  /  ${(len / this.fps).toFixed(3)} s`);
-    if (this.appliedBpm > 0) {
+    const lines: string[] = [];
+    const barsLine = (verb: string): void => {
+      if (this.appliedBpm <= 0) return;
       const beatFrames = (this.fps * 60) / this.appliedBpm;
       const beats = len / beatFrames;
       const bars = beats / 4;
-      const whole = Math.abs(bars - Math.round(bars)) < 0.02;
-      if (whole) {
+      if (Math.abs(bars - Math.round(bars)) < 0.02) {
         lines.push(`At ${this.appliedBpm.toFixed(2)} BPM: ${beats.toFixed(2)} beats ≈ ${Math.round(bars)} bars   ✓ whole bars`);
       } else {
         const nb = Math.max(1, Math.round(bars));
-        const newLen = Math.round(nb * 4 * beatFrames);
         lines.push(`At ${this.appliedBpm.toFixed(2)} BPM: ${beats.toFixed(2)} beats — ⚠ not whole bars`);
-        lines.push(`   nearest ${nb} bars → cut out ${framesToTc(cin + newLen, this.fps)}`);
+        lines.push(`   nearest ${nb} bars → ${verb} ${framesToTc(cin + Math.round(nb * 4 * beatFrames), this.fps)}`);
       }
+    };
+
+    if (insert) {
+      const { shifted } = rippleInsert(this.text, cin, len);
+      lines.push("PENDING — press INSERT! to apply", "");
+      lines.push(`Insert at:   ${framesToTc(cin, this.fps)}`);
+      lines.push(`Length:      ${len} frames  /  ${(len / this.fps).toFixed(3)} s`);
+      barsLine("gap ends at");
+      lines.push("");
+      lines.push(`SHIFT ${shifted} cues right by ${len} frames.`);
+      lines.push("Opens a gap — nothing is deleted.");
+    } else {
+      const { deleted, shifted } = rippleCut(this.text, cin, len);
+      lines.push("PENDING — press CUT! to apply", "");
+      lines.push(`Cut window:  ${framesToTc(cin, this.fps)}  →  ${framesToTc(cout, this.fps)}`);
+      lines.push(`Length:      ${len} frames  /  ${(len / this.fps).toFixed(3)} s`);
+      barsLine("cut out");
+      lines.push("");
+      lines.push(`DELETE ${deleted.length} cues:`);
+      for (const [fr, nm] of deleted.slice(0, 18)) lines.push(`    ${framesToTc(fr, this.fps)}  ${nm}`);
+      if (deleted.length > 18) lines.push(`    … and ${deleted.length - 18} more`);
+      lines.push("");
+      lines.push(`SHIFT ${shifted} cues left by ${len} frames.`);
     }
-    lines.push("");
-    lines.push(`DELETE ${deleted.length} cues:`);
-    for (const [fr, nm] of deleted.slice(0, 18)) lines.push(`    ${framesToTc(fr, this.fps)}  ${nm}`);
-    if (deleted.length > 18) lines.push(`    … and ${deleted.length - 18} more`);
-    lines.push("");
-    lines.push(`SHIFT ${shifted} cues left by ${len} frames.`);
     this.report.textContent = lines.join("\n");
     this.cutBtn.disabled = false;
   }
@@ -544,7 +578,22 @@ export class ToolApp {
     this.uncutBtn.disabled = false;
     this.refreshSave();
     const n = this.undo.length;
-    this.report.textContent = `✓ CUT APPLIED  (UNCUT to undo · ${n} cut${n === 1 ? "" : "s"})`;
+    this.report.textContent = `✓ CUT APPLIED  (UNCUT to undo · ${n} edit${n === 1 ? "" : "s"})`;
+  }
+
+  private applyInsert(): void {
+    if (!this.text) return;
+    const w = this.cutWindow(); // cin = insert point, len = gap length
+    if (!w || w.len <= 0) return;
+    this.undo.push(this.text);
+    const { text } = rippleInsert(this.text, w.cin, w.len);
+    this.text = text;
+    this.reloadWorking(false);
+    this.timeline.setCut(null, null);
+    this.uncutBtn.disabled = false;
+    this.refreshSave();
+    const n = this.undo.length;
+    this.report.textContent = `✓ INSERTED  (UNCUT to undo · ${n} edit${n === 1 ? "" : "s"})`;
   }
 
   private doUncut(): void {
@@ -578,6 +627,10 @@ export class ToolApp {
       return;
     }
     this.setBpm(v, false); // manual → AUTO greys
+  }
+  private scaleBpm(factor: number): void {
+    if (this.appliedBpm <= 0) return;
+    this.setBpm(Math.round(this.appliedBpm * factor * 100) / 100, false); // octave shift = manual override
   }
   private autoBpm(announce: boolean): void {
     if (!this.text) return;
@@ -713,16 +766,45 @@ export class ToolApp {
     btns[0].classList.toggle("active", firstActive);
     btns[1].classList.toggle("active", !firstActive);
   }
+  private setCutMode(mode: "cut" | "insert"): void {
+    this.cutMode = mode;
+    const insert = mode === "insert";
+    this.tabInsert.classList.toggle("active", insert);
+    this.tabCut.classList.toggle("active", !insert);
+    this.cinLabel.textContent = insert ? "Insert at" : "Cut in";
+    this.endLabel.textContent = insert ? "Length" : "End by";
+    // insert is always point + length → force Duration and hide the Cut out toggle
+    this.endSeg.style.display = insert ? "none" : "";
+    if (insert && !this.endIsDuration()) this.setEndMode(true);
+    this.cutBtn.textContent = insert ? "INSERT!" : "CUT!";
+    this.cutBtn.classList.toggle("insert", insert);
+    this.timeline.setMode(insert ? "insert" : "cut");
+    this.recompute();
+  }
   private setEndMode(dur: boolean): void {
+    const w = this.cutWindow(); // current window, computed in the OLD mode
     this.endDur.classList.toggle("active", dur);
     this.endOut.classList.toggle("active", !dur);
     this.endStack.innerHTML = "";
     this.endStack.append(dur ? this.durField : this.coutField);
+    // carry the window across the switch so it doesn't jump
+    if (w) {
+      if (dur) {
+        const bf = this.barFrames();
+        this.durInput.value =
+          this.durUnit === "bar" && bf > 0 ? (w.len / bf).toFixed(2) : (w.len / this.fps).toFixed(3);
+      } else {
+        const cout = w.cin + w.len;
+        this.coutInput.value =
+          this.coutUnit === "bar" ? this.frameToBar(cout).toFixed(2) : framesToTc(cout, this.fps);
+      }
+    }
     this.recompute();
   }
   private setLoaded(ok: boolean): void {
     const ctrls: Array<HTMLInputElement | HTMLButtonElement> = [
       this.cinInput, this.coutInput, this.durInput, this.bpmInput, this.endOut, this.endDur,
+      this.tabCut, this.tabInsert,
       ...this.cinUnitBtns, ...this.coutUnitBtns, ...this.durUnitBtns,
     ];
     for (const c of ctrls) c.disabled = !ok;

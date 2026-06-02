@@ -64,6 +64,7 @@ export class Timeline {
 
   private viewStart = 0; // visible frame range (zoom + pan); equals [first,last] when fit
   private viewEnd = 1;
+  private mode: "cut" | "insert" = "cut"; // colours the window red (cut) or green (insert)
   private audioTop: number | null = null;
   private dragMode: Zone = null;
   private winDrag = 0;
@@ -120,6 +121,10 @@ export class Timeline {
   setCut(a: number | null, b: number | null): void {
     this.cutIn = a;
     this.cutOut = b;
+    this.draw();
+  }
+  setMode(mode: "cut" | "insert"): void {
+    this.mode = mode;
     this.draw();
   }
   setAudio(peaks: Float32Array, durationS: number, name = ""): void {
@@ -333,10 +338,15 @@ export class Timeline {
     if (win) {
       const xa = Math.max(LBL_W, Math.min(this.x(win[0]), W - PAD_R));
       const xb = Math.max(LBL_W, Math.min(this.x(win[1]), W - PAD_R));
-      p.fillStyle = t.withAlpha(t.SEMANTIC_INFO, 0.06);
-      p.fillRect(xb, AXIS_H, W - PAD_R - xb, gridBottom - AXIS_H);
-      p.fillStyle = t.withAlpha(t.SEMANTIC_DANGER, 0.16);
-      p.fillRect(xa, AXIS_H, xb - xa, gridBottom - AXIS_H);
+      if (this.mode === "insert") {
+        p.fillStyle = t.withAlpha(t.SEMANTIC_SUCCESS, 0.18); // a gap to open
+        p.fillRect(xa, AXIS_H, xb - xa, gridBottom - AXIS_H);
+      } else {
+        p.fillStyle = t.withAlpha(t.SEMANTIC_INFO, 0.06);
+        p.fillRect(xb, AXIS_H, W - PAD_R - xb, gridBottom - AXIS_H);
+        p.fillStyle = t.withAlpha(t.SEMANTIC_DANGER, 0.16);
+        p.fillRect(xa, AXIS_H, xb - xa, gridBottom - AXIS_H);
+      }
     }
 
     if (bf > 0) this.drawGridLines(p, gridBottom, bf);
@@ -377,7 +387,7 @@ export class Timeline {
         const xx = this.x(fr);
         if (xx < LBL_W || xx > W - PAD_R) continue;
         const inside = win && win[0] <= fr && fr < win[1];
-        p.strokeStyle = inside ? t.SEMANTIC_DANGER : lit;
+        p.strokeStyle = inside && this.mode === "cut" ? t.SEMANTIC_DANGER : lit;
         p.lineWidth = 2;
         p.beginPath();
         p.moveTo(xx, yc - th / 2);
@@ -576,20 +586,22 @@ export class Timeline {
     const xa = this.x(a);
     const xb = this.x(b);
     const len = b - a;
+    const col = this.mode === "insert" ? t.SEMANTIC_SUCCESS : t.SEMANTIC_DANGER;
+    const sign = this.mode === "insert" ? "+" : "−";
     p.font = `11px ${t.FONT_MONO}`;
-    p.fillStyle = t.SEMANTIC_DANGER;
+    p.fillStyle = col;
     const la = tc(a, this.fps);
     p.fillText(la, Math.max(LBL_W, xa - p.measureText(la).width - 4), AXIS_H + 14);
     p.fillText(tc(b, this.fps), xb + 4, AXIS_H + 14);
     // length readout, centred under the window near the bars row
-    const lab = `−${len}f / ${(len / this.fps).toFixed(2)}s`;
+    const lab = `${sign}${len}f / ${(len / this.fps).toFixed(2)}s`;
     p.font = `10px ${t.FONT_MONO}`;
     const lw = p.measureText(lab).width;
-    p.fillStyle = t.SEMANTIC_DANGER;
+    p.fillStyle = col;
     p.fillText(lab, (xa + xb) / 2 - lw / 2, lanesBottom - 4);
 
     // handle bar at the top of the window
-    p.fillStyle = t.SEMANTIC_DANGER;
+    p.fillStyle = col;
     p.fillRect(xa, AXIS_H, xb - xa, HANDLE_H);
     p.fillStyle = t.BG_APP;
     p.font = `9px ${t.FONT_SANS}`;

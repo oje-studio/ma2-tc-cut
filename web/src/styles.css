@@ -787,6 +787,11 @@ body.tool-open .app-view {
   flex: 1;
   min-width: 0;
 }
+/* keep the value inputs compact so the unit toggle never gets pushed out */
+.field-val .tc-input {
+  flex: 0 1 150px;
+  max-width: 150px;
+}
 .end-val {
   flex: 1;
   min-width: 0;
@@ -833,6 +838,20 @@ body.tool-open .app-view {
   max-width: 56px;
   text-align: center;
   padding: 6px 8px;
+}
+.bpm-mul {
+  background: var(--bg-raised);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 7px;
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+}
+.bpm-mul:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
 }
 .btn-auto {
   background: var(--bg-raised);
@@ -909,6 +928,15 @@ body.tool-open .app-view {
   background: var(--bg-raised);
   color: var(--text-disabled);
   cursor: default;
+}
+.btn-cut.insert:not(:disabled) {
+  background: var(--info);
+}
+.btn-cut.insert:not(:disabled):hover {
+  background: var(--info-hover);
+}
+.btn-cut.insert:not(:disabled):active {
+  background: var(--info-active);
 }
 .btn-uncut {
   background: var(--bg-raised);

@@ -91,3 +91,33 @@ export function rippleCut(text: string, cutIn: number, cutLen: number): CutResul
 
   return { text: out.join(eol), deleted, shifted };
 }
+
+export interface InsertResult {
+  text: string;
+  shifted: number;
+}
+
+/** Ripple insert — the inverse of rippleCut. Opens a `len`-frame gap at `at`:
+ *  every event at or after `at` slides right by `len`. Nothing is deleted, so
+ *  indices stay valid; only the `time` attribute changes. Byte-exact otherwise. */
+export function rippleInsert(text: string, at: number, len: number): InsertResult {
+  const eol = text.includes("\r\n") ? "\r\n" : "\n";
+  const lines = text.split(eol);
+  const out: string[] = [];
+  let shifted = 0;
+  for (const line of lines) {
+    if (EVENT_OPEN.test(line)) {
+      const tm = TIME_ATTR.exec(line);
+      if (tm) {
+        const t = parseInt(tm[2], 10);
+        if (t >= at) {
+          shifted += 1;
+          out.push(line.replace(TIME_ATTR, (_m, a, _d, c) => a + String(t + len) + c));
+          continue;
+        }
+      }
+    }
+    out.push(line);
+  }
+  return { text: out.join(eol), shifted };
+}
