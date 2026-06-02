@@ -358,6 +358,9 @@ a:hover {
   font-family: var(--mono);
   font-size: 11px;
   color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .info-label .tip {
   color: var(--text-dim);
@@ -525,8 +528,7 @@ a:hover {
   font-size: 12px;
   line-height: 1.5;
   white-space: pre-wrap;
-  min-height: 220px;
-  max-height: 340px;
+  height: 300px; /* fixed so the layout never jumps as the report text changes */
   overflow: auto;
   border-radius: var(--radius-lg);
 }

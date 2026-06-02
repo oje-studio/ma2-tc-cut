@@ -70,11 +70,6 @@ export class Player {
     if (ctx.state === "suspended") await ctx.resume();
   }
 
-  /** The shared AudioContext (created on demand) — used for decoding too. */
-  context(): AudioContext {
-    return this.ensureCtx();
-  }
-
   setShow(firstFrame: number, lastFrame: number, fps: number): void {
     this.showFirst = firstFrame;
     this.showLast = Math.max(lastFrame, firstFrame + 1);
@@ -83,7 +78,9 @@ export class Player {
   }
 
   setAudio(buffer: AudioBuffer): void {
-    this.ensureCtx();
+    // No ensureCtx() here — the real AudioContext is created on the first user
+    // gesture (play). Decoding happens on an OfflineAudioContext, so a buffer
+    // can be loaded before any gesture without a muted/blocked context.
     this.buffer = buffer;
     this.audioSec = buffer.duration;
     this.recalcTotal();

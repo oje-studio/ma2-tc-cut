@@ -301,9 +301,9 @@ export class ToolApp {
   private async loadAudioFile(f: File): Promise<void> {
     if (!this.text) return;
     try {
-      // decode works on a suspended context — no user-gesture unlock needed yet
+      // decode on an OfflineAudioContext — no user-gesture / output context yet
       const buf = await f.arrayBuffer();
-      const dec = await decodeAudio(buf, this.engine.context());
+      const dec = await decodeAudio(buf);
       this.song = dec.buffer;
       this.engine.setAudio(dec.buffer);
       this.timeline.setAudio(dec.peaks, dec.duration, f.name);

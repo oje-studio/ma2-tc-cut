@@ -27,6 +27,17 @@ function tc(fr: number, fps: number): string {
   return `${pad2(h)}:${pad2(m)}:${pad2(s)}:${pad2(f)}`;
 }
 
+function blend(c1: string, c2: string, k: number): string {
+  const a = c1.replace("#", "");
+  const b = c2.replace("#", "");
+  const ch = (i: number): number => {
+    const x = parseInt(a.slice(i, i + 2), 16);
+    const y = parseInt(b.slice(i, i + 2), 16);
+    return Math.round(x + (y - x) * k);
+  };
+  return `rgb(${ch(0)}, ${ch(2)}, ${ch(4)})`;
+}
+
 export class Timeline {
   readonly el: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -55,6 +66,10 @@ export class Timeline {
   private ejectShow: [number, number, number, number] | null = null;
   private ejectAudio: [number, number, number, number] | null = null;
   private hoverEject: "show" | "audio" | null = null;
+  private scrubbing = false;
+  private flash = new Map<number, number>(); // laneIndex -> brightness 0..1
+  private prevPlayhead: number | null = null;
+  private flashRaf = 0;
 
   onSeek: (frame: number) => void = () => {};
   onShowRequest: () => void = () => {};
@@ -81,7 +96,8 @@ export class Timeline {
     this.last = Math.max(last, first + 1);
     this.anchor = first;
     if (name) this.showName = name;
-    this.cutIn = this.cutOut = this.playhead = null;
+    this.cutIn = this.cutOut = this.playhead = this.prevPlayhead = null;
+    this.flash.clear();
     this.relayout();
   }
   setCut(a: number | null, b: number | null): void {
@@ -109,7 +125,8 @@ export class Timeline {
     this.audioName = "";
     this.showName = "";
     this.bpm = 0;
-    this.cutIn = this.cutOut = this.playhead = null;
+    this.cutIn = this.cutOut = this.playhead = this.prevPlayhead = null;
+    this.flash.clear();
     this.ejectShow = this.ejectAudio = this.hoverEject = null;
     this.relayout();
   }
@@ -126,8 +143,35 @@ export class Timeline {
     this.draw();
   }
   setPlayhead(frame: number | null): void {
+    const prev = this.prevPlayhead;
+    this.prevPlayhead = frame;
+    // when the playhead sweeps forward over a cue, flash that lane's label + ticks
+    if (prev !== null && frame !== null && frame > prev && frame - prev <= 1.5 * this.fps) {
+      this.lanes.forEach((lane, i) => {
+        if (lane.events.some(([f]) => prev < f && f <= frame)) this.flash.set(i, 1.0);
+      });
+      this.ensureFlashLoop();
+    }
     this.playhead = frame;
     this.draw();
+  }
+
+  private ensureFlashLoop(): void {
+    if (this.flashRaf || this.flash.size === 0) return;
+    const tick = (): void => {
+      let any = false;
+      for (const [k, v] of this.flash) {
+        const nv = v - 0.08;
+        if (nv <= 0) this.flash.delete(k);
+        else {
+          this.flash.set(k, nv);
+          any = true;
+        }
+      }
+      this.draw();
+      this.flashRaf = any ? requestAnimationFrame(tick) : 0;
+    };
+    this.flashRaf = requestAnimationFrame(tick);
   }
 
   // ---------- layout / sizing ----------
@@ -253,17 +297,19 @@ export class Timeline {
         p.lineTo(W - PAD_R, y0);
         p.stroke();
       }
-      p.font = `12px ${t.FONT_SANS}`;
-      p.fillStyle = t.TEXT_MUTED;
+      const fl = this.flash.get(i) ?? 0;
+      p.font = `${fl > 0.4 ? "600 " : ""}12px ${t.FONT_SANS}`;
+      p.fillStyle = fl > 0 ? blend(t.TEXT_MUTED, t.TEXT_BRIGHT, fl) : t.TEXT_MUTED;
       p.textBaseline = "middle";
       p.fillText(this.elide(p, this.lanes[i].name, LBL_W - 16, "end"), 10, yc);
       p.textBaseline = "alphabetic";
       const th = Math.max(6, laneH * 0.46);
+      const lit = fl > 0 ? blend(t.OPERATOR_LIGHTING, t.TEXT_BRIGHT, fl) : t.OPERATOR_LIGHTING;
       for (const [fr] of this.lanes[i].events) {
         const xx = this.x(fr);
         if (xx < LBL_W || xx > W - PAD_R) continue;
         const inside = win && win[0] <= fr && fr < win[1];
-        p.strokeStyle = inside ? t.SEMANTIC_DANGER : t.OPERATOR_LIGHTING;
+        p.strokeStyle = inside ? t.SEMANTIC_DANGER : lit;
         p.lineWidth = 2;
         p.beginPath();
         p.moveTo(xx, yc - th / 2);
@@ -519,6 +565,8 @@ export class Timeline {
         return;
       }
       if (this.audioTop !== null && y >= this.audioTop && !this.audioPeaks) return this.onAudioRequest();
+      c.setPointerCapture(e.pointerId);
+      this.scrubbing = true;
       this.onSeek(this.snap(this.frameAt(x)));
     });
     c.addEventListener("pointermove", (e) => {
@@ -539,6 +587,10 @@ export class Timeline {
         this.onCutDragged(this.cutIn!, this.cutOut!);
         return;
       }
+      if (this.scrubbing && e.buttons & 1) {
+        this.onSeek(this.snap(this.frameAt(x)));
+        return;
+      }
       const hov = this.rectHit(this.ejectShow, x, y) ? "show" : this.rectHit(this.ejectAudio, x, y) ? "audio" : null;
       if (hov !== this.hoverEject) {
         this.hoverEject = hov;
@@ -556,6 +608,7 @@ export class Timeline {
         this.dragMode = null;
         c.style.cursor = "default";
       }
+      this.scrubbing = false;
     };
     c.addEventListener("pointerup", end);
     c.addEventListener("pointercancel", end);

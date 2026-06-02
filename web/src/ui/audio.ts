@@ -7,11 +7,13 @@ export interface DecodedAudio {
   duration: number; // seconds
 }
 
-export async function decodeAudio(
-  file: ArrayBuffer,
-  ctx: BaseAudioContext,
-  nBins = 2000,
-): Promise<DecodedAudio> {
+export async function decodeAudio(file: ArrayBuffer, nBins = 2000): Promise<DecodedAudio> {
+  // Decode on a throwaway OfflineAudioContext so audio can load before any user
+  // gesture — the real (output) AudioContext is created later, on first play.
+  const Offline = (window.OfflineAudioContext ||
+    (window as unknown as { webkitOfflineAudioContext: typeof OfflineAudioContext })
+      .webkitOfflineAudioContext) as typeof OfflineAudioContext;
+  const ctx = new Offline(1, 1, 44100);
   // decodeAudioData detaches its argument, so hand it a copy.
   const buffer = await ctx.decodeAudioData(file.slice(0));
   return { buffer, peaks: peaksFrom(buffer, nBins), duration: buffer.duration };
