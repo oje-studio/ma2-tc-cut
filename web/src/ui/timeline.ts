@@ -61,6 +61,8 @@ export class Timeline {
   showName = "";
   audioName = "";
 
+  private viewStart = 0; // visible frame range (zoom + pan); equals [first,last] when fit
+  private viewEnd = 1;
   private audioTop: number | null = null;
   private dragMode: Zone = null;
   private winDrag = 0;
@@ -79,6 +81,7 @@ export class Timeline {
   onEjectAudio: () => void = () => {};
   onFilesDropped: (files: File[]) => void = () => {};
   onCutDragged: (a: number, b: number) => void = () => {};
+  onZoom: (factor: number) => void = () => {}; // factor = full / visible span (1 = fit)
 
   constructor() {
     const c = document.createElement("canvas");
@@ -94,6 +97,9 @@ export class Timeline {
   private applyRange(): void {
     const audioEnd = this.audioDur > 0 ? Math.round(this.first + this.audioDur * this.fps) : this.first;
     this.last = Math.max(this.showLast, audioEnd, this.first + 1);
+    this.viewStart = this.first; // reset zoom-to-fit when the data range changes
+    this.viewEnd = this.last;
+    this.onZoom(1);
   }
   setShow(fps: number, lanes: Lane[], first: number, last: number, name = ""): void {
     this.fps = Math.max(1, fps);
@@ -214,11 +220,45 @@ export class Timeline {
     return Math.max(1, this.cssW - LBL_W - PAD_R);
   }
   private x(frame: number): number {
-    return LBL_W + ((frame - this.first) / (this.last - this.first)) * this.plotW();
+    return LBL_W + ((frame - this.viewStart) / (this.viewEnd - this.viewStart)) * this.plotW();
   }
   private frameAt(px: number): number {
     const xx = Math.min(Math.max(px, LBL_W), LBL_W + this.plotW());
-    return Math.round(this.first + ((xx - LBL_W) / this.plotW()) * (this.last - this.first));
+    return Math.round(this.viewStart + ((xx - LBL_W) / this.plotW()) * (this.viewEnd - this.viewStart));
+  }
+  // ---------- zoom / pan ----------
+  private viewSpan(): number {
+    return Math.max(1, this.viewEnd - this.viewStart);
+  }
+  private minSpan(): number {
+    return Math.max(this.fps, Math.round((this.last - this.first) / 400));
+  }
+  setView(start: number, end: number): void {
+    const full = this.last - this.first;
+    const span = Math.min(Math.max(end - start, this.minSpan()), full);
+    const s = Math.min(Math.max(start, this.first), this.last - span);
+    this.viewStart = Math.round(s);
+    this.viewEnd = Math.round(s + span);
+    this.onZoom(full / span);
+    this.draw();
+  }
+  zoomAtFrame(centerFrame: number, factor: number): void {
+    const span = this.viewSpan();
+    const ratio = (centerFrame - this.viewStart) / span;
+    const newSpan = span * factor;
+    this.setView(centerFrame - ratio * newSpan, centerFrame - ratio * newSpan + newSpan);
+  }
+  zoomBy(factor: number): void {
+    this.zoomAtFrame((this.viewStart + this.viewEnd) / 2, factor);
+  }
+  panByFrames(df: number): void {
+    this.setView(this.viewStart + df, this.viewEnd + df);
+  }
+  zoomFit(): void {
+    this.viewStart = this.first;
+    this.viewEnd = this.last;
+    this.onZoom(1);
+    this.draw();
   }
   private barFrames(): number {
     return this.bpm > 0 ? (this.fps * 240) / this.bpm : 0;
@@ -273,8 +313,8 @@ export class Timeline {
 
     // cut window fills
     if (win) {
-      const xa = this.x(win[0]);
-      const xb = this.x(win[1]);
+      const xa = Math.max(LBL_W, Math.min(this.x(win[0]), W - PAD_R));
+      const xb = Math.max(LBL_W, Math.min(this.x(win[1]), W - PAD_R));
       p.fillStyle = t.withAlpha(t.SEMANTIC_INFO, 0.06);
       p.fillRect(xb, AXIS_H, W - PAD_R - xb, gridBottom - AXIS_H);
       p.fillStyle = t.withAlpha(t.SEMANTIC_DANGER, 0.16);
@@ -334,7 +374,7 @@ export class Timeline {
     if (win) this.drawCutLabels(p, win, lanesBottom);
 
     // playhead
-    if (this.playhead !== null && this.first <= this.playhead && this.playhead <= this.last) {
+    if (this.playhead !== null && this.playhead >= this.viewStart && this.playhead <= this.viewEnd) {
       const xx = this.x(this.playhead);
       p.strokeStyle = t.TEXT_BRIGHT;
       p.beginPath();
@@ -351,11 +391,12 @@ export class Timeline {
   }
 
   private drawGridLines(p: CanvasRenderingContext2D, gridBottom: number, bf: number): void {
+    const right = this.cssW - PAD_R;
     let k = 0;
     let fr = this.anchor;
     while (fr <= this.last + bf) {
-      if (fr >= this.first) {
-        const xx = this.x(fr);
+      const xx = this.x(fr);
+      if (fr >= this.first && xx >= LBL_W && xx <= right) {
         p.strokeStyle = k % 4 === 0 ? t.GRID_PHRASE : t.GRID_BAR;
         p.beginPath();
         p.moveTo(xx, AXIS_H);
@@ -377,7 +418,7 @@ export class Timeline {
     p.fillStyle = t.TEXT_MUTED;
     p.textBaseline = "middle";
     p.fillText("BARS", 10, y + h / 2);
-    const barPx = (bf / (this.last - this.first)) * this.plotW();
+    const barPx = (bf / (this.viewEnd - this.viewStart)) * this.plotW();
     const steps = [1, 2, 4, 8, 16, 32, 64];
     const step = steps.find((s) => s * barPx >= 34) ?? 64;
     p.font = `10px ${t.FONT_MONO}`;
@@ -386,8 +427,10 @@ export class Timeline {
     while (fr <= this.last + bf) {
       if (fr >= this.first && k % step === 0) {
         const xx = this.x(fr);
-        p.fillStyle = k % 4 === 0 ? t.TEXT_PRIMARY : t.TEXT_MUTED;
-        p.fillText(String(k + 1), xx + 3, y + h / 2);
+        if (xx >= LBL_W && xx <= W - PAD_R - 10) {
+          p.fillStyle = k % 4 === 0 ? t.TEXT_PRIMARY : t.TEXT_MUTED;
+          p.fillText(String(k + 1), xx + 3, y + h / 2);
+        }
       }
       k += 1;
       fr = this.anchor + k * bf;
@@ -399,7 +442,7 @@ export class Timeline {
     p.font = `10px ${t.FONT_MONO}`;
     let lastRight = -1e9;
     for (let i = 0; i < 7; i++) {
-      const fr = this.first + ((this.last - this.first) * i) / 6;
+      const fr = this.viewStart + ((this.viewEnd - this.viewStart) * i) / 6;
       const xx = LBL_W + (this.plotW() * i) / 6;
       if (drawLines) {
         p.strokeStyle = t.BORDER_SUBTLE;
@@ -560,6 +603,26 @@ export class Timeline {
       const r = c.getBoundingClientRect();
       return [e.clientX - r.left, e.clientY - r.top];
     };
+    c.addEventListener(
+      "wheel",
+      (e) => {
+        if (this.lanes.length === 0) return;
+        const [x] = pos(e);
+        if (x < LBL_W) return;
+        if (e.ctrlKey || e.metaKey) {
+          // ctrl/cmd + wheel, or trackpad pinch → zoom toward the cursor
+          e.preventDefault();
+          this.zoomAtFrame(this.frameAt(x), e.deltaY > 0 ? 1.18 : 1 / 1.18);
+        } else if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+          // shift + wheel, or horizontal trackpad swipe → pan
+          e.preventDefault();
+          const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+          this.panByFrames((delta / this.plotW()) * this.viewSpan());
+        }
+        // plain vertical wheel falls through → page scrolls
+      },
+      { passive: false },
+    );
     c.addEventListener("pointerdown", (e) => {
       const [x, y] = pos(e);
       if (this.rectHit(this.ejectShow, x, y)) return this.onEjectShow();

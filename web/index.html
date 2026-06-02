@@ -9,6 +9,11 @@
       content="Tools from ØJE Studio for live-show timecode. MA2 Timecode Cut: ripple-cut a grandMA2 timecode show in the browser — byte-exact, nothing leaves your machine."
     />
     <link rel="icon" type="image/png" href="./icon.png" />
+    <meta name="theme-color" content="#0f0f0f" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ØJE Tools" />
+    <link rel="apple-touch-icon" href="./icon.png" />
     <meta property="og:title" content="ØJE Studio — Software" />
     <meta property="og:description" content="MA2 Timecode Cut and other live-show tools, in the browser." />
     <meta property="og:type" content="website" />
@@ -158,8 +163,16 @@
         <span class="app-bar-sep">·</span>
         <span class="app-bar-tool">MA2 Timecode Cut</span>
         <span class="nav-spacer"></span>
+        <button class="app-fs" type="button" aria-label="Fullscreen" title="Fullscreen (F)">⛶</button>
         <button class="app-close" type="button">← back</button>
       </header>
+      <div class="rotate-hint">
+        <div>
+          <div class="rotate-glyph">⟲</div>
+          <p><strong>Rotate to landscape.</strong></p>
+          <p>The timeline needs width — turn your phone sideways, or open it on a desktop / tablet.</p>
+        </div>
+      </div>
       <div id="tool-mount"></div>
       <div class="app-credit">
         Demo track by Artem Kharchenko · © 2026. Drop your own show .xml and audio to cut for real.

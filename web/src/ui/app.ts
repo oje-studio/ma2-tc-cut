@@ -59,6 +59,8 @@ export class ToolApp {
   private durInput!: HTMLInputElement;
   private bpmInput!: HTMLInputElement;
   private bpmHint!: HTMLElement;
+  private calcSec!: HTMLInputElement;
+  private calcBars!: HTMLInputElement;
   private report!: HTMLPreElement;
   private cutBtn!: HTMLButtonElement;
   private uncutBtn!: HTMLButtonElement;
@@ -73,6 +75,7 @@ export class ToolApp {
   private barsStack!: HTMLElement;
   private endStack!: HTMLElement;
   private snapBtns: HTMLButtonElement[] = [];
+  private zoomLbl!: HTMLSpanElement;
 
   constructor() {
     this.el = this.build();
@@ -123,10 +126,24 @@ export class ToolApp {
       snapWrap.append(b);
     });
 
+    // zoom controls (also: ctrl/⌘ + wheel or pinch over the timeline)
+    const zoomWrap = h("div", { class: "zoom" }, h("span", { class: "snap-lbl" }, "Zoom"));
+    const zOut = h("button", { class: "snap-btn", title: "Zoom out", "aria-label": "Zoom out" }, "−");
+    this.zoomLbl = h("span", { class: "zoom-lbl", title: "Current zoom" }, "1×");
+    const zIn = h("button", { class: "snap-btn", title: "Zoom in", "aria-label": "Zoom in" }, "+");
+    const zFit = h("button", { class: "snap-btn", title: "Fit to window", "aria-label": "Zoom to fit" }, "⤢");
+    zOut.addEventListener("click", () => this.timeline.zoomBy(1.6));
+    zIn.addEventListener("click", () => this.timeline.zoomBy(1 / 1.6));
+    zFit.addEventListener("click", () => this.timeline.zoomFit());
+    zoomWrap.append(zOut, this.zoomLbl, zIn, zFit);
+    this.timeline.onZoom = (factor) => {
+      this.zoomLbl.textContent = factor <= 1.01 ? "1×" : `${factor < 10 ? factor.toFixed(1) : Math.round(factor)}×`;
+    };
+
     this.volLbl = h("span", { class: "vol-lbl" }, "100%");
     const vol = h("div", { class: "vol" }, h("span", { class: "vol-cap" }, "Vol"), this.knob.el, this.volLbl);
 
-    const header = h("div", { class: "header" }, brand, transport, h("div", { class: "spacer" }), snapWrap, vol);
+    const header = h("div", { class: "header" }, brand, transport, h("div", { class: "spacer" }), zoomWrap, snapWrap, vol);
 
     // info line: summary (left, may ellipsis) + an always-visible load hint (right)
     this.infoLabel = h("div", { class: "info-label" }, "No show loaded");
@@ -148,7 +165,7 @@ export class ToolApp {
     this.endDur = h("button", { class: "seg" }, "Duration");
     const endSeg = h("div", { class: "seg-row small" }, this.endOut, this.endDur);
     this.coutInput = h("input", { class: "tc-input", value: "00:00:00:00", "aria-label": "Cut out", spellcheck: "false" }) as HTMLInputElement;
-    this.durInput = h("input", { class: "tc-input", value: "1.000", "aria-label": "Duration seconds", spellcheck: "false" }) as HTMLInputElement;
+    this.durInput = h("input", { class: "tc-input", value: "4.000", "aria-label": "Duration seconds", spellcheck: "false" }) as HTMLInputElement;
     this.endStack = h("div", { class: "end-stack" }, this.coutInput);
     const endRow = h("div", { class: "field" }, h("label", {}, "End by"), h("div", { class: "end-wrap" }, endSeg, this.endStack));
     this.tcStack = h("div", { class: "mode-stack" }, cinRow, endRow);
@@ -166,7 +183,19 @@ export class ToolApp {
     const bpmRow = h("div", { class: "field bpm-row" }, h("label", {}, "BPM"), this.bpmInput, setBtn, autoBtn);
     this.bpmHint = h("div", { class: "bpm-hint" }, "");
 
-    const cutPanel = h("div", { class: "panel cut-panel" }, modeRow, this.tcStack, this.barsStack, bpmRow, this.bpmHint);
+    // seconds ↔ bars calculator (at the current BPM)
+    this.calcSec = h("input", { class: "num-input calc-in", value: "4", "aria-label": "Calculator seconds", spellcheck: "false" }) as HTMLInputElement;
+    this.calcBars = h("input", { class: "num-input calc-in", value: "", "aria-label": "Calculator bars", spellcheck: "false" }) as HTMLInputElement;
+    const calcRow = h("div", { class: "calc", title: "Convert seconds ↔ bars at the current BPM" },
+      h("span", { class: "calc-lbl" }, "Calc"),
+      this.calcSec, h("span", { class: "calc-unit" }, "s"),
+      h("span", { class: "calc-eq" }, "="),
+      this.calcBars, h("span", { class: "calc-unit" }, "bars"),
+    );
+    this.calcSec.addEventListener("input", () => this.calcFromSec());
+    this.calcBars.addEventListener("input", () => this.calcFromBars());
+
+    const cutPanel = h("div", { class: "panel cut-panel" }, modeRow, this.tcStack, this.barsStack, bpmRow, this.bpmHint, calcRow);
 
     // preview
     this.report = h("pre", { class: "report" }, "Load a grandMA2 timecode .xml to begin.") as HTMLPreElement;
@@ -292,9 +321,9 @@ export class ToolApp {
       this.reloadWorking(this.song === null);
       this.setLoaded(true);
       this.autoBpm(false);
-      // default to a visible 1-second cut window so it's obvious from the start
+      // default to a visible 4-second cut window so it's obvious from the start
       this.cinInput.value = framesToTc(this.anchor, this.fps);
-      this.coutInput.value = framesToTc(this.anchor + this.fps, this.fps);
+      this.coutInput.value = framesToTc(this.anchor + 4 * this.fps, this.fps);
       this.recompute();
     } catch (err) {
       this.toast(`Can't read file: ${(err as Error).message}`);
@@ -504,11 +533,11 @@ export class ToolApp {
     if (!this.undo.length) return;
     this.text = this.undo.pop()!;
     this.reloadWorking(false);
-    this.timeline.setCut(null, null);
     this.uncutBtn.disabled = this.undo.length === 0;
     this.refreshSave();
+    this.recompute(); // keep the segment selected and re-show its preview
     const n = this.undo.length;
-    this.report.textContent = "Reverted last cut." + (n ? `  (${n} cut${n === 1 ? "" : "s"} left)` : "");
+    this.toast("Reverted last cut" + (n ? ` · ${n} left` : ""));
   }
 
   // ---------- BPM ----------
@@ -521,7 +550,18 @@ export class ToolApp {
     this.bpmHint.textContent = `BPM set to ${this.bpmInput.value}`;
     this.applyMetro();
     this.recompute();
+    this.calcFromSec();
     this.timeline.relayout();
+  }
+
+  // seconds ↔ bars at the current BPM (1 bar = 4 beats = 240/bpm seconds)
+  private calcFromSec(): void {
+    const s = parseFloat(this.calcSec.value);
+    this.calcBars.value = this.appliedBpm > 0 && isFinite(s) ? ((s * this.appliedBpm) / 240).toFixed(2) : "";
+  }
+  private calcFromBars(): void {
+    const b = parseFloat(this.calcBars.value);
+    this.calcSec.value = this.appliedBpm > 0 && isFinite(b) ? ((b * 240) / this.appliedBpm).toFixed(3) : "";
   }
 
   private autoBpm(announce: boolean): void {
@@ -538,6 +578,7 @@ export class ToolApp {
     }
     this.applyMetro();
     this.recompute();
+    this.calcFromSec();
     this.timeline.relayout();
   }
 

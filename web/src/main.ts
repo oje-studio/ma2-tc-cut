@@ -38,9 +38,23 @@ document.querySelectorAll<HTMLElement>("[data-open-tool]").forEach((el) =>
   }),
 );
 document.querySelector(".app-close")?.addEventListener("click", () => closeTool());
+
+// ---- fullscreen (true edge-to-edge; great on tablet / projector) ----
+function toggleFullscreen(): void {
+  if (document.fullscreenElement) {
+    void document.exitFullscreen?.();
+  } else {
+    void appView.requestFullscreen?.().then(() => requestAnimationFrame(() => app.fit()));
+  }
+}
+document.querySelector(".app-fs")?.addEventListener("click", () => toggleFullscreen());
+document.addEventListener("fullscreenchange", () => requestAnimationFrame(() => app.fit()));
+
 window.addEventListener("keydown", (e) => {
   const typing = document.activeElement && ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName);
-  if (e.key === "Escape" && document.body.classList.contains("tool-open") && !typing) closeTool();
+  const open = document.body.classList.contains("tool-open");
+  if (e.key === "Escape" && open && !typing && !document.fullscreenElement) closeTool();
+  if ((e.key === "f" || e.key === "F") && open && !typing) toggleFullscreen();
 });
 if (location.hash === "#tool") openTool();
 

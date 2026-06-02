@@ -417,11 +417,60 @@ body.tool-open .app-view {
   background: var(--bg-hover);
   color: var(--text-primary);
 }
+.app-fs {
+  background: var(--bg-raised);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 6px 11px;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+}
+.app-fs:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+:fullscreen .app-fs {
+  color: var(--op-audio);
+}
 #tool-mount {
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
   padding: 16px;
+}
+.rotate-hint {
+  display: none;
+}
+/* The timeline is a wide instrument — on a narrow phone in portrait, ask for
+   landscape instead of cramming a broken layout. */
+@media (max-width: 680px) and (orientation: portrait) {
+  #tool-mount,
+  .app-credit {
+    display: none;
+  }
+  .rotate-hint {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px;
+    color: var(--text-muted);
+  }
+  .rotate-hint .rotate-glyph {
+    font-size: 52px;
+    color: var(--op-audio);
+    margin-bottom: 14px;
+  }
+  .rotate-hint strong {
+    color: var(--text-primary);
+  }
+  .rotate-hint p {
+    margin: 4px auto;
+    max-width: 30ch;
+  }
 }
 .app-credit {
   width: 100%;
@@ -442,6 +491,7 @@ body.tool-open .app-view {
 .header {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 14px;
   padding: 12px 16px;
   background: var(--bg-header);
@@ -545,6 +595,19 @@ body.tool-open .app-view {
   background: rgba(122, 183, 255, 0.16);
   color: var(--info);
   border-color: var(--info);
+}
+.zoom {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 14px;
+}
+.zoom-lbl {
+  min-width: 34px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-muted);
 }
 .vol {
   display: flex;
@@ -749,6 +812,30 @@ body.tool-open .app-view {
   color: var(--text-muted);
   font-size: 12px;
   min-height: 16px;
+}
+.calc {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.calc-lbl {
+  color: var(--text-dim);
+  letter-spacing: 0.3px;
+  margin-right: 2px;
+}
+.calc-in {
+  width: 62px;
+  text-align: center;
+}
+.calc-unit {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+.calc-eq {
+  color: var(--text-muted);
 }
 .preview-panel {
   padding: 0;
