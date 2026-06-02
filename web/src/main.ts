@@ -27,7 +27,18 @@ function loadDemoOnce(): void {
   void app.loadDemo("./demo/demo_show.xml", 140).then(() => app.loadAudioUrl("./demo/demo_audio.mp3"));
 }
 
+/** True on phones and tablets — the canvas tool doesn't work well on touch-only
+ *  devices (Web Audio gesture restrictions, no file-save, cramped layout). */
+function isMobile(): boolean {
+  return window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768;
+}
+
 function openTool(): void {
+  if (isMobile()) {
+    // show the desktop-only notice instead of a broken tool
+    document.getElementById("mobile-notice")?.removeAttribute("hidden");
+    return;
+  }
   loadDemoOnce();
   track("MA2 Timecode Tools", "#tool");
   document.body.classList.add("tool-open");
@@ -79,6 +90,9 @@ document.querySelectorAll<HTMLElement>("[data-open-tool]").forEach((el) =>
   }),
 );
 appView.querySelector(".app-close")?.addEventListener("click", () => closeTool());
+document.querySelector(".mobile-notice-close")?.addEventListener("click", () => {
+  document.getElementById("mobile-notice")?.setAttribute("hidden", "");
+});
 
 // ---- fullscreen (true edge-to-edge; great on tablet / projector) ----
 function toggleFullscreen(): void {
