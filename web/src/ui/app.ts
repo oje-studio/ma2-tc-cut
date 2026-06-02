@@ -1,7 +1,7 @@
 // MA2 Timecode Cut — the tool UI. Port of gui.py (MainWindow), wired to the
 // shared TS core. Pure DOM + the canvas Timeline + the Web Audio Player.
 import { tcToFrames, framesToTc } from "../core/frames.ts";
-import { rippleCut, rippleInsert, eraseRange } from "../core/cut.ts";
+import { rippleCut, rippleInsert, eraseRange, moveEvent } from "../core/cut.ts";
 import { decodeShow, encodeShow, summary, lanes, estimateBeat } from "../core/tcshow.ts";
 import type { ShowSummary } from "../core/tcshow.ts";
 import { decodeAudio, estimateBpmFromPeaks } from "./audio.ts";
@@ -268,6 +268,7 @@ export class ToolApp {
     this.timeline.onEjectAudio = () => this.unloadAudio();
     this.timeline.onFilesDropped = (files) => this.onDrop(files);
     this.timeline.onCutDragged = (a, b) => this.onCutDragged(a, b);
+    this.timeline.onEventMoved = (lane, from, to) => this.onEventMoved(lane, from, to);
 
     this.playBtn.addEventListener("click", () => this.togglePlay());
     this.metroBtn.addEventListener("click", () => this.toggleMetro());
@@ -375,7 +376,8 @@ export class ToolApp {
     }
   }
 
-  private reloadWorking(resetAudio: boolean): void {
+  private reloadWorking(resetAudio: boolean, keepView = false): void {
+    const prevHead = this.timeline.playhead; // keep the playhead across in-place edits
     const info = summary(this.text!);
     this.info = info;
     this.fps = info.fps;
@@ -383,7 +385,7 @@ export class ToolApp {
     this.infoLabel.textContent =
       `${info.name} · ${info.fps} FPS · ${info.firstTc}–${info.lastTc} · ${info.nEvents} cues · ${info.nSubtracks} tracks`;
     this.infoTip.textContent = DROP_HINT;
-    this.timeline.setShow(info.fps, lanes(this.text!), info.firstFrame, info.lastFrame, this.showName);
+    this.timeline.setShow(info.fps, lanes(this.text!), info.firstFrame, info.lastFrame, this.showName, keepView);
     this.timeline.setGrid(this.appliedBpm, this.anchor);
     if (resetAudio) {
       this.song = null;
@@ -391,11 +393,12 @@ export class ToolApp {
     }
     this.engine.setShow(info.firstFrame, info.lastFrame, info.fps);
     this.engine.setVolume(this.knob.value() / 100);
-    this.engine.seekFrame(this.firstFrame()); // reset position so the cut/uncut length change can't strand the playhead
+    const head = keepView && prevHead !== null ? prevHead : this.firstFrame();
+    this.engine.seekFrame(head); // clamps to the new length, so it can't strand
     this.applyMetro();
     this.playBtn.disabled = false;
-    this.timeline.setPlayhead(this.firstFrame());
-    this.updateHead(this.firstFrame());
+    this.timeline.setPlayhead(head);
+    this.updateHead(head);
   }
 
   private unloadShow(): void {
@@ -597,7 +600,7 @@ export class ToolApp {
     this.undo.push(this.text);
     const { text } = rippleCut(this.text, w.cin, w.len);
     this.text = text;
-    this.reloadWorking(false);
+    this.reloadWorking(false, true);
     this.timeline.setCut(null, null);
     this.uncutBtn.disabled = false;
     this.refreshSave();
@@ -612,7 +615,7 @@ export class ToolApp {
     this.undo.push(this.text);
     const { text } = rippleInsert(this.text, w.cin, w.len);
     this.text = text;
-    this.reloadWorking(false);
+    this.reloadWorking(false, true);
     this.timeline.setCut(null, null);
     this.uncutBtn.disabled = false;
     this.refreshSave();
@@ -627,7 +630,7 @@ export class ToolApp {
     this.undo.push(this.text);
     const { text } = eraseRange(this.text, w.cin, w.cin + w.len);
     this.text = text;
-    this.reloadWorking(false);
+    this.reloadWorking(false, true);
     this.timeline.setCut(null, null);
     this.uncutBtn.disabled = false;
     this.refreshSave();
@@ -638,12 +641,28 @@ export class ToolApp {
   private doUncut(): void {
     if (!this.undo.length) return;
     this.text = this.undo.pop()!;
-    this.reloadWorking(false);
+    this.reloadWorking(false, true);
     this.uncutBtn.disabled = this.undo.length === 0;
     this.refreshSave();
     this.recompute(); // keep the segment selected and re-show its preview
     const n = this.undo.length;
     this.toast("Reverted last cut" + (n ? ` · ${n} left` : ""));
+  }
+
+  private onEventMoved(lane: number, fromFrame: number, toFrame: number): void {
+    if (!this.text || fromFrame === toFrame) return;
+    this.undo.push(this.text);
+    const { text, moved } = moveEvent(this.text, lane, fromFrame, toFrame);
+    if (!moved) {
+      this.undo.pop();
+      return;
+    }
+    this.text = text;
+    this.reloadWorking(false, true); // keep zoom/playhead — you're working in a spot
+    this.uncutBtn.disabled = false;
+    this.refreshSave();
+    this.recompute();
+    this.toast(`Moved cue → ${framesToTc(toFrame, this.fps)}`);
   }
 
   // ---------- BPM ----------

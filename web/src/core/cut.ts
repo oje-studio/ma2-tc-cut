@@ -92,6 +92,68 @@ export function rippleCut(text: string, cutIn: number, cutLen: number): CutResul
   return { text: out.join(eol), deleted, shifted };
 }
 
+export interface MoveResult {
+  text: string;
+  moved: boolean;
+}
+
+/** Move a single event (in SubTrack `subIdx`, currently at `fromFrame`) to
+ *  `toFrame`. The subtrack is re-sorted by time and its indices renumbered so
+ *  the event order stays valid. Everything else is byte-for-byte preserved. */
+export function moveEvent(text: string, subIdx: number, fromFrame: number, toFrame: number): MoveResult {
+  const eol = text.includes("\r\n") ? "\r\n" : "\n";
+  const lines = text.split(eol);
+  const n = lines.length;
+  const out: string[] = [];
+  let sub = -1;
+  let moved = false;
+  let i = 0;
+  while (i < n) {
+    const line = lines[i];
+    if (!SUBTRACK.test(line)) {
+      out.push(line);
+      i += 1;
+      continue;
+    }
+    sub += 1;
+    out.push(line); // the <SubTrack ...> line
+    i += 1;
+    if (sub !== subIdx) continue;
+
+    // collect this subtrack's event blocks
+    const blocks: Array<{ time: number; lines: string[] }> = [];
+    while (i < n && !lines[i].includes("</SubTrack>")) {
+      const blk = [lines[i]];
+      let j = i;
+      const single = lines[i].includes("</Event>") || SELF_CLOSE_END.test(lines[i]);
+      if (!single) {
+        j = i + 1;
+        while (j < n && !lines[j].includes("</Event>")) {
+          blk.push(lines[j]);
+          j += 1;
+        }
+        if (j < n) blk.push(lines[j]); // the </Event> line
+      }
+      const tm = TIME_ATTR.exec(blk[0]);
+      blocks.push({ time: tm ? parseInt(tm[2], 10) : 0, lines: blk });
+      i = j + 1;
+    }
+
+    const target = blocks.find((b) => b.time === fromFrame);
+    if (target) {
+      target.lines[0] = target.lines[0].replace(TIME_ATTR, (_m, a, _d, c) => a + String(toFrame) + c);
+      target.time = toFrame;
+      blocks.sort((a, b) => a.time - b.time);
+      blocks.forEach((b, idx) => {
+        b.lines[0] = b.lines[0].replace(INDEX_ATTR, (_m, a, _d, c) => a + String(idx) + c);
+      });
+      moved = true;
+    }
+    for (const b of blocks) for (const l of b.lines) out.push(l);
+  }
+  return { text: out.join(eol), moved };
+}
+
 export interface EraseResult {
   text: string;
   deleted: Array<[number, string]>;

@@ -74,6 +74,11 @@ export class Timeline {
   private ejectAudio: [number, number, number, number] | null = null;
   private hoverEject: "show" | "audio" | null = null;
   private scrubbing = false;
+  private laneH = 0; // last-drawn lane geometry (for cue hit-testing)
+  private lanesBottom = 0;
+  private hoverCue: { lane: number; frame: number } | null = null;
+  private cuePending: { lane: number; from: number; startX: number } | null = null;
+  private cueDrag: { lane: number; from: number; cur: number } | null = null;
   private flash = new Map<number, number>(); // laneIndex -> brightness 0..1
   private prevPlayhead: number | null = null;
   private flashRaf = 0;
@@ -88,6 +93,7 @@ export class Timeline {
   onEjectAudio: () => void = () => {};
   onFilesDropped: (files: File[]) => void = () => {};
   onCutDragged: (a: number, b: number) => void = () => {};
+  onEventMoved: (lane: number, fromFrame: number, toFrame: number) => void = () => {};
   onZoom: (factor: number) => void = () => {}; // factor = full / visible span (1 = fit)
 
   constructor() {
@@ -100,15 +106,25 @@ export class Timeline {
   }
 
   // ---------- data ----------
-  /** Effective right edge spans the longer of the show and the audio. */
-  private applyRange(): void {
+  /** Effective right edge spans the longer of the show and the audio.
+   *  keepView preserves the current zoom/pan (clamped); otherwise zoom-to-fit. */
+  private applyRange(keepView = false): void {
     const audioEnd = this.audioDur > 0 ? Math.round(this.first + this.audioDur * this.fps) : this.first;
     this.last = Math.max(this.showLast, audioEnd, this.first + 1);
-    this.viewStart = this.first; // reset zoom-to-fit when the data range changes
-    this.viewEnd = this.last;
-    this.onZoom(1);
+    const full = this.last - this.first;
+    if (keepView) {
+      const span = Math.min(Math.max(this.viewEnd - this.viewStart, this.minSpan()), full);
+      const s = Math.min(Math.max(this.viewStart, this.first), this.last - span);
+      this.viewStart = Math.round(s);
+      this.viewEnd = Math.round(s + span);
+      this.onZoom(full / span);
+    } else {
+      this.viewStart = this.first;
+      this.viewEnd = this.last;
+      this.onZoom(1);
+    }
   }
-  setShow(fps: number, lanes: Lane[], first: number, last: number, name = ""): void {
+  setShow(fps: number, lanes: Lane[], first: number, last: number, name = "", keepView = false): void {
     this.fps = Math.max(1, fps);
     this.lanes = lanes || [];
     this.first = first;
@@ -117,7 +133,7 @@ export class Timeline {
     if (name) this.showName = name;
     this.cutIn = this.cutOut = this.playhead = this.prevPlayhead = null;
     this.flash.clear();
-    this.applyRange();
+    this.applyRange(keepView);
     this.relayout();
   }
   setCut(a: number | null, b: number | null): void {
@@ -349,6 +365,8 @@ export class Timeline {
     this.audioTop = gridBottom;
     const n = this.lanes.length;
     const laneH = (lanesBottom - AXIS_H) / n;
+    this.laneH = laneH; // remember for cue hit-testing
+    this.lanesBottom = lanesBottom;
     const win = this.window();
 
     // cut window fills
@@ -405,15 +423,52 @@ export class Timeline {
         const xx = this.x(fr);
         if (xx < LBL_W || xx > W - PAD_R) continue;
         const inside = win && win[0] <= fr && fr < win[1];
-        p.strokeStyle = inside && this.mode !== "insert" ? this.winColor() : lit;
-        p.lineWidth = 2;
+        const dragging = this.cueDrag !== null && this.cueDrag.lane === i && fr === this.cueDrag.from;
+        const hovered = this.hoverCue !== null && this.hoverCue.lane === i && fr === this.hoverCue.frame;
+        p.strokeStyle = dragging
+          ? t.withAlpha(t.OPERATOR_LIGHTING, 0.22)
+          : hovered
+            ? t.TEXT_BRIGHT
+            : inside && this.mode !== "insert"
+              ? this.winColor()
+              : lit;
+        p.lineWidth = hovered ? 3 : 2;
         p.beginPath();
         p.moveTo(xx, yc - th / 2);
         p.lineTo(xx, yc + th / 2);
         p.stroke();
       }
+      // ghost of the cue being dragged, in its lane
+      if (this.cueDrag !== null && this.cueDrag.lane === i) {
+        const gx = this.x(this.cueDrag.cur);
+        if (gx >= LBL_W && gx <= W - PAD_R) {
+          p.strokeStyle = t.TEXT_BRIGHT;
+          p.lineWidth = 2.5;
+          p.beginPath();
+          p.moveTo(gx, yc - th / 2);
+          p.lineTo(gx, yc + th / 2);
+          p.stroke();
+        }
+      }
     }
     p.lineWidth = 1;
+
+    // drag guide line + readout
+    if (this.cueDrag !== null) {
+      const gx = this.x(this.cueDrag.cur);
+      if (gx >= LBL_W && gx <= W - PAD_R) {
+        p.strokeStyle = t.withAlpha(t.TEXT_BRIGHT, 0.45);
+        p.setLineDash([3, 3]);
+        p.beginPath();
+        p.moveTo(gx, AXIS_H);
+        p.lineTo(gx, lanesBottom);
+        p.stroke();
+        p.setLineDash([]);
+        p.fillStyle = t.TEXT_BRIGHT;
+        p.font = this.font(10, true);
+        p.fillText(tc(this.cueDrag.cur, this.fps), gx + 4, AXIS_H + 10);
+      }
+    }
 
     if (barsH) this.drawBarsRuler(p, W, lanesBottom, barsH, bf);
     this.drawAudioBand(p, W, gridBottom, audioH, win);
@@ -692,6 +747,24 @@ export class Timeline {
     return !!r && x >= r[0] && x <= r[0] + r[2] && y >= r[1] && y <= r[1] + r[3];
   }
 
+  /** The cue tick nearest the cursor (within a few px, in a lane row), or null. */
+  private cueAt(px: number, py: number): { lane: number; frame: number } | null {
+    if (px < LBL_W || this.laneH <= 0 || py < AXIS_H || py > this.lanesBottom) return null;
+    const lane = Math.floor((py - AXIS_H) / this.laneH);
+    if (lane < 0 || lane >= this.lanes.length) return null;
+    const TOL = 5;
+    let best: number | null = null;
+    let bestDist = TOL + 1;
+    for (const [fr] of this.lanes[lane].events) {
+      const d = Math.abs(this.x(fr) - px);
+      if (d < bestDist) {
+        bestDist = d;
+        best = fr;
+      }
+    }
+    return best !== null && bestDist <= TOL ? { lane, frame: best } : null;
+  }
+
   private bindMouse(): void {
     const c = this.el;
     const pos = (e: PointerEvent | MouseEvent): [number, number] => {
@@ -745,6 +818,13 @@ export class Timeline {
         c.style.cursor = zone === "move" ? "grabbing" : "ew-resize";
         return;
       }
+      // grab a cue tick to drag it (a plain click without dragging just seeks to it)
+      const cue = this.cueAt(x, y);
+      if (cue) {
+        c.setPointerCapture(e.pointerId);
+        this.cuePending = { lane: cue.lane, from: cue.frame, startX: x };
+        return;
+      }
       if (this.audioTop !== null && y >= this.audioTop && !this.audioPeaks) return this.onAudioRequest();
       c.setPointerCapture(e.pointerId);
       this.scrubbing = true;
@@ -772,6 +852,20 @@ export class Timeline {
         this.onCutDragged(this.cutIn!, this.cutOut!);
         return;
       }
+      if (this.cueDrag !== null && e.buttons & 1) {
+        this.cueDrag.cur = Math.max(this.first, Math.min(this.last, this.snap(this.frameAt(x))));
+        this.draw();
+        return;
+      }
+      if (this.cuePending !== null && e.buttons & 1) {
+        if (Math.abs(x - this.cuePending.startX) > 3) {
+          this.cueDrag = { lane: this.cuePending.lane, from: this.cuePending.from, cur: this.cuePending.from };
+          this.cuePending = null;
+          c.style.cursor = "grabbing";
+          this.draw();
+        }
+        return;
+      }
       if (this.scrubbing && e.buttons & 1) {
         this.onSeek(this.snap(this.frameAt(x)));
         return;
@@ -786,9 +880,35 @@ export class Timeline {
         return;
       }
       const z = this.handleZone(x, y);
-      c.style.cursor = z === "move" ? "grab" : z ? "ew-resize" : "default";
+      if (z) {
+        if (this.hoverCue) {
+          this.hoverCue = null;
+          this.draw();
+        }
+        c.style.cursor = z === "move" ? "grab" : "ew-resize";
+        return;
+      }
+      const cue = this.cueAt(x, y);
+      const hc = cue ? { lane: cue.lane, frame: cue.frame } : null;
+      if ((hc ? hc.lane : -1) !== (this.hoverCue ? this.hoverCue.lane : -1) ||
+          (hc ? hc.frame : -1) !== (this.hoverCue ? this.hoverCue.frame : -1)) {
+        this.hoverCue = hc;
+        this.draw();
+      }
+      c.style.cursor = cue ? "grab" : "default";
     });
     const end = () => {
+      if (this.cueDrag !== null) {
+        if (this.cueDrag.cur !== this.cueDrag.from) {
+          this.onEventMoved(this.cueDrag.lane, this.cueDrag.from, this.cueDrag.cur);
+        }
+        this.cueDrag = null;
+        c.style.cursor = "default";
+        this.draw();
+      } else if (this.cuePending !== null) {
+        this.onSeek(this.snap(this.cuePending.from)); // click on a cue (no drag) → seek to it
+      }
+      this.cuePending = null;
       if (this.dragMode) {
         this.dragMode = null;
         c.style.cursor = "default";
@@ -802,8 +922,9 @@ export class Timeline {
     c.addEventListener("pointerup", end);
     c.addEventListener("pointercancel", end);
     c.addEventListener("pointerleave", () => {
-      if (this.hoverEject) {
+      if (this.hoverEject || this.hoverCue) {
         this.hoverEject = null;
+        this.hoverCue = null;
         this.draw();
       }
     });
