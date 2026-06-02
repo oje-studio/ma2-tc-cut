@@ -4,7 +4,7 @@ import { tcToFrames, framesToTc } from "../core/frames.ts";
 import { rippleCut } from "../core/cut.ts";
 import { decodeShow, encodeShow, summary, lanes, estimateBeat } from "../core/tcshow.ts";
 import type { ShowSummary } from "../core/tcshow.ts";
-import { decodeAudio } from "./audio.ts";
+import { decodeAudio, estimateBpmFromPeaks } from "./audio.ts";
 import { Player } from "./player.ts";
 import { Timeline } from "./timeline.ts";
 import { VolumeKnob } from "./knob.ts";
@@ -58,9 +58,9 @@ export class ToolApp {
   private coutInput!: HTMLInputElement;
   private durInput!: HTMLInputElement;
   private bpmInput!: HTMLInputElement;
-  private bpmHint!: HTMLElement;
-  private calcSec!: HTMLInputElement;
-  private calcBars!: HTMLInputElement;
+  private autoBtn!: HTMLButtonElement;
+  private songPeaks: Float32Array | null = null;
+  private songPeaksRate = 0;
   private report!: HTMLPreElement;
   private cutBtn!: HTMLButtonElement;
   private uncutBtn!: HTMLButtonElement;
@@ -145,7 +145,12 @@ export class ToolApp {
     this.volLbl = h("span", { class: "vol-lbl" }, "100%");
     const vol = h("div", { class: "vol" }, h("span", { class: "vol-cap" }, "Vol"), this.knob.el, this.volLbl);
 
-    const header = h("div", { class: "header" }, brand, transport, h("div", { class: "spacer" }), zoomWrap, snapWrap, vol);
+    // BPM control — built here so it can sit in the transport
+    this.bpmInput = h("input", { class: "num-input bpm-in", value: "", placeholder: "—", "aria-label": "BPM", spellcheck: "false" }) as HTMLInputElement;
+    this.autoBtn = h("button", { class: "btn-auto on", title: "Auto-detect BPM — from the audio if loaded, else the cue grid" }, "AUTO");
+    const bpmCtl = h("div", { class: "bpm-ctl" }, h("span", { class: "bpm-cap" }, "BPM"), this.bpmInput, this.autoBtn);
+
+    const header = h("div", { class: "header" }, brand, transport, bpmCtl, h("div", { class: "spacer" }), zoomWrap, snapWrap, vol);
 
     // info line: summary (left, may ellipsis) + an always-visible load hint (right)
     this.infoLabel = h("div", { class: "info-label" }, "No show loaded");
@@ -173,25 +178,7 @@ export class ToolApp {
       h("div", { class: "end-wrap" }, endSeg, this.endStack));
     const cutStack = h("div", { class: "mode-stack" }, cinRow, endRow);
 
-    this.bpmInput = h("input", { class: "num-input", value: "", placeholder: "—", "aria-label": "BPM", spellcheck: "false" }) as HTMLInputElement;
-    const setBtn = h("button", { class: "btn-sec" }, "Set");
-    const autoBtn = h("button", { class: "btn-auto" }, "AUTO");
-    const bpmRow = h("div", { class: "field bpm-row" }, h("label", {}, "BPM"), this.bpmInput, setBtn, autoBtn);
-    this.bpmHint = h("div", { class: "bpm-hint" }, "");
-
-    // seconds ↔ bars calculator (at the current BPM)
-    this.calcSec = h("input", { class: "num-input calc-in", value: "4", "aria-label": "Calculator seconds", spellcheck: "false" }) as HTMLInputElement;
-    this.calcBars = h("input", { class: "num-input calc-in", value: "", "aria-label": "Calculator bars", spellcheck: "false" }) as HTMLInputElement;
-    const calcRow = h("div", { class: "calc", title: "Convert seconds ↔ bars at the current BPM" },
-      h("span", { class: "calc-lbl" }, "Calc"),
-      this.calcSec, h("span", { class: "calc-unit" }, "s"),
-      h("span", { class: "calc-eq" }, "="),
-      this.calcBars, h("span", { class: "calc-unit" }, "bars"),
-    );
-    this.calcSec.addEventListener("input", () => this.calcFromSec());
-    this.calcBars.addEventListener("input", () => this.calcFromBars());
-
-    const cutPanel = h("div", { class: "panel cut-panel" }, cutStack, bpmRow, this.bpmHint, calcRow);
+    const cutPanel = h("div", { class: "panel cut-panel" }, cutStack);
 
     // preview
     this.report = h("pre", { class: "report" }, "Load a grandMA2 timecode .xml to begin.") as HTMLPreElement;
@@ -208,10 +195,14 @@ export class ToolApp {
     root.append(header, info, tlWrap, cols, actions);
 
     // setup-time wiring
-    setBtn.addEventListener("click", () => this.applyBpm());
-    autoBtn.addEventListener("click", () => this.autoBpm(true));
+    this.autoBtn.addEventListener("click", () => this.autoBpm(true));
+    this.bpmInput.addEventListener("input", () => this.setAutoActive(false)); // typing → manual (AUTO greys)
+    this.bpmInput.addEventListener("change", () => this.applyBpm());
     this.bpmInput.addEventListener("keydown", (e) => {
-      if ((e as KeyboardEvent).key === "Enter") this.applyBpm();
+      if ((e as KeyboardEvent).key === "Enter") {
+        this.applyBpm();
+        this.bpmInput.blur();
+      }
     });
 
     return root;
@@ -240,10 +231,7 @@ export class ToolApp {
       const blob = await r.blob();
       const name = url.split("/").pop() || "demo.xml";
       await this.loadShowFile(new File([blob], name));
-      if (bpm && this.text) {
-        this.bpmInput.value = String(bpm);
-        this.applyBpm();
-      }
+      if (bpm && this.text) this.setBpm(bpm, true); // demo tempo, shown as auto
     } catch {
       /* demo is optional */
     }
@@ -348,6 +336,8 @@ export class ToolApp {
       const buf = await f.arrayBuffer();
       const dec = await decodeAudio(buf);
       this.song = dec.buffer;
+      this.songPeaks = dec.peaks;
+      this.songPeaksRate = dec.duration > 0 ? dec.peaks.length / dec.duration : 0;
       this.engine.setAudio(dec.buffer);
       this.timeline.setAudio(dec.peaks, dec.duration, f.name);
       this.updateMetroEnabled();
@@ -400,13 +390,15 @@ export class ToolApp {
     this.infoTip.textContent = DROP_HINT_EMPTY;
     this.report.textContent = "Load a grandMA2 timecode .xml to begin.";
     this.bpmInput.value = "";
-    this.bpmHint.textContent = "";
+    this.songPeaks = null;
+    this.setAutoActive(true);
     this.refreshSave();
   }
 
   private unloadAudio(): void {
     if (this.song === null) return;
     this.song = null;
+    this.songPeaks = null;
     this.engine.clearAudio();
     this.timeline.clearAudio();
     this.timeline.setPlayhead(this.firstFrame());
@@ -567,45 +559,40 @@ export class ToolApp {
   }
 
   // ---------- BPM ----------
+  private setAutoActive(on: boolean): void {
+    this.autoBtn.classList.toggle("on", on);
+  }
+  private setBpm(v: number, isAuto: boolean): void {
+    this.appliedBpm = v;
+    this.bpmInput.value = v % 1 === 0 ? String(v) : v.toFixed(1);
+    this.setAutoActive(isAuto);
+    this.timeline.setGrid(this.appliedBpm, this.anchor);
+    this.applyMetro();
+    this.recompute();
+    this.timeline.relayout();
+  }
   private applyBpm(): void {
     const v = parseFloat(this.bpmInput.value);
-    if (!isFinite(v) || v <= 0) return;
-    this.appliedBpm = v;
-    this.bpmInput.value = v.toFixed(v % 1 === 0 ? 0 : 2);
-    this.timeline.setGrid(this.appliedBpm, this.anchor);
-    this.bpmHint.textContent = `BPM set to ${this.bpmInput.value}`;
-    this.applyMetro();
-    this.recompute();
-    this.calcFromSec();
-    this.timeline.relayout();
+    if (!isFinite(v) || v <= 0) {
+      this.setAutoActive(false);
+      return;
+    }
+    this.setBpm(v, false); // manual → AUTO greys
   }
-
-  // seconds ↔ bars at the current BPM (1 bar = 4 beats = 240/bpm seconds)
-  private calcFromSec(): void {
-    const s = parseFloat(this.calcSec.value);
-    this.calcBars.value = this.appliedBpm > 0 && isFinite(s) ? ((s * this.appliedBpm) / 240).toFixed(2) : "";
-  }
-  private calcFromBars(): void {
-    const b = parseFloat(this.calcBars.value);
-    this.calcSec.value = this.appliedBpm > 0 && isFinite(b) ? ((b * 240) / this.appliedBpm).toFixed(3) : "";
-  }
-
   private autoBpm(announce: boolean): void {
     if (!this.text) return;
-    const est = estimateBeat(this.text);
-    if (est) {
-      this.appliedBpm = est.bpm;
-      this.bpmInput.value = est.bpm.toFixed(2);
-      this.timeline.setGrid(this.appliedBpm, this.anchor);
-      this.bpmHint.textContent = `≈ ${est.bpm.toFixed(1)} BPM detected from the cues · type a value + Set to override`;
-    } else {
-      this.bpmHint.textContent = "Couldn't auto-detect BPM — type the track BPM and press Set.";
-      if (announce) this.bpmInput.focus();
+    // prefer the audio (real tempo) when loaded, else the cue grid
+    let bpm: number | null = this.songPeaks ? estimateBpmFromPeaks(this.songPeaks, this.songPeaksRate) : null;
+    if (bpm === null) {
+      const est = estimateBeat(this.text);
+      bpm = est ? Math.round(est.bpm * 10) / 10 : null;
     }
-    this.applyMetro();
-    this.recompute();
-    this.calcFromSec();
-    this.timeline.relayout();
+    if (bpm) {
+      this.setBpm(bpm, true); // detected → AUTO amber
+    } else if (announce) {
+      this.setAutoActive(false);
+      this.bpmInput.focus();
+    }
   }
 
   // ---------- transport ----------

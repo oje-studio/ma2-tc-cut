@@ -11,6 +11,7 @@ const LANE_MIN = 30;
 const AUDIO_H = 54;
 const BARS_H = 18;
 const HANDLE_H = 11;
+const SCROLL_H = 11; // bottom scrollbar lane (shown when zoomed)
 
 type Zone = "left" | "right" | "move" | null;
 
@@ -73,6 +74,9 @@ export class Timeline {
   private flash = new Map<number, number>(); // laneIndex -> brightness 0..1
   private prevPlayhead: number | null = null;
   private flashRaf = 0;
+  private scrollThumb: [number, number, number, number] | null = null;
+  private scrolling = false;
+  private scrollGrab = 0;
 
   onSeek: (frame: number) => void = () => {};
   onShowRequest: () => void = () => {};
@@ -193,7 +197,7 @@ export class Timeline {
   // ---------- layout / sizing ----------
   contentHeight(): number {
     const n = Math.max(1, this.lanes.length);
-    const extra = (this.lanes.length ? AUDIO_H : 0) + (this.barFrames() > 0 ? BARS_H : 0);
+    const extra = (this.lanes.length ? AUDIO_H + SCROLL_H : 0) + (this.barFrames() > 0 ? BARS_H : 0);
     return Math.max(220, AXIS_H + n * LANE_MIN + 14 + extra);
   }
   relayout(): void {
@@ -265,6 +269,15 @@ export class Timeline {
     this.onZoom(1);
     this.draw();
   }
+  private scrollTo(pointerX: number): void {
+    const full = this.last - this.first;
+    const left = LBL_W;
+    const trackW = this.cssW - PAD_R - left;
+    const span = this.viewSpan();
+    const frac = (pointerX - this.scrollGrab - left) / trackW;
+    const start = this.first + frac * full;
+    this.setView(start, start + span);
+  }
   private barFrames(): number {
     return this.bpm > 0 ? (this.fps * 240) / this.bpm : 0;
   }
@@ -309,7 +322,7 @@ export class Timeline {
     const bf = this.barFrames();
     const audioH = AUDIO_H;
     const barsH = bf > 0 ? BARS_H : 0;
-    const lanesBottom = H - 4 - audioH - barsH;
+    const lanesBottom = H - 4 - audioH - barsH - SCROLL_H;
     const gridBottom = lanesBottom + barsH;
     this.audioTop = gridBottom;
     const n = this.lanes.length;
@@ -384,7 +397,7 @@ export class Timeline {
       p.strokeStyle = t.TEXT_BRIGHT;
       p.beginPath();
       p.moveTo(xx, AXIS_H);
-      p.lineTo(xx, H - 4);
+      p.lineTo(xx, H - 4 - SCROLL_H);
       p.stroke();
       p.fillStyle = t.TEXT_BRIGHT;
       p.beginPath();
@@ -393,6 +406,29 @@ export class Timeline {
       p.lineTo(xx, AXIS_H + 6);
       p.fill();
     }
+
+    this.drawScrollbar(p, W, H);
+  }
+
+  private drawScrollbar(p: CanvasRenderingContext2D, W: number, H: number): void {
+    const full = this.last - this.first;
+    const left = LBL_W;
+    const right = W - PAD_R;
+    const trackW = right - left;
+    const y = H - SCROLL_H + 3;
+    const hh = SCROLL_H - 6;
+    p.fillStyle = t.withAlpha(t.TEXT_BRIGHT, 0.05);
+    p.fillRect(left, y, trackW, hh);
+    const span = this.viewEnd - this.viewStart;
+    if (span >= full - 1 || full <= 0) {
+      this.scrollThumb = null; // fully zoomed-out → nothing to scroll
+      return;
+    }
+    const tx = left + ((this.viewStart - this.first) / full) * trackW;
+    const tw = Math.max(24, Math.min((span / full) * trackW, right - tx));
+    p.fillStyle = t.withAlpha(t.TEXT_BRIGHT, this.scrolling ? 0.55 : 0.32);
+    p.fillRect(tx, y, tw, hh);
+    this.scrollThumb = [tx, H - SCROLL_H, tw, SCROLL_H];
   }
 
   private drawGridLines(p: CanvasRenderingContext2D, gridBottom: number, bf: number): void {
@@ -658,6 +694,19 @@ export class Timeline {
       if (this.rectHit(this.ejectAudio, x, y)) return this.onEjectAudio();
       if (this.lanes.length === 0) return this.onShowRequest();
       if (x < LBL_W) return;
+      // bottom scrollbar (only present when zoomed)
+      if (this.scrollThumb !== null && y >= this.cssH - SCROLL_H) {
+        this.scrolling = true;
+        const [tx, , tw] = this.scrollThumb;
+        this.scrollGrab = x >= tx && x <= tx + tw ? x - tx : tw / 2;
+        try {
+          c.setPointerCapture(e.pointerId);
+        } catch {
+          /* synthetic / unsupported pointer */
+        }
+        this.scrollTo(x);
+        return;
+      }
       const zone = this.handleZone(x, y);
       if (zone) {
         c.setPointerCapture(e.pointerId);
@@ -673,6 +722,10 @@ export class Timeline {
     });
     c.addEventListener("pointermove", (e) => {
       const [x, y] = pos(e);
+      if (this.scrolling && e.buttons & 1) {
+        this.scrollTo(x);
+        return;
+      }
       if (this.dragMode && e.buttons & 1) {
         const f = this.snap(this.frameAt(x));
         if (this.dragMode === "move") {
@@ -709,6 +762,10 @@ export class Timeline {
       if (this.dragMode) {
         this.dragMode = null;
         c.style.cursor = "default";
+      }
+      if (this.scrolling) {
+        this.scrolling = false;
+        this.draw();
       }
       this.scrubbing = false;
     };

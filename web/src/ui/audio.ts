@@ -43,3 +43,42 @@ export function peaksFrom(buffer: AudioBuffer, nBins: number): Float32Array {
   }
   return peaks;
 }
+
+/** Estimate tempo (BPM) from a peak envelope: autocorrelation of its onset flux,
+ *  octave-folded into a musical 90–180 range. null if the clip is too short. */
+export function estimateBpmFromPeaks(peaks: Float32Array, rate: number): number | null {
+  const n = peaks.length;
+  if (rate <= 0 || n < rate * 4) return null;
+  // onset strength = positive first difference of the envelope
+  const onset = new Float32Array(n);
+  for (let i = 1; i < n; i++) {
+    const d = peaks[i] - peaks[i - 1];
+    onset[i] = d > 0 ? d : 0;
+  }
+  const minLag = Math.max(2, Math.round((rate * 60) / 200)); // ≤ 200 BPM
+  const maxLag = Math.round((rate * 60) / 60); //               ≥ 60 BPM
+  if (maxLag <= minLag) return null;
+  const ac = new Float64Array(maxLag + 2);
+  let bestLag = minLag;
+  let best = -1;
+  for (let lag = minLag; lag <= maxLag; lag++) {
+    let s = 0;
+    for (let i = lag; i < n; i++) s += onset[i] * onset[i - lag];
+    ac[lag] = s;
+    if (s > best) {
+      best = s;
+      bestLag = lag;
+    }
+  }
+  if (best <= 0) return null;
+  // parabolic interpolation around the peak for sub-lag precision
+  const y0 = ac[bestLag - 1] ?? 0;
+  const y1 = ac[bestLag];
+  const y2 = ac[bestLag + 1] ?? 0;
+  const denom = y0 - 2 * y1 + y2;
+  const offset = denom !== 0 ? (0.5 * (y0 - y2)) / denom : 0;
+  let bpm = (rate * 60) / (bestLag + offset);
+  while (bpm < 90) bpm *= 2;
+  while (bpm > 180) bpm /= 2;
+  return Math.round(bpm * 2) / 2; // nearest 0.5
+}
