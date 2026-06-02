@@ -148,7 +148,7 @@ export class ToolApp {
     this.endDur = h("button", { class: "seg" }, "Duration");
     const endSeg = h("div", { class: "seg-row small" }, this.endOut, this.endDur);
     this.coutInput = h("input", { class: "tc-input", value: "00:00:00:00", "aria-label": "Cut out", spellcheck: "false" }) as HTMLInputElement;
-    this.durInput = h("input", { class: "tc-input", value: "8.000", "aria-label": "Duration seconds", spellcheck: "false" }) as HTMLInputElement;
+    this.durInput = h("input", { class: "tc-input", value: "1.000", "aria-label": "Duration seconds", spellcheck: "false" }) as HTMLInputElement;
     this.endStack = h("div", { class: "end-stack" }, this.coutInput);
     const endRow = h("div", { class: "field" }, h("label", {}, "End by"), h("div", { class: "end-wrap" }, endSeg, this.endStack));
     this.tcStack = h("div", { class: "mode-stack" }, cinRow, endRow);
@@ -292,8 +292,9 @@ export class ToolApp {
       this.reloadWorking(this.song === null);
       this.setLoaded(true);
       this.autoBpm(false);
+      // default to a visible 1-second cut window so it's obvious from the start
       this.cinInput.value = framesToTc(this.anchor, this.fps);
-      this.coutInput.value = framesToTc(this.anchor, this.fps);
+      this.coutInput.value = framesToTc(this.anchor + this.fps, this.fps);
       this.recompute();
     } catch (err) {
       this.toast(`Can't read file: ${(err as Error).message}`);
