@@ -1129,13 +1129,18 @@ footer.site .wrap {
 }
 
 /* ============ tools directory ============ */
+/* index hero: one left-aligned column, left edge lined up with the nav + the
+   catalog below (the tool cards carry the screenshots, so no side image here) */
 .hero-index {
-  display: block;
-  max-width: 780px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  max-width: var(--maxw);
   padding: var(--section-y) 24px var(--space-7);
 }
 .hero-index h1 {
-  max-width: 15ch;
+  max-width: 560px;
 }
 .tools-section {
   padding-top: 0;
