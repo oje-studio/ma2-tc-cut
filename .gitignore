@@ -15,5 +15,11 @@ dist/
 /show*.xml
 /tc_show*.xml
 
+# Node (web app)
+node_modules/
+
+# Local preview / editor tooling (machine-specific)
+.claude/
+
 # OS
 .DS_Store

@@ -1,0 +1,583 @@
+// Canvas timeline — port of timeline.py (TimelineWidget).
+// Cue lanes, BPM bar grid, TC ruler, draggable ripple-cut window, waveform band,
+// eject glyphs and the moving playhead. Mouse-driven, same interaction model.
+import * as t from "../theme.ts";
+import type { Lane } from "../core/tcshow.ts";
+
+const LBL_W = 134;
+const AXIS_H = 30;
+const PAD_R = 14;
+const LANE_MIN = 30;
+const AUDIO_H = 54;
+const BARS_H = 18;
+const HANDLE_H = 11;
+
+type Zone = "left" | "right" | "move" | null;
+
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+function tc(fr: number, fps: number): string {
+  let s = Math.floor(fr / fps);
+  const f = Math.round(fr) - s * fps;
+  const h = Math.floor(s / 3600);
+  s -= h * 3600;
+  const m = Math.floor(s / 60);
+  s -= m * 60;
+  return `${pad2(h)}:${pad2(m)}:${pad2(s)}:${pad2(f)}`;
+}
+
+export class Timeline {
+  readonly el: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
+  private cssW = 800;
+  private cssH = 260;
+
+  fps = 30;
+  first = 0;
+  last = 1;
+  lanes: Lane[] = [];
+  cutIn: number | null = null;
+  cutOut: number | null = null;
+  audioPeaks: Float32Array | null = null;
+  audioDur = 0;
+  gain = 1;
+  bpm = 0;
+  anchor = 0;
+  snapMode: "off" | "bar" | "beat" | "second" = "off";
+  playhead: number | null = null;
+  showName = "";
+  audioName = "";
+
+  private audioTop: number | null = null;
+  private dragMode: Zone = null;
+  private winDrag = 0;
+  private ejectShow: [number, number, number, number] | null = null;
+  private ejectAudio: [number, number, number, number] | null = null;
+  private hoverEject: "show" | "audio" | null = null;
+
+  onSeek: (frame: number) => void = () => {};
+  onShowRequest: () => void = () => {};
+  onAudioRequest: () => void = () => {};
+  onEjectShow: () => void = () => {};
+  onEjectAudio: () => void = () => {};
+  onFilesDropped: (files: File[]) => void = () => {};
+  onCutDragged: (a: number, b: number) => void = () => {};
+
+  constructor() {
+    const c = document.createElement("canvas");
+    c.className = "timeline";
+    this.ctx = c.getContext("2d")!;
+    this.el = c;
+    this.bindMouse();
+    this.bindDrop();
+  }
+
+  // ---------- data ----------
+  setShow(fps: number, lanes: Lane[], first: number, last: number, name = ""): void {
+    this.fps = Math.max(1, fps);
+    this.lanes = lanes || [];
+    this.first = first;
+    this.last = Math.max(last, first + 1);
+    this.anchor = first;
+    if (name) this.showName = name;
+    this.cutIn = this.cutOut = this.playhead = null;
+    this.relayout();
+  }
+  setCut(a: number | null, b: number | null): void {
+    this.cutIn = a;
+    this.cutOut = b;
+    this.draw();
+  }
+  setAudio(peaks: Float32Array, durationS: number, name = ""): void {
+    this.audioPeaks = peaks;
+    this.audioDur = durationS;
+    if (name) this.audioName = name;
+    this.draw();
+  }
+  clearAudio(): void {
+    this.audioPeaks = null;
+    this.audioDur = 0;
+    this.audioName = "";
+    this.playhead = null;
+    this.draw();
+  }
+  reset(): void {
+    this.lanes = [];
+    this.audioPeaks = null;
+    this.audioDur = 0;
+    this.audioName = "";
+    this.showName = "";
+    this.bpm = 0;
+    this.cutIn = this.cutOut = this.playhead = null;
+    this.ejectShow = this.ejectAudio = this.hoverEject = null;
+    this.relayout();
+  }
+  setGrid(bpm: number, anchor?: number): void {
+    this.bpm = bpm || 0;
+    if (anchor !== undefined) this.anchor = anchor;
+    this.relayout();
+  }
+  setSnap(mode: "off" | "bar" | "beat" | "second"): void {
+    this.snapMode = mode;
+  }
+  setGain(g: number): void {
+    this.gain = Math.max(0, g);
+    this.draw();
+  }
+  setPlayhead(frame: number | null): void {
+    this.playhead = frame;
+    this.draw();
+  }
+
+  // ---------- layout / sizing ----------
+  contentHeight(): number {
+    const n = Math.max(1, this.lanes.length);
+    const extra = (this.lanes.length ? AUDIO_H : 0) + (this.barFrames() > 0 ? BARS_H : 0);
+    return Math.max(220, AXIS_H + n * LANE_MIN + 14 + extra);
+  }
+  relayout(): void {
+    this.cssH = this.contentHeight();
+    this.resizeCanvas();
+    this.draw();
+  }
+  setWidth(cssW: number): void {
+    this.cssW = Math.max(320, cssW);
+    this.resizeCanvas();
+    this.draw();
+  }
+  private resizeCanvas(): void {
+    const dpr = window.devicePixelRatio || 1;
+    this.el.width = Math.round(this.cssW * dpr);
+    this.el.height = Math.round(this.cssH * dpr);
+    this.el.style.width = `${this.cssW}px`;
+    this.el.style.height = `${this.cssH}px`;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  // ---------- mapping ----------
+  private plotW(): number {
+    return Math.max(1, this.cssW - LBL_W - PAD_R);
+  }
+  private x(frame: number): number {
+    return LBL_W + ((frame - this.first) / (this.last - this.first)) * this.plotW();
+  }
+  private frameAt(px: number): number {
+    const xx = Math.min(Math.max(px, LBL_W), LBL_W + this.plotW());
+    return Math.round(this.first + ((xx - LBL_W) / this.plotW()) * (this.last - this.first));
+  }
+  private barFrames(): number {
+    return this.bpm > 0 ? (this.fps * 240) / this.bpm : 0;
+  }
+  private snap(frame: number): number {
+    let step = 0;
+    if (this.snapMode === "bar") step = this.barFrames();
+    else if (this.snapMode === "beat") step = this.barFrames() / 4;
+    else if (this.snapMode === "second") step = this.fps;
+    if (step <= 0) return frame;
+    return this.anchor + Math.round((frame - this.anchor) / step) * step;
+  }
+  private window(): [number, number] | null {
+    if (this.cutIn !== null && this.cutOut !== null && this.cutOut > this.cutIn) {
+      return [this.cutIn, this.cutOut];
+    }
+    return null;
+  }
+
+  // ---------- drawing ----------
+  draw(): void {
+    const p = this.ctx;
+    const W = this.cssW;
+    const H = this.cssH;
+    p.fillStyle = t.BG_SURFACE;
+    p.fillRect(0, 0, W, H);
+    p.strokeStyle = t.BORDER_SUBTLE;
+    p.lineWidth = 1;
+    p.strokeRect(0.5, 0.5, W - 1, H - 1);
+
+    this.ejectShow = this.ejectAudio = null;
+    if (this.lanes.length === 0) {
+      this.audioTop = null;
+      p.fillStyle = t.TEXT_MUTED;
+      p.font = `13px ${t.FONT_SANS}`;
+      p.textAlign = "center";
+      p.textBaseline = "middle";
+      p.fillText("Click or drop a grandMA2 timecode .xml here", W / 2, H / 2);
+      p.textAlign = "left";
+      return;
+    }
+
+    const bf = this.barFrames();
+    const audioH = AUDIO_H;
+    const barsH = bf > 0 ? BARS_H : 0;
+    const lanesBottom = H - 4 - audioH - barsH;
+    const gridBottom = lanesBottom + barsH;
+    this.audioTop = gridBottom;
+    const n = this.lanes.length;
+    const laneH = (lanesBottom - AXIS_H) / n;
+    const win = this.window();
+
+    // cut window fills
+    if (win) {
+      const xa = this.x(win[0]);
+      const xb = this.x(win[1]);
+      p.fillStyle = t.withAlpha(t.SEMANTIC_INFO, 0.06);
+      p.fillRect(xb, AXIS_H, W - PAD_R - xb, gridBottom - AXIS_H);
+      p.fillStyle = t.withAlpha(t.SEMANTIC_DANGER, 0.16);
+      p.fillRect(xa, AXIS_H, xb - xa, gridBottom - AXIS_H);
+    }
+
+    if (bf > 0) this.drawGridLines(p, gridBottom, bf);
+    this.drawTcRuler(p, W, gridBottom, bf <= 0);
+
+    // CUES gutter
+    p.textBaseline = "alphabetic";
+    p.font = `12px ${t.FONT_SANS}`;
+    p.fillStyle = t.OPERATOR_LIGHTING;
+    p.fillText("CUES", 10, 15);
+    if (this.showName) {
+      this.ejectShow = this.drawEject(p, LBL_W - 13, 10, this.hoverEject === "show");
+      p.font = `10px ${t.FONT_SANS}`;
+      p.fillStyle = t.TEXT_MUTED;
+      p.fillText(this.elide(p, this.showName, LBL_W - 16, "middle"), 10, 28);
+    }
+
+    // cue lanes
+    for (let i = 0; i < n; i++) {
+      const y0 = AXIS_H + i * laneH;
+      const yc = y0 + laneH / 2;
+      if (i > 0) {
+        p.strokeStyle = t.BORDER_SUBTLE;
+        p.beginPath();
+        p.moveTo(LBL_W, y0);
+        p.lineTo(W - PAD_R, y0);
+        p.stroke();
+      }
+      p.font = `12px ${t.FONT_SANS}`;
+      p.fillStyle = t.TEXT_MUTED;
+      p.textBaseline = "middle";
+      p.fillText(this.elide(p, this.lanes[i].name, LBL_W - 16, "end"), 10, yc);
+      p.textBaseline = "alphabetic";
+      const th = Math.max(6, laneH * 0.46);
+      for (const [fr] of this.lanes[i].events) {
+        const xx = this.x(fr);
+        if (xx < LBL_W || xx > W - PAD_R) continue;
+        const inside = win && win[0] <= fr && fr < win[1];
+        p.strokeStyle = inside ? t.SEMANTIC_DANGER : t.OPERATOR_LIGHTING;
+        p.lineWidth = 2;
+        p.beginPath();
+        p.moveTo(xx, yc - th / 2);
+        p.lineTo(xx, yc + th / 2);
+        p.stroke();
+      }
+    }
+    p.lineWidth = 1;
+
+    if (barsH) this.drawBarsRuler(p, W, lanesBottom, barsH, bf);
+    this.drawAudioBand(p, W, gridBottom, audioH, win);
+    if (win) this.drawCutLabels(p, win, lanesBottom);
+
+    // playhead
+    if (this.playhead !== null && this.first <= this.playhead && this.playhead <= this.last) {
+      const xx = this.x(this.playhead);
+      p.strokeStyle = t.TEXT_BRIGHT;
+      p.beginPath();
+      p.moveTo(xx, AXIS_H);
+      p.lineTo(xx, H - 4);
+      p.stroke();
+      p.fillStyle = t.TEXT_BRIGHT;
+      p.beginPath();
+      p.moveTo(xx - 5, AXIS_H);
+      p.lineTo(xx + 5, AXIS_H);
+      p.lineTo(xx, AXIS_H + 6);
+      p.fill();
+    }
+  }
+
+  private drawGridLines(p: CanvasRenderingContext2D, gridBottom: number, bf: number): void {
+    let k = 0;
+    let fr = this.anchor;
+    while (fr <= this.last + bf) {
+      if (fr >= this.first) {
+        const xx = this.x(fr);
+        p.strokeStyle = k % 4 === 0 ? t.GRID_PHRASE : t.GRID_BAR;
+        p.beginPath();
+        p.moveTo(xx, AXIS_H);
+        p.lineTo(xx, gridBottom);
+        p.stroke();
+      }
+      k += 1;
+      fr = this.anchor + k * bf;
+    }
+  }
+
+  private drawBarsRuler(p: CanvasRenderingContext2D, W: number, y: number, h: number, bf: number): void {
+    p.strokeStyle = t.BORDER_SUBTLE;
+    p.beginPath();
+    p.moveTo(LBL_W, y);
+    p.lineTo(W - PAD_R, y);
+    p.stroke();
+    p.font = `10px ${t.FONT_SANS}`;
+    p.fillStyle = t.TEXT_MUTED;
+    p.textBaseline = "middle";
+    p.fillText("BARS", 10, y + h / 2);
+    const barPx = (bf / (this.last - this.first)) * this.plotW();
+    const steps = [1, 2, 4, 8, 16, 32, 64];
+    const step = steps.find((s) => s * barPx >= 34) ?? 64;
+    p.font = `10px ${t.FONT_MONO}`;
+    let k = 0;
+    let fr = this.anchor;
+    while (fr <= this.last + bf) {
+      if (fr >= this.first && k % step === 0) {
+        const xx = this.x(fr);
+        p.fillStyle = k % 4 === 0 ? t.TEXT_PRIMARY : t.TEXT_MUTED;
+        p.fillText(String(k + 1), xx + 3, y + h / 2);
+      }
+      k += 1;
+      fr = this.anchor + k * bf;
+    }
+    p.textBaseline = "alphabetic";
+  }
+
+  private drawTcRuler(p: CanvasRenderingContext2D, W: number, gridBottom: number, drawLines: boolean): void {
+    p.font = `10px ${t.FONT_MONO}`;
+    let lastRight = -1e9;
+    for (let i = 0; i < 7; i++) {
+      const fr = this.first + ((this.last - this.first) * i) / 6;
+      const xx = LBL_W + (this.plotW() * i) / 6;
+      if (drawLines) {
+        p.strokeStyle = t.BORDER_SUBTLE;
+        p.beginPath();
+        p.moveTo(xx, AXIS_H);
+        p.lineTo(xx, gridBottom);
+        p.stroke();
+      }
+      const label = tc(fr, this.fps);
+      const tw = p.measureText(label).width;
+      const txp = i === 0 ? LBL_W : i === 6 ? W - PAD_R - tw : xx - tw / 2;
+      if (txp <= lastRight + 6) continue;
+      p.fillStyle = t.TEXT_MUTED;
+      p.fillText(label, txp, AXIS_H - 9);
+      lastRight = txp + tw;
+    }
+  }
+
+  private drawAudioBand(p: CanvasRenderingContext2D, W: number, top: number, audioH: number, win: [number, number] | null): void {
+    p.strokeStyle = t.BORDER;
+    p.beginPath();
+    p.moveTo(LBL_W, top);
+    p.lineTo(W - PAD_R, top);
+    p.stroke();
+    p.font = `12px ${t.FONT_SANS}`;
+    p.fillStyle = t.OPERATOR_AUDIO;
+    p.fillText("AUDIO", 10, top + 15);
+    if (this.audioName) {
+      this.ejectAudio = this.drawEject(p, LBL_W - 13, top + 11, this.hoverEject === "audio");
+      p.font = `10px ${t.FONT_SANS}`;
+      p.fillStyle = t.TEXT_MUTED;
+      p.fillText(this.elide(p, this.audioName, LBL_W - 16, "middle"), 10, top + 31);
+    }
+    if (!this.audioPeaks) {
+      p.font = `12px ${t.FONT_SANS}`;
+      p.fillStyle = t.TEXT_MUTED;
+      p.textAlign = "center";
+      p.textBaseline = "middle";
+      p.fillText("Click or drop an audio file here", LBL_W + (W - PAD_R - LBL_W) / 2, top + audioH / 2);
+      p.textAlign = "left";
+      p.textBaseline = "alphabetic";
+      return;
+    }
+    const yc = top + audioH / 2;
+    const half = audioH / 2 - 5;
+    const m = this.audioPeaks.length;
+    const normal = t.withAlpha(t.OPERATOR_AUDIO, 0.78);
+    const danger = t.withAlpha(t.SEMANTIC_DANGER, 0.9);
+    p.lineWidth = 1;
+    for (let i = 0; i < m; i++) {
+      const fr = this.first + (i / m) * this.audioDur * this.fps;
+      const xx = Math.round(this.x(fr));
+      if (xx < LBL_W || xx > W - PAD_R) continue;
+      const inside = !!win && win[0] <= fr && fr < win[1];
+      const a = Math.min(1, this.audioPeaks[i] * this.gain) * half;
+      p.strokeStyle = inside ? danger : normal;
+      p.beginPath();
+      p.moveTo(xx, yc - a);
+      p.lineTo(xx, yc + a);
+      p.stroke();
+    }
+  }
+
+  private drawCutLabels(p: CanvasRenderingContext2D, win: [number, number], lanesBottom: number): void {
+    const [a, b] = win;
+    const xa = this.x(a);
+    const xb = this.x(b);
+    const len = b - a;
+    p.font = `11px ${t.FONT_MONO}`;
+    p.fillStyle = t.SEMANTIC_DANGER;
+    const la = tc(a, this.fps);
+    p.fillText(la, Math.max(LBL_W, xa - p.measureText(la).width - 4), AXIS_H + 14);
+    p.fillText(tc(b, this.fps), xb + 4, AXIS_H + 14);
+    // length readout, centred under the window near the bars row
+    const lab = `−${len}f / ${(len / this.fps).toFixed(2)}s`;
+    p.font = `10px ${t.FONT_MONO}`;
+    const lw = p.measureText(lab).width;
+    p.fillStyle = t.SEMANTIC_DANGER;
+    p.fillText(lab, (xa + xb) / 2 - lw / 2, lanesBottom - 4);
+
+    // handle bar at the top of the window
+    p.fillStyle = t.SEMANTIC_DANGER;
+    p.fillRect(xa, AXIS_H, xb - xa, HANDLE_H);
+    p.fillStyle = t.BG_APP;
+    p.font = `9px ${t.FONT_SANS}`;
+    p.textAlign = "center";
+    p.fillText("···", (xa + xb) / 2, AXIS_H + 8);
+    p.textAlign = "left";
+    // edge grips
+    p.strokeStyle = t.BG_APP;
+    p.lineWidth = 1;
+    for (const xe of [xa, xb]) {
+      p.beginPath();
+      p.moveTo(xe, AXIS_H + 2);
+      p.lineTo(xe, AXIS_H + HANDLE_H - 2);
+      p.stroke();
+    }
+  }
+
+  private drawEject(p: CanvasRenderingContext2D, cx: number, cy: number, hot: boolean): [number, number, number, number] {
+    p.fillStyle = hot ? t.TEXT_PRIMARY : t.TEXT_DIM;
+    p.beginPath();
+    p.moveTo(cx, cy - 4.5);
+    p.lineTo(cx - 4.5, cy + 1);
+    p.lineTo(cx + 4.5, cy + 1);
+    p.closePath();
+    p.fill();
+    p.fillRect(cx - 4.5, cy + 2.5, 9, 2);
+    return [cx - 9, cy - 9, 18, 18];
+  }
+
+  private elide(p: CanvasRenderingContext2D, text: string, maxW: number, mode: "middle" | "end"): string {
+    if (p.measureText(text).width <= maxW) return text;
+    const ell = "…";
+    if (mode === "end") {
+      let s = text;
+      while (s.length > 1 && p.measureText(s + ell).width > maxW) s = s.slice(0, -1);
+      return s + ell;
+    }
+    let lo = 0;
+    let hi = text.length;
+    let best = ell;
+    while (lo <= hi) {
+      const half = Math.floor((lo + hi) / 2);
+      const left = text.slice(0, Math.ceil(half / 2));
+      const right = text.slice(text.length - Math.floor(half / 2));
+      const cand = left + ell + right;
+      if (p.measureText(cand).width <= maxW) {
+        best = cand;
+        lo = half + 1;
+      } else {
+        hi = half - 1;
+      }
+    }
+    return best;
+  }
+
+  // ---------- interaction ----------
+  private handleZone(px: number, py: number): Zone {
+    const win = this.window();
+    if (!win) return null;
+    const xa = this.x(win[0]);
+    const xb = this.x(win[1]);
+    if (!(AXIS_H <= py && py <= AXIS_H + HANDLE_H && xa - 4 <= px && px <= xb + 4)) return null;
+    const edge = Math.min(9, (xb - xa) / 2);
+    if (px <= xa + edge) return "left";
+    if (px >= xb - edge) return "right";
+    return "move";
+  }
+
+  private rectHit(r: [number, number, number, number] | null, x: number, y: number): boolean {
+    return !!r && x >= r[0] && x <= r[0] + r[2] && y >= r[1] && y <= r[1] + r[3];
+  }
+
+  private bindMouse(): void {
+    const c = this.el;
+    const pos = (e: PointerEvent | MouseEvent): [number, number] => {
+      const r = c.getBoundingClientRect();
+      return [e.clientX - r.left, e.clientY - r.top];
+    };
+    c.addEventListener("pointerdown", (e) => {
+      const [x, y] = pos(e);
+      if (this.rectHit(this.ejectShow, x, y)) return this.onEjectShow();
+      if (this.rectHit(this.ejectAudio, x, y)) return this.onEjectAudio();
+      if (this.lanes.length === 0) return this.onShowRequest();
+      if (x < LBL_W) return;
+      const zone = this.handleZone(x, y);
+      if (zone) {
+        c.setPointerCapture(e.pointerId);
+        this.dragMode = zone;
+        this.winDrag = this.frameAt(x) - (this.cutIn ?? 0);
+        c.style.cursor = zone === "move" ? "grabbing" : "ew-resize";
+        return;
+      }
+      if (this.audioTop !== null && y >= this.audioTop && !this.audioPeaks) return this.onAudioRequest();
+      this.onSeek(this.snap(this.frameAt(x)));
+    });
+    c.addEventListener("pointermove", (e) => {
+      const [x, y] = pos(e);
+      if (this.dragMode && e.buttons & 1) {
+        const f = this.snap(this.frameAt(x));
+        if (this.dragMode === "move") {
+          const length = (this.cutOut ?? 0) - (this.cutIn ?? 0);
+          const newIn = Math.max(this.first, Math.min(this.snap(this.frameAt(x) - this.winDrag), this.last - length));
+          this.cutIn = newIn;
+          this.cutOut = newIn + length;
+        } else if (this.dragMode === "left") {
+          this.cutIn = Math.max(this.first, Math.min(f, (this.cutOut ?? 0) - 1));
+        } else {
+          this.cutOut = Math.min(this.last, Math.max(f, (this.cutIn ?? 0) + 1));
+        }
+        this.draw();
+        this.onCutDragged(this.cutIn!, this.cutOut!);
+        return;
+      }
+      const hov = this.rectHit(this.ejectShow, x, y) ? "show" : this.rectHit(this.ejectAudio, x, y) ? "audio" : null;
+      if (hov !== this.hoverEject) {
+        this.hoverEject = hov;
+        this.draw();
+      }
+      if (hov) {
+        c.style.cursor = "pointer";
+        return;
+      }
+      const z = this.handleZone(x, y);
+      c.style.cursor = z === "move" ? "grab" : z ? "ew-resize" : "default";
+    });
+    const end = () => {
+      if (this.dragMode) {
+        this.dragMode = null;
+        c.style.cursor = "default";
+      }
+    };
+    c.addEventListener("pointerup", end);
+    c.addEventListener("pointercancel", end);
+    c.addEventListener("pointerleave", () => {
+      if (this.hoverEject) {
+        this.hoverEject = null;
+        this.draw();
+      }
+    });
+  }
+
+  private bindDrop(): void {
+    const c = this.el;
+    c.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      c.classList.add("drag-over");
+    });
+    c.addEventListener("dragleave", () => c.classList.remove("drag-over"));
+    c.addEventListener("drop", (e) => {
+      e.preventDefault();
+      c.classList.remove("drag-over");
+      if (e.dataTransfer?.files?.length) this.onFilesDropped([...e.dataTransfer.files]);
+    });
+  }
+}

@@ -1,0 +1,466 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="styles/timecode@sheet.xsl"?>
+<MA xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.malighting.de/grandma2/xml/MA" xsi:schemaLocation="http://schemas.malighting.de/grandma2/xml/MA http://schemas.malighting.de/grandma2/xml/3.9.61/MA.xsd" major_vers="3" minor_vers="9" stream_vers="61">
+	<Info datetime="2026-06-01T00:00:00" showfile="demo" />
+	<Timecode index="0" name="AURORA SET (DEMO)" slot="TC Slot 1" frame_format="30 FPS">
+		<Track index="0" active="true" expanded="true">
+			<Object name="Key Wash 2.1">
+				<No>30</No>
+				<No>1</No>
+				<No>1</No>
+				<No>1</No>
+			</Object>
+			<SubTrack index="0">
+				<Event index="0" time="300" command="Goto" pressed="true" step="1">
+					<Cue name="Intro 1">
+						<No>1</No>
+						<No>1</No>
+						<No>1</No>
+					</Cue>
+				</Event>
+				<Event index="1" time="780" command="Goto" pressed="true" step="2">
+					<Cue name="Verse 2">
+						<No>1</No>
+						<No>1</No>
+						<No>2</No>
+					</Cue>
+				</Event>
+				<Event index="2" time="1260" command="Goto" pressed="true" step="3">
+					<Cue name="Build 3">
+						<No>1</No>
+						<No>1</No>
+						<No>3</No>
+					</Cue>
+				</Event>
+				<Event index="3" time="1740" command="Goto" pressed="true" step="4">
+					<Cue name="Chorus 4">
+						<No>1</No>
+						<No>1</No>
+						<No>4</No>
+					</Cue>
+				</Event>
+				<Event index="4" time="2220" command="Goto" pressed="true" step="5">
+					<Cue name="Break 5">
+						<No>1</No>
+						<No>1</No>
+						<No>5</No>
+					</Cue>
+				</Event>
+				<Event index="5" time="2700" command="Goto" pressed="true" step="6">
+					<Cue name="Verse 2 6">
+						<No>1</No>
+						<No>1</No>
+						<No>6</No>
+					</Cue>
+				</Event>
+				<Event index="6" time="3180" command="Goto" pressed="true" step="7">
+					<Cue name="Build 2 7">
+						<No>1</No>
+						<No>1</No>
+						<No>7</No>
+					</Cue>
+				</Event>
+				<Event index="7" time="3660" command="Goto" pressed="true" step="8">
+					<Cue name="Drop 8">
+						<No>1</No>
+						<No>1</No>
+						<No>8</No>
+					</Cue>
+				</Event>
+			</SubTrack>
+		</Track>
+		<Track index="1" active="true" expanded="true">
+			<Object name="Colour Wash 2.2">
+				<No>30</No>
+				<No>1</No>
+				<No>1</No>
+				<No>2</No>
+			</Object>
+			<SubTrack index="0">
+				<Event index="0" time="300" command="Goto" pressed="true" step="1">
+					<Cue name="Amber 1">
+						<No>1</No>
+						<No>2</No>
+						<No>1</No>
+					</Cue>
+				</Event>
+				<Event index="1" time="540" command="Goto" pressed="true" step="2">
+					<Cue name="Deep Blue 2">
+						<No>1</No>
+						<No>2</No>
+						<No>2</No>
+					</Cue>
+				</Event>
+				<Event index="2" time="780" command="Goto" pressed="true" step="3">
+					<Cue name="Magenta 3">
+						<No>1</No>
+						<No>2</No>
+						<No>3</No>
+					</Cue>
+				</Event>
+				<Event index="3" time="1020" command="Goto" pressed="true" step="4">
+					<Cue name="Teal 4">
+						<No>1</No>
+						<No>2</No>
+						<No>4</No>
+					</Cue>
+				</Event>
+				<Event index="4" time="1260" command="Goto" pressed="true" step="5">
+					<Cue name="Warm 5">
+						<No>1</No>
+						<No>2</No>
+						<No>5</No>
+					</Cue>
+				</Event>
+				<Event index="5" time="1500" command="Goto" pressed="true" step="6">
+					<Cue name="Cyan 6">
+						<No>1</No>
+						<No>2</No>
+						<No>6</No>
+					</Cue>
+				</Event>
+				<Event index="6" time="1740" command="Goto" pressed="true" step="7">
+					<Cue name="Red 7">
+						<No>1</No>
+						<No>2</No>
+						<No>7</No>
+					</Cue>
+				</Event>
+				<Event index="7" time="1980" command="Goto" pressed="true" step="8">
+					<Cue name="Lavender 8">
+						<No>1</No>
+						<No>2</No>
+						<No>8</No>
+					</Cue>
+				</Event>
+				<Event index="8" time="2220" command="Goto" pressed="true" step="9">
+					<Cue name="Amber 9">
+						<No>1</No>
+						<No>2</No>
+						<No>9</No>
+					</Cue>
+				</Event>
+				<Event index="9" time="2460" command="Goto" pressed="true" step="10">
+					<Cue name="Deep Blue 10">
+						<No>1</No>
+						<No>2</No>
+						<No>10</No>
+					</Cue>
+				</Event>
+				<Event index="10" time="2700" command="Goto" pressed="true" step="11">
+					<Cue name="Magenta 11">
+						<No>1</No>
+						<No>2</No>
+						<No>11</No>
+					</Cue>
+				</Event>
+				<Event index="11" time="2940" command="Goto" pressed="true" step="12">
+					<Cue name="Teal 12">
+						<No>1</No>
+						<No>2</No>
+						<No>12</No>
+					</Cue>
+				</Event>
+				<Event index="12" time="3180" command="Goto" pressed="true" step="13">
+					<Cue name="Warm 13">
+						<No>1</No>
+						<No>2</No>
+						<No>13</No>
+					</Cue>
+				</Event>
+				<Event index="13" time="3420" command="Goto" pressed="true" step="14">
+					<Cue name="Cyan 14">
+						<No>1</No>
+						<No>2</No>
+						<No>14</No>
+					</Cue>
+				</Event>
+				<Event index="14" time="3660" command="Goto" pressed="true" step="15">
+					<Cue name="Red 15">
+						<No>1</No>
+						<No>2</No>
+						<No>15</No>
+					</Cue>
+				</Event>
+				<Event index="15" time="3900" command="Goto" pressed="true" step="16">
+					<Cue name="Lavender 16">
+						<No>1</No>
+						<No>2</No>
+						<No>16</No>
+					</Cue>
+				</Event>
+			</SubTrack>
+		</Track>
+		<Track index="2" active="true" expanded="true">
+			<Object name="Spots SR 2.3">
+				<No>30</No>
+				<No>1</No>
+				<No>1</No>
+				<No>3</No>
+			</Object>
+			<SubTrack index="0">
+				<Event index="0" time="1740" command="Goto" pressed="true" step="1">
+					<Cue name="Spot Hit 1">
+						<No>1</No>
+						<No>3</No>
+						<No>1</No>
+					</Cue>
+				</Event>
+				<Event index="1" time="1860" command="Goto" pressed="true" step="2">
+					<Cue name="Spot Hit 2">
+						<No>1</No>
+						<No>3</No>
+						<No>2</No>
+					</Cue>
+				</Event>
+				<Event index="2" time="1980" command="Goto" pressed="true" step="3">
+					<Cue name="Spot Hit 3">
+						<No>1</No>
+						<No>3</No>
+						<No>3</No>
+					</Cue>
+				</Event>
+				<Event index="3" time="2100" command="Goto" pressed="true" step="4">
+					<Cue name="Spot Hit 4">
+						<No>1</No>
+						<No>3</No>
+						<No>4</No>
+					</Cue>
+				</Event>
+				<Event index="4" time="3660" command="Goto" pressed="true" step="5">
+					<Cue name="Spot Hit 5">
+						<No>1</No>
+						<No>3</No>
+						<No>5</No>
+					</Cue>
+				</Event>
+				<Event index="5" time="3780" command="Goto" pressed="true" step="6">
+					<Cue name="Spot Hit 6">
+						<No>1</No>
+						<No>3</No>
+						<No>6</No>
+					</Cue>
+				</Event>
+				<Event index="6" time="3900" command="Goto" pressed="true" step="7">
+					<Cue name="Spot Hit 7">
+						<No>1</No>
+						<No>3</No>
+						<No>7</No>
+					</Cue>
+				</Event>
+				<Event index="7" time="4020" command="Goto" pressed="true" step="8">
+					<Cue name="Spot Hit 8">
+						<No>1</No>
+						<No>3</No>
+						<No>8</No>
+					</Cue>
+				</Event>
+			</SubTrack>
+		</Track>
+		<Track index="3" active="true" expanded="true">
+			<Object name="Beams 2.4">
+				<No>30</No>
+				<No>1</No>
+				<No>1</No>
+				<No>4</No>
+			</Object>
+			<SubTrack index="0">
+				<Event index="0" time="2220" command="Goto" pressed="true" step="1">
+					<Cue name="Beam Sweep 1">
+						<No>1</No>
+						<No>4</No>
+						<No>1</No>
+					</Cue>
+				</Event>
+				<Event index="1" time="2340" command="Goto" pressed="true" step="2">
+					<Cue name="Beam Sweep 2">
+						<No>1</No>
+						<No>4</No>
+						<No>2</No>
+					</Cue>
+				</Event>
+				<Event index="2" time="2460" command="Goto" pressed="true" step="3">
+					<Cue name="Beam Sweep 3">
+						<No>1</No>
+						<No>4</No>
+						<No>3</No>
+					</Cue>
+				</Event>
+				<Event index="3" time="2580" command="Goto" pressed="true" step="4">
+					<Cue name="Beam Sweep 4">
+						<No>1</No>
+						<No>4</No>
+						<No>4</No>
+					</Cue>
+				</Event>
+				<Event index="4" time="2700" command="Goto" pressed="true" step="5">
+					<Cue name="Beam Sweep 5">
+						<No>1</No>
+						<No>4</No>
+						<No>5</No>
+					</Cue>
+				</Event>
+				<Event index="5" time="2820" command="Goto" pressed="true" step="6">
+					<Cue name="Beam Sweep 6">
+						<No>1</No>
+						<No>4</No>
+						<No>6</No>
+					</Cue>
+				</Event>
+				<Event index="6" time="2940" command="Goto" pressed="true" step="7">
+					<Cue name="Beam Sweep 7">
+						<No>1</No>
+						<No>4</No>
+						<No>7</No>
+					</Cue>
+				</Event>
+				<Event index="7" time="3060" command="Goto" pressed="true" step="8">
+					<Cue name="Beam Sweep 8">
+						<No>1</No>
+						<No>4</No>
+						<No>8</No>
+					</Cue>
+				</Event>
+				<Event index="8" time="3180" command="Goto" pressed="true" step="9">
+					<Cue name="Beam Sweep 9">
+						<No>1</No>
+						<No>4</No>
+						<No>9</No>
+					</Cue>
+				</Event>
+				<Event index="9" time="3300" command="Goto" pressed="true" step="10">
+					<Cue name="Beam Sweep 10">
+						<No>1</No>
+						<No>4</No>
+						<No>10</No>
+					</Cue>
+				</Event>
+				<Event index="10" time="3420" command="Goto" pressed="true" step="11">
+					<Cue name="Beam Sweep 11">
+						<No>1</No>
+						<No>4</No>
+						<No>11</No>
+					</Cue>
+				</Event>
+				<Event index="11" time="3540" command="Goto" pressed="true" step="12">
+					<Cue name="Beam Sweep 12">
+						<No>1</No>
+						<No>4</No>
+						<No>12</No>
+					</Cue>
+				</Event>
+				<Event index="12" time="3660" command="Goto" pressed="true" step="13">
+					<Cue name="Beam Sweep 13">
+						<No>1</No>
+						<No>4</No>
+						<No>13</No>
+					</Cue>
+				</Event>
+				<Event index="13" time="3780" command="Goto" pressed="true" step="14">
+					<Cue name="Beam Sweep 14">
+						<No>1</No>
+						<No>4</No>
+						<No>14</No>
+					</Cue>
+				</Event>
+				<Event index="14" time="3900" command="Goto" pressed="true" step="15">
+					<Cue name="Beam Sweep 15">
+						<No>1</No>
+						<No>4</No>
+						<No>15</No>
+					</Cue>
+				</Event>
+				<Event index="15" time="4020" command="Goto" pressed="true" step="16">
+					<Cue name="Beam Sweep 16">
+						<No>1</No>
+						<No>4</No>
+						<No>16</No>
+					</Cue>
+				</Event>
+			</SubTrack>
+		</Track>
+		<Track index="4" active="true" expanded="true">
+			<Object name="Strobe FX 2.5">
+				<No>30</No>
+				<No>1</No>
+				<No>1</No>
+				<No>5</No>
+			</Object>
+			<SubTrack index="0">
+				<Event index="0" time="1260" command="Goto" pressed="true" step="1">
+					<Cue name="Strobe 1">
+						<No>1</No>
+						<No>5</No>
+						<No>1</No>
+					</Cue>
+				</Event>
+				<Event index="1" time="1740" command="Goto" pressed="true" step="2">
+					<Cue name="Strobe 2">
+						<No>1</No>
+						<No>5</No>
+						<No>2</No>
+					</Cue>
+				</Event>
+				<Event index="2" time="3180" command="Goto" pressed="true" step="3">
+					<Cue name="Strobe 3">
+						<No>1</No>
+						<No>5</No>
+						<No>3</No>
+					</Cue>
+				</Event>
+				<Event index="3" time="3660" command="Goto" pressed="true" step="4">
+					<Cue name="Strobe 4">
+						<No>1</No>
+						<No>5</No>
+						<No>4</No>
+					</Cue>
+				</Event>
+			</SubTrack>
+		</Track>
+		<Track index="5" active="true" expanded="true">
+			<Object name="Blinders 2.6">
+				<No>30</No>
+				<No>1</No>
+				<No>1</No>
+				<No>6</No>
+			</Object>
+			<SubTrack index="0">
+				<Event index="0" time="300" command="Goto" pressed="true" step="1">
+					<Cue name="Blinder Pop 1">
+						<No>1</No>
+						<No>6</No>
+						<No>1</No>
+					</Cue>
+				</Event>
+				<Event index="1" time="1260" command="Goto" pressed="true" step="2">
+					<Cue name="Blinder Pop 2">
+						<No>1</No>
+						<No>6</No>
+						<No>2</No>
+					</Cue>
+				</Event>
+				<Event index="2" time="2220" command="Goto" pressed="true" step="3">
+					<Cue name="Blinder Pop 3">
+						<No>1</No>
+						<No>6</No>
+						<No>3</No>
+					</Cue>
+				</Event>
+				<Event index="3" time="3180" command="Goto" pressed="true" step="4">
+					<Cue name="Blinder Pop 4">
+						<No>1</No>
+						<No>6</No>
+						<No>4</No>
+					</Cue>
+				</Event>
+				<Event index="4" time="4080" command="Goto" pressed="true" step="5">
+					<Cue name="Blinder Pop 5">
+						<No>1</No>
+						<No>6</No>
+						<No>5</No>
+					</Cue>
+				</Event>
+			</SubTrack>
+		</Track>
+	</Timecode>
+</MA>

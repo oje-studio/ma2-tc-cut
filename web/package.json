@@ -1,0 +1,16 @@
+{
+  "name": "soft-oje-studio",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "ØJE Studio software hub — MA2 Timecode Cut, on the web.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^6.0.7"
+  }
+}

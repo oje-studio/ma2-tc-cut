@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ØJE Studio — Software</title>
+    <meta
+      name="description"
+      content="Tools from ØJE Studio for live-show timecode. MA2 Timecode Cut: ripple-cut a grandMA2 timecode show in the browser — byte-exact, nothing leaves your machine."
+    />
+    <link rel="icon" type="image/png" href="./icon.png" />
+    <meta property="og:title" content="ØJE Studio — Software" />
+    <meta property="og:description" content="MA2 Timecode Cut and other live-show tools, in the browser." />
+    <meta property="og:type" content="website" />
+  </head>
+  <body>
+    <nav class="nav">
+      <span class="brand-mark">Ø</span>
+      <strong class="brand-name">ØJE&nbsp;STUDIO</strong>
+      <span class="nav-spacer"></span>
+      <a href="#tool">Tool</a>
+      <a href="#about">About</a>
+      <a class="donate" href="#support">Support</a>
+    </nav>
+
+    <header class="hero">
+      <p class="eyebrow">Software · for the people who run the show</p>
+      <h1>Small, sharp tools for <span class="accent">live-show timecode</span>.</h1>
+      <p class="lede">
+        ØJE Studio builds the utilities we wished we had at front of house. First up:
+        <strong>MA2 Timecode Cut</strong> — ripple-cut a grandMA2 timecode show to match an
+        audio edit, byte-for-byte safe, right in your browser. Your show file never leaves
+        your machine.
+      </p>
+      <div class="cta-row">
+        <a class="cta primary" href="#tool">Open the tool</a>
+        <a class="cta ghost" href="#about">What is this?</a>
+      </div>
+    </header>
+
+    <section class="tool-section" id="tool">
+      <div class="tool-shell">
+        <div id="tool-mount"></div>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <p class="eyebrow">About</p>
+      <h2>Made by operators, for operators.</h2>
+      <p class="sub">
+        When a section gets cut from a track, the timecode show has to collapse with it —
+        delete the cues inside the removed window and slide everything after it left, by the
+        exact length of the cut. MA2 Timecode Cut does that ripple across every subtrack at
+        once and hands you a file grandMA2 re-imports without a fight.
+      </p>
+      <div class="features">
+        <div class="feature">
+          <h3>Byte-exact</h3>
+          <p>BOM, namespace, tabs, line endings — everything but the cut is preserved, so the import never chokes.</p>
+        </div>
+        <div class="feature">
+          <h3>Musical, not just seconds</h3>
+          <p>Cut by whole bars at the track BPM, or frame-accurate by timecode. A live preview shows exactly what moves.</p>
+        </div>
+        <div class="feature">
+          <h3>Stays on your machine</h3>
+          <p>Everything runs in the browser. Nothing is uploaded — no server ever sees your show.</p>
+        </div>
+        <div class="feature">
+          <h3>Also a desktop app</h3>
+          <p>Prefer native? The same tool ships for macOS &amp; Windows. <a href="https://github.com/oje-studio/ma2-tc-cut/releases">Get it on GitHub →</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="support">
+      <div class="donate-card">
+        <div class="txt">
+          <h2>Find it useful?</h2>
+          <p>These tools are free and open source. If one saved your night, you can throw the studio a coffee.</p>
+        </div>
+        <div class="donate-buttons">
+          <a class="cta primary" href="https://ko-fi.com/ojestudio" target="_blank" rel="noopener">Buy a coffee</a>
+          <a class="cta ghost" href="https://github.com/sponsors/oje-studio" target="_blank" rel="noopener">GitHub Sponsors</a>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site">
+      <div class="wrap">
+        <span>© 2026 ØJE Studio · MA2 Timecode Cut · MIT</span>
+        <span><a href="https://github.com/oje-studio/ma2-tc-cut">Source on GitHub</a> · soft.oje.studio</span>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
