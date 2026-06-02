@@ -11,6 +11,8 @@ import { VolumeKnob } from "./knob.ts";
 
 export const APP_VERSION = "0.1.0";
 const AUDIO_EXT = [".wav", ".mp3", ".flac", ".ogg", ".aif", ".aiff", ".m4a"];
+const DROP_HINT = "↓ drop your own .xml on the cues + audio on the waveform — or click a lane to browse";
+const DROP_HINT_EMPTY = "↓ drop a grandMA2 .xml here — or click the cue area to browse";
 
 function h<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -51,6 +53,7 @@ export class ToolApp {
   private metroBtn!: HTMLButtonElement;
   private volLbl!: HTMLElement;
   private infoLabel!: HTMLElement;
+  private infoTip!: HTMLElement;
   private cinInput!: HTMLInputElement;
   private coutInput!: HTMLInputElement;
   private durInput!: HTMLInputElement;
@@ -125,9 +128,10 @@ export class ToolApp {
 
     const header = h("div", { class: "header" }, brand, transport, h("div", { class: "spacer" }), snapWrap, vol);
 
-    // info line
+    // info line: summary (left, may ellipsis) + an always-visible load hint (right)
     this.infoLabel = h("div", { class: "info-label" }, "No show loaded");
-    const info = h("div", { class: "info-row" }, this.infoLabel);
+    this.infoTip = h("div", { class: "info-tip" }, DROP_HINT);
+    const info = h("div", { class: "info-row" }, this.infoLabel, this.infoTip);
 
     // timeline
     const tlWrap = h("div", { class: "tl-wrap" }, this.timeline.el);
@@ -328,11 +332,9 @@ export class ToolApp {
     this.info = info;
     this.fps = info.fps;
     this.anchor = info.firstFrame;
-    this.infoLabel.innerHTML = "";
-    this.infoLabel.append(
-      `${info.name} · ${info.fps} FPS · ${info.firstTc}–${info.lastTc} · ${info.nEvents} cues · ${info.nSubtracks} tracks`,
-      h("span", { class: "tip" }, "  ↑ drop a show .xml on the cues, audio on the waveform · or click to browse"),
-    );
+    this.infoLabel.textContent =
+      `${info.name} · ${info.fps} FPS · ${info.firstTc}–${info.lastTc} · ${info.nEvents} cues · ${info.nSubtracks} tracks`;
+    this.infoTip.textContent = DROP_HINT;
     this.timeline.setShow(info.fps, lanes(this.text!), info.firstFrame, info.lastFrame, this.showName);
     this.timeline.setGrid(this.appliedBpm, this.anchor);
     if (resetAudio) {
@@ -366,6 +368,7 @@ export class ToolApp {
     this.metroBtn.disabled = true;
     this.setLoaded(false);
     this.infoLabel.textContent = "No show loaded";
+    this.infoTip.textContent = DROP_HINT_EMPTY;
     this.report.textContent = "Load a grandMA2 timecode .xml to begin.";
     this.bpmInput.value = "";
     this.bpmHint.textContent = "";

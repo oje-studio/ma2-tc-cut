@@ -260,7 +260,6 @@ footer.site a:focus-visible {
 
 /* ---------------- hero screenshot ---------------- */
 .hero-shot {
-  position: relative;
   display: block;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -270,27 +269,9 @@ footer.site a:focus-visible {
   cursor: pointer;
   transition: border-color 0.15s, transform 0.15s;
 }
-.hero-shot::after {
-  content: "Open the tool ▸";
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  padding: 6px 12px;
-  background: var(--action);
-  color: var(--bg-app);
-  font-size: 12px;
-  font-weight: 700;
-  border-radius: var(--radius-md);
-  opacity: 0;
-  transition: opacity 0.15s;
-}
 .hero-shot:hover {
   transform: translateY(-2px);
   border-color: var(--border-strong);
-}
-.hero-shot:hover::after,
-.hero-shot:focus-visible::after {
-  opacity: 1;
 }
 .hero-shot img {
   display: block;
@@ -505,11 +486,17 @@ body.tool-open .app-view {
 
 /* info row */
 .info-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
   padding: 8px 16px;
   background: var(--bg-app);
   border-bottom: 1px solid var(--border-subtle);
 }
 .info-label {
+  flex: 1 1 auto;
+  min-width: 0;
   font-family: var(--mono);
   font-size: 11px;
   color: var(--text-muted);
@@ -517,8 +504,15 @@ body.tool-open .app-view {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.info-label .tip {
-  color: var(--text-dim);
+.info-tip {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--info);
+  background: rgba(122, 183, 255, 0.1);
+  border: 1px solid rgba(122, 183, 255, 0.25);
+  padding: 3px 11px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 /* timeline */
