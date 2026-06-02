@@ -6,13 +6,20 @@ const app = new ToolApp();
 app.mount(mount);
 (window as unknown as { tool: ToolApp }).tool = app;
 
-// Preload the bundled synthetic demo so the tool isn't empty on first open.
-void app.loadDemo("./demo/demo_show.xml").then(() => app.loadAudioUrl("./demo/demo_audio.mp3"));
-
 // ---- full-window tool view -------------------------------------------------
 const appView = document.getElementById("app-view")!;
 
+// Load the bundled demo (show + audio) lazily, the first time the tool opens —
+// so the landing never pays for the ~1.6 MB demo track.
+let demoLoaded = false;
+function loadDemoOnce(): void {
+  if (demoLoaded) return;
+  demoLoaded = true;
+  void app.loadDemo("./demo/demo_show.xml").then(() => app.loadAudioUrl("./demo/demo_audio.mp3"));
+}
+
 function openTool(): void {
+  loadDemoOnce();
   document.body.classList.add("tool-open");
   appView.setAttribute("aria-hidden", "false");
   void appView.offsetWidth; // force a synchronous reflow so fit() reads the real width

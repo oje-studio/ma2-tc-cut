@@ -1,463 +1,3402 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="styles/timecode@sheet.xsl"?>
 <MA xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.malighting.de/grandma2/xml/MA" xsi:schemaLocation="http://schemas.malighting.de/grandma2/xml/MA http://schemas.malighting.de/grandma2/xml/3.9.61/MA.xsd" major_vers="3" minor_vers="9" stream_vers="61">
-	<Info datetime="2026-06-01T00:00:00" showfile="demo" />
-	<Timecode index="0" name="AURORA SET (DEMO)" slot="TC Slot 1" frame_format="30 FPS">
+	<Info datetime="2026-03-01T00:00:00" showfile="concepts_showreel" />
+	<Timecode index="0" name="CONCEPTS · SHOWREEL (DEMO)" slot="TC Slot 1" frame_format="30 FPS">
 		<Track index="0" active="true" expanded="true">
-			<Object name="Key Wash 2.1">
+			<Object name="Key Look 1.1">
 				<No>30</No>
 				<No>1</No>
 				<No>1</No>
 				<No>1</No>
 			</Object>
 			<SubTrack index="0">
-				<Event index="0" time="300" command="Goto" pressed="true" step="1">
-					<Cue name="Intro 1">
+				<Event index="0" time="0" command="Goto" pressed="true" step="1">
+					<Cue name="Cold Open 1">
 						<No>1</No>
 						<No>1</No>
 						<No>1</No>
 					</Cue>
 				</Event>
-				<Event index="1" time="780" command="Goto" pressed="true" step="2">
-					<Cue name="Verse 2">
+				<Event index="1" time="411" command="Goto" pressed="true" step="2">
+					<Cue name="First Light 2">
 						<No>1</No>
 						<No>1</No>
 						<No>2</No>
 					</Cue>
 				</Event>
-				<Event index="2" time="1260" command="Goto" pressed="true" step="3">
-					<Cue name="Build 3">
+				<Event index="2" time="823" command="Goto" pressed="true" step="3">
+					<Cue name="Steel 3">
 						<No>1</No>
 						<No>1</No>
 						<No>3</No>
 					</Cue>
 				</Event>
-				<Event index="3" time="1740" command="Goto" pressed="true" step="4">
-					<Cue name="Chorus 4">
+				<Event index="3" time="1234" command="Goto" pressed="true" step="4">
+					<Cue name="Ignite 4">
 						<No>1</No>
 						<No>1</No>
 						<No>4</No>
 					</Cue>
 				</Event>
-				<Event index="4" time="2220" command="Goto" pressed="true" step="5">
-					<Cue name="Break 5">
+				<Event index="4" time="1646" command="Goto" pressed="true" step="5">
+					<Cue name="Full Spectrum 5">
 						<No>1</No>
 						<No>1</No>
 						<No>5</No>
 					</Cue>
 				</Event>
-				<Event index="5" time="2700" command="Goto" pressed="true" step="6">
-					<Cue name="Verse 2 6">
+				<Event index="5" time="1851" command="Goto" pressed="true" step="6">
+					<Cue name="Void 6">
 						<No>1</No>
 						<No>1</No>
 						<No>6</No>
 					</Cue>
 				</Event>
-				<Event index="6" time="3180" command="Goto" pressed="true" step="7">
-					<Cue name="Build 2 7">
+				<Event index="6" time="2057" command="Goto" pressed="true" step="7">
+					<Cue name="Resurface 7">
 						<No>1</No>
 						<No>1</No>
 						<No>7</No>
 					</Cue>
 				</Event>
-				<Event index="7" time="3660" command="Goto" pressed="true" step="8">
-					<Cue name="Drop 8">
+				<Event index="7" time="2469" command="Goto" pressed="true" step="8">
+					<Cue name="Hammer 8">
 						<No>1</No>
 						<No>1</No>
 						<No>8</No>
 					</Cue>
 				</Event>
+				<Event index="8" time="2880" command="Goto" pressed="true" step="9">
+					<Cue name="Drive 9">
+						<No>1</No>
+						<No>1</No>
+						<No>9</No>
+					</Cue>
+				</Event>
 			</SubTrack>
 		</Track>
 		<Track index="1" active="true" expanded="true">
-			<Object name="Colour Wash 2.2">
+			<Object name="Colour Wash 1.2">
 				<No>30</No>
 				<No>1</No>
 				<No>1</No>
 				<No>2</No>
 			</Object>
 			<SubTrack index="0">
-				<Event index="0" time="300" command="Goto" pressed="true" step="1">
+				<Event index="0" time="0" command="Goto" pressed="true" step="1">
 					<Cue name="Amber 1">
 						<No>1</No>
 						<No>2</No>
 						<No>1</No>
 					</Cue>
 				</Event>
-				<Event index="1" time="540" command="Goto" pressed="true" step="2">
+				<Event index="1" time="103" command="Goto" pressed="true" step="2">
 					<Cue name="Deep Blue 2">
 						<No>1</No>
 						<No>2</No>
 						<No>2</No>
 					</Cue>
 				</Event>
-				<Event index="2" time="780" command="Goto" pressed="true" step="3">
+				<Event index="2" time="206" command="Goto" pressed="true" step="3">
 					<Cue name="Magenta 3">
 						<No>1</No>
 						<No>2</No>
 						<No>3</No>
 					</Cue>
 				</Event>
-				<Event index="3" time="1020" command="Goto" pressed="true" step="4">
-					<Cue name="Teal 4">
+				<Event index="3" time="309" command="Goto" pressed="true" step="4">
+					<Cue name="Cyan 4">
 						<No>1</No>
 						<No>2</No>
 						<No>4</No>
 					</Cue>
 				</Event>
-				<Event index="4" time="1260" command="Goto" pressed="true" step="5">
-					<Cue name="Warm 5">
+				<Event index="4" time="411" command="Goto" pressed="true" step="5">
+					<Cue name="Crimson 5">
 						<No>1</No>
 						<No>2</No>
 						<No>5</No>
 					</Cue>
 				</Event>
-				<Event index="5" time="1500" command="Goto" pressed="true" step="6">
-					<Cue name="Cyan 6">
+				<Event index="5" time="514" command="Goto" pressed="true" step="6">
+					<Cue name="Teal 6">
 						<No>1</No>
 						<No>2</No>
 						<No>6</No>
 					</Cue>
 				</Event>
-				<Event index="6" time="1740" command="Goto" pressed="true" step="7">
-					<Cue name="Red 7">
+				<Event index="6" time="617" command="Goto" pressed="true" step="7">
+					<Cue name="Violet 7">
 						<No>1</No>
 						<No>2</No>
 						<No>7</No>
 					</Cue>
 				</Event>
-				<Event index="7" time="1980" command="Goto" pressed="true" step="8">
-					<Cue name="Lavender 8">
+				<Event index="7" time="720" command="Goto" pressed="true" step="8">
+					<Cue name="Gold 8">
 						<No>1</No>
 						<No>2</No>
 						<No>8</No>
 					</Cue>
 				</Event>
-				<Event index="8" time="2220" command="Goto" pressed="true" step="9">
+				<Event index="8" time="823" command="Goto" pressed="true" step="9">
 					<Cue name="Amber 9">
 						<No>1</No>
 						<No>2</No>
 						<No>9</No>
 					</Cue>
 				</Event>
-				<Event index="9" time="2460" command="Goto" pressed="true" step="10">
+				<Event index="9" time="926" command="Goto" pressed="true" step="10">
 					<Cue name="Deep Blue 10">
 						<No>1</No>
 						<No>2</No>
 						<No>10</No>
 					</Cue>
 				</Event>
-				<Event index="10" time="2700" command="Goto" pressed="true" step="11">
+				<Event index="10" time="1029" command="Goto" pressed="true" step="11">
 					<Cue name="Magenta 11">
 						<No>1</No>
 						<No>2</No>
 						<No>11</No>
 					</Cue>
 				</Event>
-				<Event index="11" time="2940" command="Goto" pressed="true" step="12">
-					<Cue name="Teal 12">
+				<Event index="11" time="1131" command="Goto" pressed="true" step="12">
+					<Cue name="Cyan 12">
 						<No>1</No>
 						<No>2</No>
 						<No>12</No>
 					</Cue>
 				</Event>
-				<Event index="12" time="3180" command="Goto" pressed="true" step="13">
-					<Cue name="Warm 13">
+				<Event index="12" time="1234" command="Goto" pressed="true" step="13">
+					<Cue name="Crimson 13">
 						<No>1</No>
 						<No>2</No>
 						<No>13</No>
 					</Cue>
 				</Event>
-				<Event index="13" time="3420" command="Goto" pressed="true" step="14">
-					<Cue name="Cyan 14">
+				<Event index="13" time="1337" command="Goto" pressed="true" step="14">
+					<Cue name="Teal 14">
 						<No>1</No>
 						<No>2</No>
 						<No>14</No>
 					</Cue>
 				</Event>
-				<Event index="14" time="3660" command="Goto" pressed="true" step="15">
-					<Cue name="Red 15">
+				<Event index="14" time="1440" command="Goto" pressed="true" step="15">
+					<Cue name="Violet 15">
 						<No>1</No>
 						<No>2</No>
 						<No>15</No>
 					</Cue>
 				</Event>
-				<Event index="15" time="3900" command="Goto" pressed="true" step="16">
-					<Cue name="Lavender 16">
+				<Event index="15" time="1543" command="Goto" pressed="true" step="16">
+					<Cue name="Gold 16">
 						<No>1</No>
 						<No>2</No>
 						<No>16</No>
 					</Cue>
 				</Event>
+				<Event index="16" time="1646" command="Goto" pressed="true" step="17">
+					<Cue name="Amber 17">
+						<No>1</No>
+						<No>2</No>
+						<No>17</No>
+					</Cue>
+				</Event>
+				<Event index="17" time="1749" command="Goto" pressed="true" step="18">
+					<Cue name="Deep Blue 18">
+						<No>1</No>
+						<No>2</No>
+						<No>18</No>
+					</Cue>
+				</Event>
+				<Event index="18" time="1851" command="Goto" pressed="true" step="19">
+					<Cue name="Magenta 19">
+						<No>1</No>
+						<No>2</No>
+						<No>19</No>
+					</Cue>
+				</Event>
+				<Event index="19" time="2057" command="Goto" pressed="true" step="20">
+					<Cue name="Cyan 20">
+						<No>1</No>
+						<No>2</No>
+						<No>20</No>
+					</Cue>
+				</Event>
+				<Event index="20" time="2160" command="Goto" pressed="true" step="21">
+					<Cue name="Crimson 21">
+						<No>1</No>
+						<No>2</No>
+						<No>21</No>
+					</Cue>
+				</Event>
+				<Event index="21" time="2263" command="Goto" pressed="true" step="22">
+					<Cue name="Teal 22">
+						<No>1</No>
+						<No>2</No>
+						<No>22</No>
+					</Cue>
+				</Event>
+				<Event index="22" time="2366" command="Goto" pressed="true" step="23">
+					<Cue name="Violet 23">
+						<No>1</No>
+						<No>2</No>
+						<No>23</No>
+					</Cue>
+				</Event>
+				<Event index="23" time="2469" command="Goto" pressed="true" step="24">
+					<Cue name="Gold 24">
+						<No>1</No>
+						<No>2</No>
+						<No>24</No>
+					</Cue>
+				</Event>
+				<Event index="24" time="2571" command="Goto" pressed="true" step="25">
+					<Cue name="Amber 25">
+						<No>1</No>
+						<No>2</No>
+						<No>25</No>
+					</Cue>
+				</Event>
+				<Event index="25" time="2674" command="Goto" pressed="true" step="26">
+					<Cue name="Deep Blue 26">
+						<No>1</No>
+						<No>2</No>
+						<No>26</No>
+					</Cue>
+				</Event>
+				<Event index="26" time="2777" command="Goto" pressed="true" step="27">
+					<Cue name="Magenta 27">
+						<No>1</No>
+						<No>2</No>
+						<No>27</No>
+					</Cue>
+				</Event>
+				<Event index="27" time="2880" command="Goto" pressed="true" step="28">
+					<Cue name="Cyan 28">
+						<No>1</No>
+						<No>2</No>
+						<No>28</No>
+					</Cue>
+				</Event>
+				<Event index="28" time="2983" command="Goto" pressed="true" step="29">
+					<Cue name="Crimson 29">
+						<No>1</No>
+						<No>2</No>
+						<No>29</No>
+					</Cue>
+				</Event>
 			</SubTrack>
 		</Track>
 		<Track index="2" active="true" expanded="true">
-			<Object name="Spots SR 2.3">
+			<Object name="Spots SR 1.3">
 				<No>30</No>
 				<No>1</No>
 				<No>1</No>
 				<No>3</No>
 			</Object>
 			<SubTrack index="0">
-				<Event index="0" time="1740" command="Goto" pressed="true" step="1">
-					<Cue name="Spot Hit 1">
+				<Event index="0" time="257" command="Goto" pressed="true" step="1">
+					<Cue name="SR Chase 1">
 						<No>1</No>
 						<No>3</No>
 						<No>1</No>
 					</Cue>
 				</Event>
-				<Event index="1" time="1860" command="Goto" pressed="true" step="2">
-					<Cue name="Spot Hit 2">
+				<Event index="1" time="283" command="Goto" pressed="true" step="2">
+					<Cue name="SR Chase 2">
 						<No>1</No>
 						<No>3</No>
 						<No>2</No>
 					</Cue>
 				</Event>
-				<Event index="2" time="1980" command="Goto" pressed="true" step="3">
-					<Cue name="Spot Hit 3">
+				<Event index="2" time="309" command="Goto" pressed="true" step="3">
+					<Cue name="SR Chase 3">
 						<No>1</No>
 						<No>3</No>
 						<No>3</No>
 					</Cue>
 				</Event>
-				<Event index="3" time="2100" command="Goto" pressed="true" step="4">
-					<Cue name="Spot Hit 4">
+				<Event index="3" time="411" command="Goto" pressed="true" step="4">
+					<Cue name="SR Chase 4">
 						<No>1</No>
 						<No>3</No>
 						<No>4</No>
 					</Cue>
 				</Event>
-				<Event index="4" time="3660" command="Goto" pressed="true" step="5">
-					<Cue name="Spot Hit 5">
+				<Event index="4" time="437" command="Goto" pressed="true" step="5">
+					<Cue name="SR Chase 5">
 						<No>1</No>
 						<No>3</No>
 						<No>5</No>
 					</Cue>
 				</Event>
-				<Event index="5" time="3780" command="Goto" pressed="true" step="6">
-					<Cue name="Spot Hit 6">
+				<Event index="5" time="463" command="Goto" pressed="true" step="6">
+					<Cue name="SR Chase 6">
 						<No>1</No>
 						<No>3</No>
 						<No>6</No>
 					</Cue>
 				</Event>
-				<Event index="6" time="3900" command="Goto" pressed="true" step="7">
-					<Cue name="Spot Hit 7">
+				<Event index="6" time="489" command="Goto" pressed="true" step="7">
+					<Cue name="SR Chase 7">
 						<No>1</No>
 						<No>3</No>
 						<No>7</No>
 					</Cue>
 				</Event>
-				<Event index="7" time="4020" command="Goto" pressed="true" step="8">
-					<Cue name="Spot Hit 8">
+				<Event index="7" time="514" command="Goto" pressed="true" step="8">
+					<Cue name="SR Chase 8">
 						<No>1</No>
 						<No>3</No>
 						<No>8</No>
 					</Cue>
 				</Event>
+				<Event index="8" time="566" command="Goto" pressed="true" step="9">
+					<Cue name="SR Chase 9">
+						<No>1</No>
+						<No>3</No>
+						<No>9</No>
+					</Cue>
+				</Event>
+				<Event index="9" time="643" command="Goto" pressed="true" step="10">
+					<Cue name="SR Chase 10">
+						<No>1</No>
+						<No>3</No>
+						<No>10</No>
+					</Cue>
+				</Event>
+				<Event index="10" time="656" command="Goto" pressed="true" step="11">
+					<Cue name="SR Chase 11">
+						<No>1</No>
+						<No>3</No>
+						<No>11</No>
+					</Cue>
+				</Event>
+				<Event index="11" time="669" command="Goto" pressed="true" step="12">
+					<Cue name="SR Chase 12">
+						<No>1</No>
+						<No>3</No>
+						<No>12</No>
+					</Cue>
+				</Event>
+				<Event index="12" time="694" command="Goto" pressed="true" step="13">
+					<Cue name="SR Chase 13">
+						<No>1</No>
+						<No>3</No>
+						<No>13</No>
+					</Cue>
+				</Event>
+				<Event index="13" time="720" command="Goto" pressed="true" step="14">
+					<Cue name="SR Chase 14">
+						<No>1</No>
+						<No>3</No>
+						<No>14</No>
+					</Cue>
+				</Event>
+				<Event index="14" time="746" command="Goto" pressed="true" step="15">
+					<Cue name="SR Chase 15">
+						<No>1</No>
+						<No>3</No>
+						<No>15</No>
+					</Cue>
+				</Event>
+				<Event index="15" time="771" command="Goto" pressed="true" step="16">
+					<Cue name="SR Chase 16">
+						<No>1</No>
+						<No>3</No>
+						<No>16</No>
+					</Cue>
+				</Event>
+				<Event index="16" time="797" command="Goto" pressed="true" step="17">
+					<Cue name="SR Chase 17">
+						<No>1</No>
+						<No>3</No>
+						<No>17</No>
+					</Cue>
+				</Event>
+				<Event index="17" time="810" command="Goto" pressed="true" step="18">
+					<Cue name="SR Chase 18">
+						<No>1</No>
+						<No>3</No>
+						<No>18</No>
+					</Cue>
+				</Event>
+				<Event index="18" time="823" command="Goto" pressed="true" step="19">
+					<Cue name="SR Chase 19">
+						<No>1</No>
+						<No>3</No>
+						<No>19</No>
+					</Cue>
+				</Event>
+				<Event index="19" time="836" command="Goto" pressed="true" step="20">
+					<Cue name="SR Chase 20">
+						<No>1</No>
+						<No>3</No>
+						<No>20</No>
+					</Cue>
+				</Event>
+				<Event index="20" time="849" command="Goto" pressed="true" step="21">
+					<Cue name="SR Chase 21">
+						<No>1</No>
+						<No>3</No>
+						<No>21</No>
+					</Cue>
+				</Event>
+				<Event index="21" time="861" command="Goto" pressed="true" step="22">
+					<Cue name="SR Chase 22">
+						<No>1</No>
+						<No>3</No>
+						<No>22</No>
+					</Cue>
+				</Event>
+				<Event index="22" time="868" command="Goto" pressed="true" step="23">
+					<Cue name="SR Chase 23">
+						<No>1</No>
+						<No>3</No>
+						<No>23</No>
+					</Cue>
+				</Event>
+				<Event index="23" time="874" command="Goto" pressed="true" step="24">
+					<Cue name="SR Chase 24">
+						<No>1</No>
+						<No>3</No>
+						<No>24</No>
+					</Cue>
+				</Event>
+				<Event index="24" time="887" command="Goto" pressed="true" step="25">
+					<Cue name="SR Chase 25">
+						<No>1</No>
+						<No>3</No>
+						<No>25</No>
+					</Cue>
+				</Event>
+				<Event index="25" time="894" command="Goto" pressed="true" step="26">
+					<Cue name="SR Chase 26">
+						<No>1</No>
+						<No>3</No>
+						<No>26</No>
+					</Cue>
+				</Event>
+				<Event index="26" time="900" command="Goto" pressed="true" step="27">
+					<Cue name="SR Chase 27">
+						<No>1</No>
+						<No>3</No>
+						<No>27</No>
+					</Cue>
+				</Event>
+				<Event index="27" time="913" command="Goto" pressed="true" step="28">
+					<Cue name="SR Chase 28">
+						<No>1</No>
+						<No>3</No>
+						<No>28</No>
+					</Cue>
+				</Event>
+				<Event index="28" time="919" command="Goto" pressed="true" step="29">
+					<Cue name="SR Chase 29">
+						<No>1</No>
+						<No>3</No>
+						<No>29</No>
+					</Cue>
+				</Event>
+				<Event index="29" time="926" command="Goto" pressed="true" step="30">
+					<Cue name="SR Chase 30">
+						<No>1</No>
+						<No>3</No>
+						<No>30</No>
+					</Cue>
+				</Event>
+				<Event index="30" time="951" command="Goto" pressed="true" step="31">
+					<Cue name="SR Chase 31">
+						<No>1</No>
+						<No>3</No>
+						<No>31</No>
+					</Cue>
+				</Event>
+				<Event index="31" time="977" command="Goto" pressed="true" step="32">
+					<Cue name="SR Chase 32">
+						<No>1</No>
+						<No>3</No>
+						<No>32</No>
+					</Cue>
+				</Event>
+				<Event index="32" time="1003" command="Goto" pressed="true" step="33">
+					<Cue name="SR Chase 33">
+						<No>1</No>
+						<No>3</No>
+						<No>33</No>
+					</Cue>
+				</Event>
+				<Event index="33" time="1029" command="Goto" pressed="true" step="34">
+					<Cue name="SR Chase 34">
+						<No>1</No>
+						<No>3</No>
+						<No>34</No>
+					</Cue>
+				</Event>
+				<Event index="34" time="1054" command="Goto" pressed="true" step="35">
+					<Cue name="SR Chase 35">
+						<No>1</No>
+						<No>3</No>
+						<No>35</No>
+					</Cue>
+				</Event>
+				<Event index="35" time="1067" command="Goto" pressed="true" step="36">
+					<Cue name="SR Chase 36">
+						<No>1</No>
+						<No>3</No>
+						<No>36</No>
+					</Cue>
+				</Event>
+				<Event index="36" time="1080" command="Goto" pressed="true" step="37">
+					<Cue name="SR Chase 37">
+						<No>1</No>
+						<No>3</No>
+						<No>37</No>
+					</Cue>
+				</Event>
+				<Event index="37" time="1093" command="Goto" pressed="true" step="38">
+					<Cue name="SR Chase 38">
+						<No>1</No>
+						<No>3</No>
+						<No>38</No>
+					</Cue>
+				</Event>
+				<Event index="38" time="1106" command="Goto" pressed="true" step="39">
+					<Cue name="SR Chase 39">
+						<No>1</No>
+						<No>3</No>
+						<No>39</No>
+					</Cue>
+				</Event>
+				<Event index="39" time="1119" command="Goto" pressed="true" step="40">
+					<Cue name="SR Chase 40">
+						<No>1</No>
+						<No>3</No>
+						<No>40</No>
+					</Cue>
+				</Event>
+				<Event index="40" time="1131" command="Goto" pressed="true" step="41">
+					<Cue name="SR Chase 41">
+						<No>1</No>
+						<No>3</No>
+						<No>41</No>
+					</Cue>
+				</Event>
+				<Event index="41" time="1157" command="Goto" pressed="true" step="42">
+					<Cue name="SR Chase 42">
+						<No>1</No>
+						<No>3</No>
+						<No>42</No>
+					</Cue>
+				</Event>
+				<Event index="42" time="1183" command="Goto" pressed="true" step="43">
+					<Cue name="SR Chase 43">
+						<No>1</No>
+						<No>3</No>
+						<No>43</No>
+					</Cue>
+				</Event>
+				<Event index="43" time="1209" command="Goto" pressed="true" step="44">
+					<Cue name="SR Chase 44">
+						<No>1</No>
+						<No>3</No>
+						<No>44</No>
+					</Cue>
+				</Event>
+				<Event index="44" time="1234" command="Goto" pressed="true" step="45">
+					<Cue name="SR Chase 45">
+						<No>1</No>
+						<No>3</No>
+						<No>45</No>
+					</Cue>
+				</Event>
+				<Event index="45" time="1260" command="Goto" pressed="true" step="46">
+					<Cue name="SR Chase 46">
+						<No>1</No>
+						<No>3</No>
+						<No>46</No>
+					</Cue>
+				</Event>
+				<Event index="46" time="1273" command="Goto" pressed="true" step="47">
+					<Cue name="SR Chase 47">
+						<No>1</No>
+						<No>3</No>
+						<No>47</No>
+					</Cue>
+				</Event>
+				<Event index="47" time="1279" command="Goto" pressed="true" step="48">
+					<Cue name="SR Chase 48">
+						<No>1</No>
+						<No>3</No>
+						<No>48</No>
+					</Cue>
+				</Event>
+				<Event index="48" time="1286" command="Goto" pressed="true" step="49">
+					<Cue name="SR Chase 49">
+						<No>1</No>
+						<No>3</No>
+						<No>49</No>
+					</Cue>
+				</Event>
+				<Event index="49" time="1299" command="Goto" pressed="true" step="50">
+					<Cue name="SR Chase 50">
+						<No>1</No>
+						<No>3</No>
+						<No>50</No>
+					</Cue>
+				</Event>
+				<Event index="50" time="1305" command="Goto" pressed="true" step="51">
+					<Cue name="SR Chase 51">
+						<No>1</No>
+						<No>3</No>
+						<No>51</No>
+					</Cue>
+				</Event>
+				<Event index="51" time="1311" command="Goto" pressed="true" step="52">
+					<Cue name="SR Chase 52">
+						<No>1</No>
+						<No>3</No>
+						<No>52</No>
+					</Cue>
+				</Event>
+				<Event index="52" time="1324" command="Goto" pressed="true" step="53">
+					<Cue name="SR Chase 53">
+						<No>1</No>
+						<No>3</No>
+						<No>53</No>
+					</Cue>
+				</Event>
+				<Event index="53" time="1337" command="Goto" pressed="true" step="54">
+					<Cue name="SR Chase 54">
+						<No>1</No>
+						<No>3</No>
+						<No>54</No>
+					</Cue>
+				</Event>
+				<Event index="54" time="1363" command="Goto" pressed="true" step="55">
+					<Cue name="SR Chase 55">
+						<No>1</No>
+						<No>3</No>
+						<No>55</No>
+					</Cue>
+				</Event>
+				<Event index="55" time="1389" command="Goto" pressed="true" step="56">
+					<Cue name="SR Chase 56">
+						<No>1</No>
+						<No>3</No>
+						<No>56</No>
+					</Cue>
+				</Event>
+				<Event index="56" time="1414" command="Goto" pressed="true" step="57">
+					<Cue name="SR Chase 57">
+						<No>1</No>
+						<No>3</No>
+						<No>57</No>
+					</Cue>
+				</Event>
+				<Event index="57" time="1440" command="Goto" pressed="true" step="58">
+					<Cue name="SR Chase 58">
+						<No>1</No>
+						<No>3</No>
+						<No>58</No>
+					</Cue>
+				</Event>
+				<Event index="58" time="1466" command="Goto" pressed="true" step="59">
+					<Cue name="SR Chase 59">
+						<No>1</No>
+						<No>3</No>
+						<No>59</No>
+					</Cue>
+				</Event>
+				<Event index="59" time="1479" command="Goto" pressed="true" step="60">
+					<Cue name="SR Chase 60">
+						<No>1</No>
+						<No>3</No>
+						<No>60</No>
+					</Cue>
+				</Event>
+				<Event index="60" time="1491" command="Goto" pressed="true" step="61">
+					<Cue name="SR Chase 61">
+						<No>1</No>
+						<No>3</No>
+						<No>61</No>
+					</Cue>
+				</Event>
+				<Event index="61" time="1504" command="Goto" pressed="true" step="62">
+					<Cue name="SR Chase 62">
+						<No>1</No>
+						<No>3</No>
+						<No>62</No>
+					</Cue>
+				</Event>
+				<Event index="62" time="1517" command="Goto" pressed="true" step="63">
+					<Cue name="SR Chase 63">
+						<No>1</No>
+						<No>3</No>
+						<No>63</No>
+					</Cue>
+				</Event>
+				<Event index="63" time="1530" command="Goto" pressed="true" step="64">
+					<Cue name="SR Chase 64">
+						<No>1</No>
+						<No>3</No>
+						<No>64</No>
+					</Cue>
+				</Event>
+				<Event index="64" time="1543" command="Goto" pressed="true" step="65">
+					<Cue name="SR Chase 65">
+						<No>1</No>
+						<No>3</No>
+						<No>65</No>
+					</Cue>
+				</Event>
+				<Event index="65" time="1556" command="Goto" pressed="true" step="66">
+					<Cue name="SR Chase 66">
+						<No>1</No>
+						<No>3</No>
+						<No>66</No>
+					</Cue>
+				</Event>
+				<Event index="66" time="1569" command="Goto" pressed="true" step="67">
+					<Cue name="SR Chase 67">
+						<No>1</No>
+						<No>3</No>
+						<No>67</No>
+					</Cue>
+				</Event>
+				<Event index="67" time="1594" command="Goto" pressed="true" step="68">
+					<Cue name="SR Chase 68">
+						<No>1</No>
+						<No>3</No>
+						<No>68</No>
+					</Cue>
+				</Event>
+				<Event index="68" time="1607" command="Goto" pressed="true" step="69">
+					<Cue name="SR Chase 69">
+						<No>1</No>
+						<No>3</No>
+						<No>69</No>
+					</Cue>
+				</Event>
+				<Event index="69" time="1620" command="Goto" pressed="true" step="70">
+					<Cue name="SR Chase 70">
+						<No>1</No>
+						<No>3</No>
+						<No>70</No>
+					</Cue>
+				</Event>
+				<Event index="70" time="1633" command="Goto" pressed="true" step="71">
+					<Cue name="SR Chase 71">
+						<No>1</No>
+						<No>3</No>
+						<No>71</No>
+					</Cue>
+				</Event>
+				<Event index="71" time="1646" command="Goto" pressed="true" step="72">
+					<Cue name="SR Chase 72">
+						<No>1</No>
+						<No>3</No>
+						<No>72</No>
+					</Cue>
+				</Event>
+				<Event index="72" time="1659" command="Goto" pressed="true" step="73">
+					<Cue name="SR Chase 73">
+						<No>1</No>
+						<No>3</No>
+						<No>73</No>
+					</Cue>
+				</Event>
+				<Event index="73" time="1671" command="Goto" pressed="true" step="74">
+					<Cue name="SR Chase 74">
+						<No>1</No>
+						<No>3</No>
+						<No>74</No>
+					</Cue>
+				</Event>
+				<Event index="74" time="1684" command="Goto" pressed="true" step="75">
+					<Cue name="SR Chase 75">
+						<No>1</No>
+						<No>3</No>
+						<No>75</No>
+					</Cue>
+				</Event>
+				<Event index="75" time="1691" command="Goto" pressed="true" step="76">
+					<Cue name="SR Chase 76">
+						<No>1</No>
+						<No>3</No>
+						<No>76</No>
+					</Cue>
+				</Event>
+				<Event index="76" time="1697" command="Goto" pressed="true" step="77">
+					<Cue name="SR Chase 77">
+						<No>1</No>
+						<No>3</No>
+						<No>77</No>
+					</Cue>
+				</Event>
+				<Event index="77" time="1710" command="Goto" pressed="true" step="78">
+					<Cue name="SR Chase 78">
+						<No>1</No>
+						<No>3</No>
+						<No>78</No>
+					</Cue>
+				</Event>
+				<Event index="78" time="1716" command="Goto" pressed="true" step="79">
+					<Cue name="SR Chase 79">
+						<No>1</No>
+						<No>3</No>
+						<No>79</No>
+					</Cue>
+				</Event>
+				<Event index="79" time="1723" command="Goto" pressed="true" step="80">
+					<Cue name="SR Chase 80">
+						<No>1</No>
+						<No>3</No>
+						<No>80</No>
+					</Cue>
+				</Event>
+				<Event index="80" time="1736" command="Goto" pressed="true" step="81">
+					<Cue name="SR Chase 81">
+						<No>1</No>
+						<No>3</No>
+						<No>81</No>
+					</Cue>
+				</Event>
+				<Event index="81" time="1749" command="Goto" pressed="true" step="82">
+					<Cue name="SR Chase 82">
+						<No>1</No>
+						<No>3</No>
+						<No>82</No>
+					</Cue>
+				</Event>
+				<Event index="82" time="1761" command="Goto" pressed="true" step="83">
+					<Cue name="SR Chase 83">
+						<No>1</No>
+						<No>3</No>
+						<No>83</No>
+					</Cue>
+				</Event>
+				<Event index="83" time="1774" command="Goto" pressed="true" step="84">
+					<Cue name="SR Chase 84">
+						<No>1</No>
+						<No>3</No>
+						<No>84</No>
+					</Cue>
+				</Event>
+				<Event index="84" time="1787" command="Goto" pressed="true" step="85">
+					<Cue name="SR Chase 85">
+						<No>1</No>
+						<No>3</No>
+						<No>85</No>
+					</Cue>
+				</Event>
+				<Event index="85" time="1800" command="Goto" pressed="true" step="86">
+					<Cue name="SR Chase 86">
+						<No>1</No>
+						<No>3</No>
+						<No>86</No>
+					</Cue>
+				</Event>
+				<Event index="86" time="2083" command="Goto" pressed="true" step="87">
+					<Cue name="SR Chase 87">
+						<No>1</No>
+						<No>3</No>
+						<No>87</No>
+					</Cue>
+				</Event>
+				<Event index="87" time="2096" command="Goto" pressed="true" step="88">
+					<Cue name="SR Chase 88">
+						<No>1</No>
+						<No>3</No>
+						<No>88</No>
+					</Cue>
+				</Event>
+				<Event index="88" time="2109" command="Goto" pressed="true" step="89">
+					<Cue name="SR Chase 89">
+						<No>1</No>
+						<No>3</No>
+						<No>89</No>
+					</Cue>
+				</Event>
+				<Event index="89" time="2121" command="Goto" pressed="true" step="90">
+					<Cue name="SR Chase 90">
+						<No>1</No>
+						<No>3</No>
+						<No>90</No>
+					</Cue>
+				</Event>
+				<Event index="90" time="2134" command="Goto" pressed="true" step="91">
+					<Cue name="SR Chase 91">
+						<No>1</No>
+						<No>3</No>
+						<No>91</No>
+					</Cue>
+				</Event>
+				<Event index="91" time="2160" command="Goto" pressed="true" step="92">
+					<Cue name="SR Chase 92">
+						<No>1</No>
+						<No>3</No>
+						<No>92</No>
+					</Cue>
+				</Event>
+				<Event index="92" time="2186" command="Goto" pressed="true" step="93">
+					<Cue name="SR Chase 93">
+						<No>1</No>
+						<No>3</No>
+						<No>93</No>
+					</Cue>
+				</Event>
+				<Event index="93" time="2211" command="Goto" pressed="true" step="94">
+					<Cue name="SR Chase 94">
+						<No>1</No>
+						<No>3</No>
+						<No>94</No>
+					</Cue>
+				</Event>
+				<Event index="94" time="2289" command="Goto" pressed="true" step="95">
+					<Cue name="SR Chase 95">
+						<No>1</No>
+						<No>3</No>
+						<No>95</No>
+					</Cue>
+				</Event>
+				<Event index="95" time="2314" command="Goto" pressed="true" step="96">
+					<Cue name="SR Chase 96">
+						<No>1</No>
+						<No>3</No>
+						<No>96</No>
+					</Cue>
+				</Event>
+				<Event index="96" time="2340" command="Goto" pressed="true" step="97">
+					<Cue name="SR Chase 97">
+						<No>1</No>
+						<No>3</No>
+						<No>97</No>
+					</Cue>
+				</Event>
+				<Event index="97" time="2366" command="Goto" pressed="true" step="98">
+					<Cue name="SR Chase 98">
+						<No>1</No>
+						<No>3</No>
+						<No>98</No>
+					</Cue>
+				</Event>
+				<Event index="98" time="2391" command="Goto" pressed="true" step="99">
+					<Cue name="SR Chase 99">
+						<No>1</No>
+						<No>3</No>
+						<No>99</No>
+					</Cue>
+				</Event>
+				<Event index="99" time="2417" command="Goto" pressed="true" step="100">
+					<Cue name="SR Chase 100">
+						<No>1</No>
+						<No>3</No>
+						<No>100</No>
+					</Cue>
+				</Event>
+				<Event index="100" time="2443" command="Goto" pressed="true" step="101">
+					<Cue name="SR Chase 101">
+						<No>1</No>
+						<No>3</No>
+						<No>101</No>
+					</Cue>
+				</Event>
+				<Event index="101" time="2469" command="Goto" pressed="true" step="102">
+					<Cue name="SR Chase 102">
+						<No>1</No>
+						<No>3</No>
+						<No>102</No>
+					</Cue>
+				</Event>
+				<Event index="102" time="2494" command="Goto" pressed="true" step="103">
+					<Cue name="SR Chase 103">
+						<No>1</No>
+						<No>3</No>
+						<No>103</No>
+					</Cue>
+				</Event>
+				<Event index="103" time="2507" command="Goto" pressed="true" step="104">
+					<Cue name="SR Chase 104">
+						<No>1</No>
+						<No>3</No>
+						<No>104</No>
+					</Cue>
+				</Event>
+				<Event index="104" time="2520" command="Goto" pressed="true" step="105">
+					<Cue name="SR Chase 105">
+						<No>1</No>
+						<No>3</No>
+						<No>105</No>
+					</Cue>
+				</Event>
+				<Event index="105" time="2533" command="Goto" pressed="true" step="106">
+					<Cue name="SR Chase 106">
+						<No>1</No>
+						<No>3</No>
+						<No>106</No>
+					</Cue>
+				</Event>
+				<Event index="106" time="2546" command="Goto" pressed="true" step="107">
+					<Cue name="SR Chase 107">
+						<No>1</No>
+						<No>3</No>
+						<No>107</No>
+					</Cue>
+				</Event>
+				<Event index="107" time="2571" command="Goto" pressed="true" step="108">
+					<Cue name="SR Chase 108">
+						<No>1</No>
+						<No>3</No>
+						<No>108</No>
+					</Cue>
+				</Event>
+				<Event index="108" time="2584" command="Goto" pressed="true" step="109">
+					<Cue name="SR Chase 109">
+						<No>1</No>
+						<No>3</No>
+						<No>109</No>
+					</Cue>
+				</Event>
+				<Event index="109" time="2597" command="Goto" pressed="true" step="110">
+					<Cue name="SR Chase 110">
+						<No>1</No>
+						<No>3</No>
+						<No>110</No>
+					</Cue>
+				</Event>
+				<Event index="110" time="2610" command="Goto" pressed="true" step="111">
+					<Cue name="SR Chase 111">
+						<No>1</No>
+						<No>3</No>
+						<No>111</No>
+					</Cue>
+				</Event>
+				<Event index="111" time="2623" command="Goto" pressed="true" step="112">
+					<Cue name="SR Chase 112">
+						<No>1</No>
+						<No>3</No>
+						<No>112</No>
+					</Cue>
+				</Event>
+				<Event index="112" time="2649" command="Goto" pressed="true" step="113">
+					<Cue name="SR Chase 113">
+						<No>1</No>
+						<No>3</No>
+						<No>113</No>
+					</Cue>
+				</Event>
+				<Event index="113" time="2674" command="Goto" pressed="true" step="114">
+					<Cue name="SR Chase 114">
+						<No>1</No>
+						<No>3</No>
+						<No>114</No>
+					</Cue>
+				</Event>
+				<Event index="114" time="2700" command="Goto" pressed="true" step="115">
+					<Cue name="SR Chase 115">
+						<No>1</No>
+						<No>3</No>
+						<No>115</No>
+					</Cue>
+				</Event>
+				<Event index="115" time="2713" command="Goto" pressed="true" step="116">
+					<Cue name="SR Chase 116">
+						<No>1</No>
+						<No>3</No>
+						<No>116</No>
+					</Cue>
+				</Event>
+				<Event index="116" time="2726" command="Goto" pressed="true" step="117">
+					<Cue name="SR Chase 117">
+						<No>1</No>
+						<No>3</No>
+						<No>117</No>
+					</Cue>
+				</Event>
+				<Event index="117" time="2739" command="Goto" pressed="true" step="118">
+					<Cue name="SR Chase 118">
+						<No>1</No>
+						<No>3</No>
+						<No>118</No>
+					</Cue>
+				</Event>
+				<Event index="118" time="2751" command="Goto" pressed="true" step="119">
+					<Cue name="SR Chase 119">
+						<No>1</No>
+						<No>3</No>
+						<No>119</No>
+					</Cue>
+				</Event>
+				<Event index="119" time="2764" command="Goto" pressed="true" step="120">
+					<Cue name="SR Chase 120">
+						<No>1</No>
+						<No>3</No>
+						<No>120</No>
+					</Cue>
+				</Event>
+				<Event index="120" time="2777" command="Goto" pressed="true" step="121">
+					<Cue name="SR Chase 121">
+						<No>1</No>
+						<No>3</No>
+						<No>121</No>
+					</Cue>
+				</Event>
+				<Event index="121" time="2790" command="Goto" pressed="true" step="122">
+					<Cue name="SR Chase 122">
+						<No>1</No>
+						<No>3</No>
+						<No>122</No>
+					</Cue>
+				</Event>
+				<Event index="122" time="2803" command="Goto" pressed="true" step="123">
+					<Cue name="SR Chase 123">
+						<No>1</No>
+						<No>3</No>
+						<No>123</No>
+					</Cue>
+				</Event>
+				<Event index="123" time="2816" command="Goto" pressed="true" step="124">
+					<Cue name="SR Chase 124">
+						<No>1</No>
+						<No>3</No>
+						<No>124</No>
+					</Cue>
+				</Event>
+				<Event index="124" time="2829" command="Goto" pressed="true" step="125">
+					<Cue name="SR Chase 125">
+						<No>1</No>
+						<No>3</No>
+						<No>125</No>
+					</Cue>
+				</Event>
+				<Event index="125" time="2854" command="Goto" pressed="true" step="126">
+					<Cue name="SR Chase 126">
+						<No>1</No>
+						<No>3</No>
+						<No>126</No>
+					</Cue>
+				</Event>
+				<Event index="126" time="2880" command="Goto" pressed="true" step="127">
+					<Cue name="SR Chase 127">
+						<No>1</No>
+						<No>3</No>
+						<No>127</No>
+					</Cue>
+				</Event>
+				<Event index="127" time="2906" command="Goto" pressed="true" step="128">
+					<Cue name="SR Chase 128">
+						<No>1</No>
+						<No>3</No>
+						<No>128</No>
+					</Cue>
+				</Event>
+				<Event index="128" time="2919" command="Goto" pressed="true" step="129">
+					<Cue name="SR Chase 129">
+						<No>1</No>
+						<No>3</No>
+						<No>129</No>
+					</Cue>
+				</Event>
+				<Event index="129" time="2925" command="Goto" pressed="true" step="130">
+					<Cue name="SR Chase 130">
+						<No>1</No>
+						<No>3</No>
+						<No>130</No>
+					</Cue>
+				</Event>
+				<Event index="130" time="2931" command="Goto" pressed="true" step="131">
+					<Cue name="SR Chase 131">
+						<No>1</No>
+						<No>3</No>
+						<No>131</No>
+					</Cue>
+				</Event>
+				<Event index="131" time="2944" command="Goto" pressed="true" step="132">
+					<Cue name="SR Chase 132">
+						<No>1</No>
+						<No>3</No>
+						<No>132</No>
+					</Cue>
+				</Event>
+				<Event index="132" time="2951" command="Goto" pressed="true" step="133">
+					<Cue name="SR Chase 133">
+						<No>1</No>
+						<No>3</No>
+						<No>133</No>
+					</Cue>
+				</Event>
+				<Event index="133" time="2957" command="Goto" pressed="true" step="134">
+					<Cue name="SR Chase 134">
+						<No>1</No>
+						<No>3</No>
+						<No>134</No>
+					</Cue>
+				</Event>
+				<Event index="134" time="2970" command="Goto" pressed="true" step="135">
+					<Cue name="SR Chase 135">
+						<No>1</No>
+						<No>3</No>
+						<No>135</No>
+					</Cue>
+				</Event>
+				<Event index="135" time="2983" command="Goto" pressed="true" step="136">
+					<Cue name="SR Chase 136">
+						<No>1</No>
+						<No>3</No>
+						<No>136</No>
+					</Cue>
+				</Event>
 			</SubTrack>
 		</Track>
 		<Track index="3" active="true" expanded="true">
-			<Object name="Beams 2.4">
+			<Object name="Spots SL 1.4">
 				<No>30</No>
 				<No>1</No>
 				<No>1</No>
 				<No>4</No>
 			</Object>
 			<SubTrack index="0">
-				<Event index="0" time="2220" command="Goto" pressed="true" step="1">
-					<Cue name="Beam Sweep 1">
+				<Event index="0" time="244" command="Goto" pressed="true" step="1">
+					<Cue name="SL Chase 1">
 						<No>1</No>
 						<No>4</No>
 						<No>1</No>
 					</Cue>
 				</Event>
-				<Event index="1" time="2340" command="Goto" pressed="true" step="2">
-					<Cue name="Beam Sweep 2">
+				<Event index="1" time="270" command="Goto" pressed="true" step="2">
+					<Cue name="SL Chase 2">
 						<No>1</No>
 						<No>4</No>
 						<No>2</No>
 					</Cue>
 				</Event>
-				<Event index="2" time="2460" command="Goto" pressed="true" step="3">
-					<Cue name="Beam Sweep 3">
+				<Event index="2" time="296" command="Goto" pressed="true" step="3">
+					<Cue name="SL Chase 3">
 						<No>1</No>
 						<No>4</No>
 						<No>3</No>
 					</Cue>
 				</Event>
-				<Event index="3" time="2580" command="Goto" pressed="true" step="4">
-					<Cue name="Beam Sweep 4">
+				<Event index="3" time="321" command="Goto" pressed="true" step="4">
+					<Cue name="SL Chase 4">
 						<No>1</No>
 						<No>4</No>
 						<No>4</No>
 					</Cue>
 				</Event>
-				<Event index="4" time="2700" command="Goto" pressed="true" step="5">
-					<Cue name="Beam Sweep 5">
+				<Event index="4" time="399" command="Goto" pressed="true" step="5">
+					<Cue name="SL Chase 5">
 						<No>1</No>
 						<No>4</No>
 						<No>5</No>
 					</Cue>
 				</Event>
-				<Event index="5" time="2820" command="Goto" pressed="true" step="6">
-					<Cue name="Beam Sweep 6">
+				<Event index="5" time="424" command="Goto" pressed="true" step="6">
+					<Cue name="SL Chase 6">
 						<No>1</No>
 						<No>4</No>
 						<No>6</No>
 					</Cue>
 				</Event>
-				<Event index="6" time="2940" command="Goto" pressed="true" step="7">
-					<Cue name="Beam Sweep 7">
+				<Event index="6" time="450" command="Goto" pressed="true" step="7">
+					<Cue name="SL Chase 7">
 						<No>1</No>
 						<No>4</No>
 						<No>7</No>
 					</Cue>
 				</Event>
-				<Event index="7" time="3060" command="Goto" pressed="true" step="8">
-					<Cue name="Beam Sweep 8">
+				<Event index="7" time="476" command="Goto" pressed="true" step="8">
+					<Cue name="SL Chase 8">
 						<No>1</No>
 						<No>4</No>
 						<No>8</No>
 					</Cue>
 				</Event>
-				<Event index="8" time="3180" command="Goto" pressed="true" step="9">
-					<Cue name="Beam Sweep 9">
+				<Event index="8" time="501" command="Goto" pressed="true" step="9">
+					<Cue name="SL Chase 9">
 						<No>1</No>
 						<No>4</No>
 						<No>9</No>
 					</Cue>
 				</Event>
-				<Event index="9" time="3300" command="Goto" pressed="true" step="10">
-					<Cue name="Beam Sweep 10">
+				<Event index="9" time="527" command="Goto" pressed="true" step="10">
+					<Cue name="SL Chase 10">
 						<No>1</No>
 						<No>4</No>
 						<No>10</No>
 					</Cue>
 				</Event>
-				<Event index="10" time="3420" command="Goto" pressed="true" step="11">
-					<Cue name="Beam Sweep 11">
+				<Event index="10" time="553" command="Goto" pressed="true" step="11">
+					<Cue name="SL Chase 11">
 						<No>1</No>
 						<No>4</No>
 						<No>11</No>
 					</Cue>
 				</Event>
-				<Event index="11" time="3540" command="Goto" pressed="true" step="12">
-					<Cue name="Beam Sweep 12">
+				<Event index="11" time="579" command="Goto" pressed="true" step="12">
+					<Cue name="SL Chase 12">
 						<No>1</No>
 						<No>4</No>
 						<No>12</No>
 					</Cue>
 				</Event>
-				<Event index="12" time="3660" command="Goto" pressed="true" step="13">
-					<Cue name="Beam Sweep 13">
+				<Event index="12" time="604" command="Goto" pressed="true" step="13">
+					<Cue name="SL Chase 13">
 						<No>1</No>
 						<No>4</No>
 						<No>13</No>
 					</Cue>
 				</Event>
-				<Event index="13" time="3780" command="Goto" pressed="true" step="14">
-					<Cue name="Beam Sweep 14">
+				<Event index="13" time="630" command="Goto" pressed="true" step="14">
+					<Cue name="SL Chase 14">
 						<No>1</No>
 						<No>4</No>
 						<No>14</No>
 					</Cue>
 				</Event>
-				<Event index="14" time="3900" command="Goto" pressed="true" step="15">
-					<Cue name="Beam Sweep 15">
+				<Event index="14" time="662" command="Goto" pressed="true" step="15">
+					<Cue name="SL Chase 15">
 						<No>1</No>
 						<No>4</No>
 						<No>15</No>
 					</Cue>
 				</Event>
-				<Event index="15" time="4020" command="Goto" pressed="true" step="16">
-					<Cue name="Beam Sweep 16">
+				<Event index="15" time="681" command="Goto" pressed="true" step="16">
+					<Cue name="SL Chase 16">
 						<No>1</No>
 						<No>4</No>
 						<No>16</No>
 					</Cue>
 				</Event>
+				<Event index="16" time="707" command="Goto" pressed="true" step="17">
+					<Cue name="SL Chase 17">
+						<No>1</No>
+						<No>4</No>
+						<No>17</No>
+					</Cue>
+				</Event>
+				<Event index="17" time="733" command="Goto" pressed="true" step="18">
+					<Cue name="SL Chase 18">
+						<No>1</No>
+						<No>4</No>
+						<No>18</No>
+					</Cue>
+				</Event>
+				<Event index="18" time="759" command="Goto" pressed="true" step="19">
+					<Cue name="SL Chase 19">
+						<No>1</No>
+						<No>4</No>
+						<No>19</No>
+					</Cue>
+				</Event>
+				<Event index="19" time="784" command="Goto" pressed="true" step="20">
+					<Cue name="SL Chase 20">
+						<No>1</No>
+						<No>4</No>
+						<No>20</No>
+					</Cue>
+				</Event>
+				<Event index="20" time="816" command="Goto" pressed="true" step="21">
+					<Cue name="SL Chase 21">
+						<No>1</No>
+						<No>4</No>
+						<No>21</No>
+					</Cue>
+				</Event>
+				<Event index="21" time="842" command="Goto" pressed="true" step="22">
+					<Cue name="SL Chase 22">
+						<No>1</No>
+						<No>4</No>
+						<No>22</No>
+					</Cue>
+				</Event>
+				<Event index="22" time="855" command="Goto" pressed="true" step="23">
+					<Cue name="SL Chase 23">
+						<No>1</No>
+						<No>4</No>
+						<No>23</No>
+					</Cue>
+				</Event>
+				<Event index="23" time="868" command="Goto" pressed="true" step="24">
+					<Cue name="SL Chase 24">
+						<No>1</No>
+						<No>4</No>
+						<No>24</No>
+					</Cue>
+				</Event>
+				<Event index="24" time="881" command="Goto" pressed="true" step="25">
+					<Cue name="SL Chase 25">
+						<No>1</No>
+						<No>4</No>
+						<No>25</No>
+					</Cue>
+				</Event>
+				<Event index="25" time="894" command="Goto" pressed="true" step="26">
+					<Cue name="SL Chase 26">
+						<No>1</No>
+						<No>4</No>
+						<No>26</No>
+					</Cue>
+				</Event>
+				<Event index="26" time="906" command="Goto" pressed="true" step="27">
+					<Cue name="SL Chase 27">
+						<No>1</No>
+						<No>4</No>
+						<No>27</No>
+					</Cue>
+				</Event>
+				<Event index="27" time="919" command="Goto" pressed="true" step="28">
+					<Cue name="SL Chase 28">
+						<No>1</No>
+						<No>4</No>
+						<No>28</No>
+					</Cue>
+				</Event>
+				<Event index="28" time="939" command="Goto" pressed="true" step="29">
+					<Cue name="SL Chase 29">
+						<No>1</No>
+						<No>4</No>
+						<No>29</No>
+					</Cue>
+				</Event>
+				<Event index="29" time="964" command="Goto" pressed="true" step="30">
+					<Cue name="SL Chase 30">
+						<No>1</No>
+						<No>4</No>
+						<No>30</No>
+					</Cue>
+				</Event>
+				<Event index="30" time="990" command="Goto" pressed="true" step="31">
+					<Cue name="SL Chase 31">
+						<No>1</No>
+						<No>4</No>
+						<No>31</No>
+					</Cue>
+				</Event>
+				<Event index="31" time="1016" command="Goto" pressed="true" step="32">
+					<Cue name="SL Chase 32">
+						<No>1</No>
+						<No>4</No>
+						<No>32</No>
+					</Cue>
+				</Event>
+				<Event index="32" time="1041" command="Goto" pressed="true" step="33">
+					<Cue name="SL Chase 33">
+						<No>1</No>
+						<No>4</No>
+						<No>33</No>
+					</Cue>
+				</Event>
+				<Event index="33" time="1074" command="Goto" pressed="true" step="34">
+					<Cue name="SL Chase 34">
+						<No>1</No>
+						<No>4</No>
+						<No>34</No>
+					</Cue>
+				</Event>
+				<Event index="34" time="1099" command="Goto" pressed="true" step="35">
+					<Cue name="SL Chase 35">
+						<No>1</No>
+						<No>4</No>
+						<No>35</No>
+					</Cue>
+				</Event>
+				<Event index="35" time="1125" command="Goto" pressed="true" step="36">
+					<Cue name="SL Chase 36">
+						<No>1</No>
+						<No>4</No>
+						<No>36</No>
+					</Cue>
+				</Event>
+				<Event index="36" time="1144" command="Goto" pressed="true" step="37">
+					<Cue name="SL Chase 37">
+						<No>1</No>
+						<No>4</No>
+						<No>37</No>
+					</Cue>
+				</Event>
+				<Event index="37" time="1170" command="Goto" pressed="true" step="38">
+					<Cue name="SL Chase 38">
+						<No>1</No>
+						<No>4</No>
+						<No>38</No>
+					</Cue>
+				</Event>
+				<Event index="38" time="1196" command="Goto" pressed="true" step="39">
+					<Cue name="SL Chase 39">
+						<No>1</No>
+						<No>4</No>
+						<No>39</No>
+					</Cue>
+				</Event>
+				<Event index="39" time="1221" command="Goto" pressed="true" step="40">
+					<Cue name="SL Chase 40">
+						<No>1</No>
+						<No>4</No>
+						<No>40</No>
+					</Cue>
+				</Event>
+				<Event index="40" time="1247" command="Goto" pressed="true" step="41">
+					<Cue name="SL Chase 41">
+						<No>1</No>
+						<No>4</No>
+						<No>41</No>
+					</Cue>
+				</Event>
+				<Event index="41" time="1279" command="Goto" pressed="true" step="42">
+					<Cue name="SL Chase 42">
+						<No>1</No>
+						<No>4</No>
+						<No>42</No>
+					</Cue>
+				</Event>
+				<Event index="42" time="1292" command="Goto" pressed="true" step="43">
+					<Cue name="SL Chase 43">
+						<No>1</No>
+						<No>4</No>
+						<No>43</No>
+					</Cue>
+				</Event>
+				<Event index="43" time="1305" command="Goto" pressed="true" step="44">
+					<Cue name="SL Chase 44">
+						<No>1</No>
+						<No>4</No>
+						<No>44</No>
+					</Cue>
+				</Event>
+				<Event index="44" time="1318" command="Goto" pressed="true" step="45">
+					<Cue name="SL Chase 45">
+						<No>1</No>
+						<No>4</No>
+						<No>45</No>
+					</Cue>
+				</Event>
+				<Event index="45" time="1331" command="Goto" pressed="true" step="46">
+					<Cue name="SL Chase 46">
+						<No>1</No>
+						<No>4</No>
+						<No>46</No>
+					</Cue>
+				</Event>
+				<Event index="46" time="1350" command="Goto" pressed="true" step="47">
+					<Cue name="SL Chase 47">
+						<No>1</No>
+						<No>4</No>
+						<No>47</No>
+					</Cue>
+				</Event>
+				<Event index="47" time="1376" command="Goto" pressed="true" step="48">
+					<Cue name="SL Chase 48">
+						<No>1</No>
+						<No>4</No>
+						<No>48</No>
+					</Cue>
+				</Event>
+				<Event index="48" time="1401" command="Goto" pressed="true" step="49">
+					<Cue name="SL Chase 49">
+						<No>1</No>
+						<No>4</No>
+						<No>49</No>
+					</Cue>
+				</Event>
+				<Event index="49" time="1427" command="Goto" pressed="true" step="50">
+					<Cue name="SL Chase 50">
+						<No>1</No>
+						<No>4</No>
+						<No>50</No>
+					</Cue>
+				</Event>
+				<Event index="50" time="1453" command="Goto" pressed="true" step="51">
+					<Cue name="SL Chase 51">
+						<No>1</No>
+						<No>4</No>
+						<No>51</No>
+					</Cue>
+				</Event>
+				<Event index="51" time="1485" command="Goto" pressed="true" step="52">
+					<Cue name="SL Chase 52">
+						<No>1</No>
+						<No>4</No>
+						<No>52</No>
+					</Cue>
+				</Event>
+				<Event index="52" time="1498" command="Goto" pressed="true" step="53">
+					<Cue name="SL Chase 53">
+						<No>1</No>
+						<No>4</No>
+						<No>53</No>
+					</Cue>
+				</Event>
+				<Event index="53" time="1511" command="Goto" pressed="true" step="54">
+					<Cue name="SL Chase 54">
+						<No>1</No>
+						<No>4</No>
+						<No>54</No>
+					</Cue>
+				</Event>
+				<Event index="54" time="1536" command="Goto" pressed="true" step="55">
+					<Cue name="SL Chase 55">
+						<No>1</No>
+						<No>4</No>
+						<No>55</No>
+					</Cue>
+				</Event>
+				<Event index="55" time="1562" command="Goto" pressed="true" step="56">
+					<Cue name="SL Chase 56">
+						<No>1</No>
+						<No>4</No>
+						<No>56</No>
+					</Cue>
+				</Event>
+				<Event index="56" time="1581" command="Goto" pressed="true" step="57">
+					<Cue name="SL Chase 57">
+						<No>1</No>
+						<No>4</No>
+						<No>57</No>
+					</Cue>
+				</Event>
+				<Event index="57" time="1614" command="Goto" pressed="true" step="58">
+					<Cue name="SL Chase 58">
+						<No>1</No>
+						<No>4</No>
+						<No>58</No>
+					</Cue>
+				</Event>
+				<Event index="58" time="1639" command="Goto" pressed="true" step="59">
+					<Cue name="SL Chase 59">
+						<No>1</No>
+						<No>4</No>
+						<No>59</No>
+					</Cue>
+				</Event>
+				<Event index="59" time="1665" command="Goto" pressed="true" step="60">
+					<Cue name="SL Chase 60">
+						<No>1</No>
+						<No>4</No>
+						<No>60</No>
+					</Cue>
+				</Event>
+				<Event index="60" time="1678" command="Goto" pressed="true" step="61">
+					<Cue name="SL Chase 61">
+						<No>1</No>
+						<No>4</No>
+						<No>61</No>
+					</Cue>
+				</Event>
+				<Event index="61" time="1691" command="Goto" pressed="true" step="62">
+					<Cue name="SL Chase 62">
+						<No>1</No>
+						<No>4</No>
+						<No>62</No>
+					</Cue>
+				</Event>
+				<Event index="62" time="1704" command="Goto" pressed="true" step="63">
+					<Cue name="SL Chase 63">
+						<No>1</No>
+						<No>4</No>
+						<No>63</No>
+					</Cue>
+				</Event>
+				<Event index="63" time="1716" command="Goto" pressed="true" step="64">
+					<Cue name="SL Chase 64">
+						<No>1</No>
+						<No>4</No>
+						<No>64</No>
+					</Cue>
+				</Event>
+				<Event index="64" time="1729" command="Goto" pressed="true" step="65">
+					<Cue name="SL Chase 65">
+						<No>1</No>
+						<No>4</No>
+						<No>65</No>
+					</Cue>
+				</Event>
+				<Event index="65" time="1742" command="Goto" pressed="true" step="66">
+					<Cue name="SL Chase 66">
+						<No>1</No>
+						<No>4</No>
+						<No>66</No>
+					</Cue>
+				</Event>
+				<Event index="66" time="1768" command="Goto" pressed="true" step="67">
+					<Cue name="SL Chase 67">
+						<No>1</No>
+						<No>4</No>
+						<No>67</No>
+					</Cue>
+				</Event>
+				<Event index="67" time="1781" command="Goto" pressed="true" step="68">
+					<Cue name="SL Chase 68">
+						<No>1</No>
+						<No>4</No>
+						<No>68</No>
+					</Cue>
+				</Event>
+				<Event index="68" time="1794" command="Goto" pressed="true" step="69">
+					<Cue name="SL Chase 69">
+						<No>1</No>
+						<No>4</No>
+						<No>69</No>
+					</Cue>
+				</Event>
+				<Event index="69" time="1839" command="Goto" pressed="true" step="70">
+					<Cue name="SL Chase 70">
+						<No>1</No>
+						<No>4</No>
+						<No>70</No>
+					</Cue>
+				</Event>
+				<Event index="70" time="2070" command="Goto" pressed="true" step="71">
+					<Cue name="SL Chase 71">
+						<No>1</No>
+						<No>4</No>
+						<No>71</No>
+					</Cue>
+				</Event>
+				<Event index="71" time="2102" command="Goto" pressed="true" step="72">
+					<Cue name="SL Chase 72">
+						<No>1</No>
+						<No>4</No>
+						<No>72</No>
+					</Cue>
+				</Event>
+				<Event index="72" time="2128" command="Goto" pressed="true" step="73">
+					<Cue name="SL Chase 73">
+						<No>1</No>
+						<No>4</No>
+						<No>73</No>
+					</Cue>
+				</Event>
+				<Event index="73" time="2147" command="Goto" pressed="true" step="74">
+					<Cue name="SL Chase 74">
+						<No>1</No>
+						<No>4</No>
+						<No>74</No>
+					</Cue>
+				</Event>
+				<Event index="74" time="2173" command="Goto" pressed="true" step="75">
+					<Cue name="SL Chase 75">
+						<No>1</No>
+						<No>4</No>
+						<No>75</No>
+					</Cue>
+				</Event>
+				<Event index="75" time="2199" command="Goto" pressed="true" step="76">
+					<Cue name="SL Chase 76">
+						<No>1</No>
+						<No>4</No>
+						<No>76</No>
+					</Cue>
+				</Event>
+				<Event index="76" time="2224" command="Goto" pressed="true" step="77">
+					<Cue name="SL Chase 77">
+						<No>1</No>
+						<No>4</No>
+						<No>77</No>
+					</Cue>
+				</Event>
+				<Event index="77" time="2250" command="Goto" pressed="true" step="78">
+					<Cue name="SL Chase 78">
+						<No>1</No>
+						<No>4</No>
+						<No>78</No>
+					</Cue>
+				</Event>
+				<Event index="78" time="2276" command="Goto" pressed="true" step="79">
+					<Cue name="SL Chase 79">
+						<No>1</No>
+						<No>4</No>
+						<No>79</No>
+					</Cue>
+				</Event>
+				<Event index="79" time="2301" command="Goto" pressed="true" step="80">
+					<Cue name="SL Chase 80">
+						<No>1</No>
+						<No>4</No>
+						<No>80</No>
+					</Cue>
+				</Event>
+				<Event index="80" time="2327" command="Goto" pressed="true" step="81">
+					<Cue name="SL Chase 81">
+						<No>1</No>
+						<No>4</No>
+						<No>81</No>
+					</Cue>
+				</Event>
+				<Event index="81" time="2353" command="Goto" pressed="true" step="82">
+					<Cue name="SL Chase 82">
+						<No>1</No>
+						<No>4</No>
+						<No>82</No>
+					</Cue>
+				</Event>
+				<Event index="82" time="2379" command="Goto" pressed="true" step="83">
+					<Cue name="SL Chase 83">
+						<No>1</No>
+						<No>4</No>
+						<No>83</No>
+					</Cue>
+				</Event>
+				<Event index="83" time="2404" command="Goto" pressed="true" step="84">
+					<Cue name="SL Chase 84">
+						<No>1</No>
+						<No>4</No>
+						<No>84</No>
+					</Cue>
+				</Event>
+				<Event index="84" time="2430" command="Goto" pressed="true" step="85">
+					<Cue name="SL Chase 85">
+						<No>1</No>
+						<No>4</No>
+						<No>85</No>
+					</Cue>
+				</Event>
+				<Event index="85" time="2456" command="Goto" pressed="true" step="86">
+					<Cue name="SL Chase 86">
+						<No>1</No>
+						<No>4</No>
+						<No>86</No>
+					</Cue>
+				</Event>
+				<Event index="86" time="2481" command="Goto" pressed="true" step="87">
+					<Cue name="SL Chase 87">
+						<No>1</No>
+						<No>4</No>
+						<No>87</No>
+					</Cue>
+				</Event>
+				<Event index="87" time="2514" command="Goto" pressed="true" step="88">
+					<Cue name="SL Chase 88">
+						<No>1</No>
+						<No>4</No>
+						<No>88</No>
+					</Cue>
+				</Event>
+				<Event index="88" time="2526" command="Goto" pressed="true" step="89">
+					<Cue name="SL Chase 89">
+						<No>1</No>
+						<No>4</No>
+						<No>89</No>
+					</Cue>
+				</Event>
+				<Event index="89" time="2539" command="Goto" pressed="true" step="90">
+					<Cue name="SL Chase 90">
+						<No>1</No>
+						<No>4</No>
+						<No>90</No>
+					</Cue>
+				</Event>
+				<Event index="90" time="2559" command="Goto" pressed="true" step="91">
+					<Cue name="SL Chase 91">
+						<No>1</No>
+						<No>4</No>
+						<No>91</No>
+					</Cue>
+				</Event>
+				<Event index="91" time="2591" command="Goto" pressed="true" step="92">
+					<Cue name="SL Chase 92">
+						<No>1</No>
+						<No>4</No>
+						<No>92</No>
+					</Cue>
+				</Event>
+				<Event index="92" time="2616" command="Goto" pressed="true" step="93">
+					<Cue name="SL Chase 93">
+						<No>1</No>
+						<No>4</No>
+						<No>93</No>
+					</Cue>
+				</Event>
+				<Event index="93" time="2636" command="Goto" pressed="true" step="94">
+					<Cue name="SL Chase 94">
+						<No>1</No>
+						<No>4</No>
+						<No>94</No>
+					</Cue>
+				</Event>
+				<Event index="94" time="2661" command="Goto" pressed="true" step="95">
+					<Cue name="SL Chase 95">
+						<No>1</No>
+						<No>4</No>
+						<No>95</No>
+					</Cue>
+				</Event>
+				<Event index="95" time="2687" command="Goto" pressed="true" step="96">
+					<Cue name="SL Chase 96">
+						<No>1</No>
+						<No>4</No>
+						<No>96</No>
+					</Cue>
+				</Event>
+				<Event index="96" time="2719" command="Goto" pressed="true" step="97">
+					<Cue name="SL Chase 97">
+						<No>1</No>
+						<No>4</No>
+						<No>97</No>
+					</Cue>
+				</Event>
+				<Event index="97" time="2732" command="Goto" pressed="true" step="98">
+					<Cue name="SL Chase 98">
+						<No>1</No>
+						<No>4</No>
+						<No>98</No>
+					</Cue>
+				</Event>
+				<Event index="98" time="2745" command="Goto" pressed="true" step="99">
+					<Cue name="SL Chase 99">
+						<No>1</No>
+						<No>4</No>
+						<No>99</No>
+					</Cue>
+				</Event>
+				<Event index="99" time="2758" command="Goto" pressed="true" step="100">
+					<Cue name="SL Chase 100">
+						<No>1</No>
+						<No>4</No>
+						<No>100</No>
+					</Cue>
+				</Event>
+				<Event index="100" time="2771" command="Goto" pressed="true" step="101">
+					<Cue name="SL Chase 101">
+						<No>1</No>
+						<No>4</No>
+						<No>101</No>
+					</Cue>
+				</Event>
+				<Event index="101" time="2784" command="Goto" pressed="true" step="102">
+					<Cue name="SL Chase 102">
+						<No>1</No>
+						<No>4</No>
+						<No>102</No>
+					</Cue>
+				</Event>
+				<Event index="102" time="2796" command="Goto" pressed="true" step="103">
+					<Cue name="SL Chase 103">
+						<No>1</No>
+						<No>4</No>
+						<No>103</No>
+					</Cue>
+				</Event>
+				<Event index="103" time="2822" command="Goto" pressed="true" step="104">
+					<Cue name="SL Chase 104">
+						<No>1</No>
+						<No>4</No>
+						<No>104</No>
+					</Cue>
+				</Event>
+				<Event index="104" time="2841" command="Goto" pressed="true" step="105">
+					<Cue name="SL Chase 105">
+						<No>1</No>
+						<No>4</No>
+						<No>105</No>
+					</Cue>
+				</Event>
+				<Event index="105" time="2867" command="Goto" pressed="true" step="106">
+					<Cue name="SL Chase 106">
+						<No>1</No>
+						<No>4</No>
+						<No>106</No>
+					</Cue>
+				</Event>
+				<Event index="106" time="2893" command="Goto" pressed="true" step="107">
+					<Cue name="SL Chase 107">
+						<No>1</No>
+						<No>4</No>
+						<No>107</No>
+					</Cue>
+				</Event>
+				<Event index="107" time="2925" command="Goto" pressed="true" step="108">
+					<Cue name="SL Chase 108">
+						<No>1</No>
+						<No>4</No>
+						<No>108</No>
+					</Cue>
+				</Event>
+				<Event index="108" time="2938" command="Goto" pressed="true" step="109">
+					<Cue name="SL Chase 109">
+						<No>1</No>
+						<No>4</No>
+						<No>109</No>
+					</Cue>
+				</Event>
+				<Event index="109" time="2951" command="Goto" pressed="true" step="110">
+					<Cue name="SL Chase 110">
+						<No>1</No>
+						<No>4</No>
+						<No>110</No>
+					</Cue>
+				</Event>
+				<Event index="110" time="2964" command="Goto" pressed="true" step="111">
+					<Cue name="SL Chase 111">
+						<No>1</No>
+						<No>4</No>
+						<No>111</No>
+					</Cue>
+				</Event>
+				<Event index="111" time="2976" command="Goto" pressed="true" step="112">
+					<Cue name="SL Chase 112">
+						<No>1</No>
+						<No>4</No>
+						<No>112</No>
+					</Cue>
+				</Event>
 			</SubTrack>
 		</Track>
 		<Track index="4" active="true" expanded="true">
-			<Object name="Strobe FX 2.5">
+			<Object name="Beams 1.5">
 				<No>30</No>
 				<No>1</No>
 				<No>1</No>
 				<No>5</No>
 			</Object>
 			<SubTrack index="0">
-				<Event index="0" time="1260" command="Goto" pressed="true" step="1">
-					<Cue name="Strobe 1">
+				<Event index="0" time="0" command="Goto" pressed="true" step="1">
+					<Cue name="Beam 1">
 						<No>1</No>
 						<No>5</No>
 						<No>1</No>
 					</Cue>
 				</Event>
-				<Event index="1" time="1740" command="Goto" pressed="true" step="2">
-					<Cue name="Strobe 2">
+				<Event index="1" time="51" command="Goto" pressed="true" step="2">
+					<Cue name="Beam 2">
 						<No>1</No>
 						<No>5</No>
 						<No>2</No>
 					</Cue>
 				</Event>
-				<Event index="2" time="3180" command="Goto" pressed="true" step="3">
-					<Cue name="Strobe 3">
+				<Event index="2" time="103" command="Goto" pressed="true" step="3">
+					<Cue name="Beam 3">
 						<No>1</No>
 						<No>5</No>
 						<No>3</No>
 					</Cue>
 				</Event>
-				<Event index="3" time="3660" command="Goto" pressed="true" step="4">
-					<Cue name="Strobe 4">
+				<Event index="3" time="154" command="Goto" pressed="true" step="4">
+					<Cue name="Beam 4">
 						<No>1</No>
 						<No>5</No>
 						<No>4</No>
 					</Cue>
 				</Event>
+				<Event index="4" time="206" command="Goto" pressed="true" step="5">
+					<Cue name="Beam 5">
+						<No>1</No>
+						<No>5</No>
+						<No>5</No>
+					</Cue>
+				</Event>
+				<Event index="5" time="257" command="Goto" pressed="true" step="6">
+					<Cue name="Beam 6">
+						<No>1</No>
+						<No>5</No>
+						<No>6</No>
+					</Cue>
+				</Event>
+				<Event index="6" time="283" command="Goto" pressed="true" step="7">
+					<Cue name="Beam 7">
+						<No>1</No>
+						<No>5</No>
+						<No>7</No>
+					</Cue>
+				</Event>
+				<Event index="7" time="309" command="Goto" pressed="true" step="8">
+					<Cue name="Beam 8">
+						<No>1</No>
+						<No>5</No>
+						<No>8</No>
+					</Cue>
+				</Event>
+				<Event index="8" time="360" command="Goto" pressed="true" step="9">
+					<Cue name="Beam 9">
+						<No>1</No>
+						<No>5</No>
+						<No>9</No>
+					</Cue>
+				</Event>
+				<Event index="9" time="411" command="Goto" pressed="true" step="10">
+					<Cue name="Beam 10">
+						<No>1</No>
+						<No>5</No>
+						<No>10</No>
+					</Cue>
+				</Event>
+				<Event index="10" time="437" command="Goto" pressed="true" step="11">
+					<Cue name="Beam 11">
+						<No>1</No>
+						<No>5</No>
+						<No>11</No>
+					</Cue>
+				</Event>
+				<Event index="11" time="463" command="Goto" pressed="true" step="12">
+					<Cue name="Beam 12">
+						<No>1</No>
+						<No>5</No>
+						<No>12</No>
+					</Cue>
+				</Event>
+				<Event index="12" time="489" command="Goto" pressed="true" step="13">
+					<Cue name="Beam 13">
+						<No>1</No>
+						<No>5</No>
+						<No>13</No>
+					</Cue>
+				</Event>
+				<Event index="13" time="514" command="Goto" pressed="true" step="14">
+					<Cue name="Beam 14">
+						<No>1</No>
+						<No>5</No>
+						<No>14</No>
+					</Cue>
+				</Event>
+				<Event index="14" time="566" command="Goto" pressed="true" step="15">
+					<Cue name="Beam 15">
+						<No>1</No>
+						<No>5</No>
+						<No>15</No>
+					</Cue>
+				</Event>
+				<Event index="15" time="617" command="Goto" pressed="true" step="16">
+					<Cue name="Beam 16">
+						<No>1</No>
+						<No>5</No>
+						<No>16</No>
+					</Cue>
+				</Event>
+				<Event index="16" time="643" command="Goto" pressed="true" step="17">
+					<Cue name="Beam 17">
+						<No>1</No>
+						<No>5</No>
+						<No>17</No>
+					</Cue>
+				</Event>
+				<Event index="17" time="656" command="Goto" pressed="true" step="18">
+					<Cue name="Beam 18">
+						<No>1</No>
+						<No>5</No>
+						<No>18</No>
+					</Cue>
+				</Event>
+				<Event index="18" time="669" command="Goto" pressed="true" step="19">
+					<Cue name="Beam 19">
+						<No>1</No>
+						<No>5</No>
+						<No>19</No>
+					</Cue>
+				</Event>
+				<Event index="19" time="694" command="Goto" pressed="true" step="20">
+					<Cue name="Beam 20">
+						<No>1</No>
+						<No>5</No>
+						<No>20</No>
+					</Cue>
+				</Event>
+				<Event index="20" time="720" command="Goto" pressed="true" step="21">
+					<Cue name="Beam 21">
+						<No>1</No>
+						<No>5</No>
+						<No>21</No>
+					</Cue>
+				</Event>
+				<Event index="21" time="746" command="Goto" pressed="true" step="22">
+					<Cue name="Beam 22">
+						<No>1</No>
+						<No>5</No>
+						<No>22</No>
+					</Cue>
+				</Event>
+				<Event index="22" time="771" command="Goto" pressed="true" step="23">
+					<Cue name="Beam 23">
+						<No>1</No>
+						<No>5</No>
+						<No>23</No>
+					</Cue>
+				</Event>
+				<Event index="23" time="797" command="Goto" pressed="true" step="24">
+					<Cue name="Beam 24">
+						<No>1</No>
+						<No>5</No>
+						<No>24</No>
+					</Cue>
+				</Event>
+				<Event index="24" time="810" command="Goto" pressed="true" step="25">
+					<Cue name="Beam 25">
+						<No>1</No>
+						<No>5</No>
+						<No>25</No>
+					</Cue>
+				</Event>
+				<Event index="25" time="813" command="Goto" pressed="true" step="26">
+					<Cue name="Build 26">
+						<No>1</No>
+						<No>5</No>
+						<No>26</No>
+					</Cue>
+				</Event>
+				<Event index="26" time="816" command="Goto" pressed="true" step="27">
+					<Cue name="Build 27">
+						<No>1</No>
+						<No>5</No>
+						<No>27</No>
+					</Cue>
+				</Event>
+				<Event index="27" time="820" command="Goto" pressed="true" step="28">
+					<Cue name="Build 28">
+						<No>1</No>
+						<No>5</No>
+						<No>28</No>
+					</Cue>
+				</Event>
+				<Event index="28" time="823" command="Goto" pressed="true" step="29">
+					<Cue name="Beam 29">
+						<No>1</No>
+						<No>5</No>
+						<No>29</No>
+					</Cue>
+				</Event>
+				<Event index="29" time="836" command="Goto" pressed="true" step="30">
+					<Cue name="Beam 30">
+						<No>1</No>
+						<No>5</No>
+						<No>30</No>
+					</Cue>
+				</Event>
+				<Event index="30" time="849" command="Goto" pressed="true" step="31">
+					<Cue name="Beam 31">
+						<No>1</No>
+						<No>5</No>
+						<No>31</No>
+					</Cue>
+				</Event>
+				<Event index="31" time="861" command="Goto" pressed="true" step="32">
+					<Cue name="Beam 32">
+						<No>1</No>
+						<No>5</No>
+						<No>32</No>
+					</Cue>
+				</Event>
+				<Event index="32" time="874" command="Goto" pressed="true" step="33">
+					<Cue name="Beam 33">
+						<No>1</No>
+						<No>5</No>
+						<No>33</No>
+					</Cue>
+				</Event>
+				<Event index="33" time="887" command="Goto" pressed="true" step="34">
+					<Cue name="Beam 34">
+						<No>1</No>
+						<No>5</No>
+						<No>34</No>
+					</Cue>
+				</Event>
+				<Event index="34" time="900" command="Goto" pressed="true" step="35">
+					<Cue name="Beam 35">
+						<No>1</No>
+						<No>5</No>
+						<No>35</No>
+					</Cue>
+				</Event>
+				<Event index="35" time="913" command="Goto" pressed="true" step="36">
+					<Cue name="Beam 36">
+						<No>1</No>
+						<No>5</No>
+						<No>36</No>
+					</Cue>
+				</Event>
+				<Event index="36" time="926" command="Goto" pressed="true" step="37">
+					<Cue name="Beam 37">
+						<No>1</No>
+						<No>5</No>
+						<No>37</No>
+					</Cue>
+				</Event>
+				<Event index="37" time="951" command="Goto" pressed="true" step="38">
+					<Cue name="Beam 38">
+						<No>1</No>
+						<No>5</No>
+						<No>38</No>
+					</Cue>
+				</Event>
+				<Event index="38" time="977" command="Goto" pressed="true" step="39">
+					<Cue name="Beam 39">
+						<No>1</No>
+						<No>5</No>
+						<No>39</No>
+					</Cue>
+				</Event>
+				<Event index="39" time="1003" command="Goto" pressed="true" step="40">
+					<Cue name="Beam 40">
+						<No>1</No>
+						<No>5</No>
+						<No>40</No>
+					</Cue>
+				</Event>
+				<Event index="40" time="1029" command="Goto" pressed="true" step="41">
+					<Cue name="Beam 41">
+						<No>1</No>
+						<No>5</No>
+						<No>41</No>
+					</Cue>
+				</Event>
+				<Event index="41" time="1054" command="Goto" pressed="true" step="42">
+					<Cue name="Beam 42">
+						<No>1</No>
+						<No>5</No>
+						<No>42</No>
+					</Cue>
+				</Event>
+				<Event index="42" time="1067" command="Goto" pressed="true" step="43">
+					<Cue name="Beam 43">
+						<No>1</No>
+						<No>5</No>
+						<No>43</No>
+					</Cue>
+				</Event>
+				<Event index="43" time="1080" command="Goto" pressed="true" step="44">
+					<Cue name="Beam 44">
+						<No>1</No>
+						<No>5</No>
+						<No>44</No>
+					</Cue>
+				</Event>
+				<Event index="44" time="1093" command="Goto" pressed="true" step="45">
+					<Cue name="Beam 45">
+						<No>1</No>
+						<No>5</No>
+						<No>45</No>
+					</Cue>
+				</Event>
+				<Event index="45" time="1106" command="Goto" pressed="true" step="46">
+					<Cue name="Beam 46">
+						<No>1</No>
+						<No>5</No>
+						<No>46</No>
+					</Cue>
+				</Event>
+				<Event index="46" time="1119" command="Goto" pressed="true" step="47">
+					<Cue name="Beam 47">
+						<No>1</No>
+						<No>5</No>
+						<No>47</No>
+					</Cue>
+				</Event>
+				<Event index="47" time="1131" command="Goto" pressed="true" step="48">
+					<Cue name="Beam 48">
+						<No>1</No>
+						<No>5</No>
+						<No>48</No>
+					</Cue>
+				</Event>
+				<Event index="48" time="1157" command="Goto" pressed="true" step="49">
+					<Cue name="Beam 49">
+						<No>1</No>
+						<No>5</No>
+						<No>49</No>
+					</Cue>
+				</Event>
+				<Event index="49" time="1183" command="Goto" pressed="true" step="50">
+					<Cue name="Beam 50">
+						<No>1</No>
+						<No>5</No>
+						<No>50</No>
+					</Cue>
+				</Event>
+				<Event index="50" time="1209" command="Goto" pressed="true" step="51">
+					<Cue name="Beam 51">
+						<No>1</No>
+						<No>5</No>
+						<No>51</No>
+					</Cue>
+				</Event>
+				<Event index="51" time="1234" command="Goto" pressed="true" step="52">
+					<Cue name="Beam 52">
+						<No>1</No>
+						<No>5</No>
+						<No>52</No>
+					</Cue>
+				</Event>
+				<Event index="52" time="1260" command="Goto" pressed="true" step="53">
+					<Cue name="Beam 53">
+						<No>1</No>
+						<No>5</No>
+						<No>53</No>
+					</Cue>
+				</Event>
+				<Event index="53" time="1273" command="Goto" pressed="true" step="54">
+					<Cue name="Beam 54">
+						<No>1</No>
+						<No>5</No>
+						<No>54</No>
+					</Cue>
+				</Event>
+				<Event index="54" time="1286" command="Goto" pressed="true" step="55">
+					<Cue name="Beam 55">
+						<No>1</No>
+						<No>5</No>
+						<No>55</No>
+					</Cue>
+				</Event>
+				<Event index="55" time="1299" command="Goto" pressed="true" step="56">
+					<Cue name="Beam 56">
+						<No>1</No>
+						<No>5</No>
+						<No>56</No>
+					</Cue>
+				</Event>
+				<Event index="56" time="1311" command="Goto" pressed="true" step="57">
+					<Cue name="Beam 57">
+						<No>1</No>
+						<No>5</No>
+						<No>57</No>
+					</Cue>
+				</Event>
+				<Event index="57" time="1324" command="Goto" pressed="true" step="58">
+					<Cue name="Beam 58">
+						<No>1</No>
+						<No>5</No>
+						<No>58</No>
+					</Cue>
+				</Event>
+				<Event index="58" time="1337" command="Goto" pressed="true" step="59">
+					<Cue name="Beam 59">
+						<No>1</No>
+						<No>5</No>
+						<No>59</No>
+					</Cue>
+				</Event>
+				<Event index="59" time="1363" command="Goto" pressed="true" step="60">
+					<Cue name="Beam 60">
+						<No>1</No>
+						<No>5</No>
+						<No>60</No>
+					</Cue>
+				</Event>
+				<Event index="60" time="1389" command="Goto" pressed="true" step="61">
+					<Cue name="Beam 61">
+						<No>1</No>
+						<No>5</No>
+						<No>61</No>
+					</Cue>
+				</Event>
+				<Event index="61" time="1414" command="Goto" pressed="true" step="62">
+					<Cue name="Beam 62">
+						<No>1</No>
+						<No>5</No>
+						<No>62</No>
+					</Cue>
+				</Event>
+				<Event index="62" time="1440" command="Goto" pressed="true" step="63">
+					<Cue name="Beam 63">
+						<No>1</No>
+						<No>5</No>
+						<No>63</No>
+					</Cue>
+				</Event>
+				<Event index="63" time="1466" command="Goto" pressed="true" step="64">
+					<Cue name="Beam 64">
+						<No>1</No>
+						<No>5</No>
+						<No>64</No>
+					</Cue>
+				</Event>
+				<Event index="64" time="1479" command="Goto" pressed="true" step="65">
+					<Cue name="Beam 65">
+						<No>1</No>
+						<No>5</No>
+						<No>65</No>
+					</Cue>
+				</Event>
+				<Event index="65" time="1491" command="Goto" pressed="true" step="66">
+					<Cue name="Beam 66">
+						<No>1</No>
+						<No>5</No>
+						<No>66</No>
+					</Cue>
+				</Event>
+				<Event index="66" time="1504" command="Goto" pressed="true" step="67">
+					<Cue name="Beam 67">
+						<No>1</No>
+						<No>5</No>
+						<No>67</No>
+					</Cue>
+				</Event>
+				<Event index="67" time="1517" command="Goto" pressed="true" step="68">
+					<Cue name="Beam 68">
+						<No>1</No>
+						<No>5</No>
+						<No>68</No>
+					</Cue>
+				</Event>
+				<Event index="68" time="1530" command="Goto" pressed="true" step="69">
+					<Cue name="Beam 69">
+						<No>1</No>
+						<No>5</No>
+						<No>69</No>
+					</Cue>
+				</Event>
+				<Event index="69" time="1543" command="Goto" pressed="true" step="70">
+					<Cue name="Beam 70">
+						<No>1</No>
+						<No>5</No>
+						<No>70</No>
+					</Cue>
+				</Event>
+				<Event index="70" time="1556" command="Goto" pressed="true" step="71">
+					<Cue name="Beam 71">
+						<No>1</No>
+						<No>5</No>
+						<No>71</No>
+					</Cue>
+				</Event>
+				<Event index="71" time="1569" command="Goto" pressed="true" step="72">
+					<Cue name="Beam 72">
+						<No>1</No>
+						<No>5</No>
+						<No>72</No>
+					</Cue>
+				</Event>
+				<Event index="72" time="1594" command="Goto" pressed="true" step="73">
+					<Cue name="Beam 73">
+						<No>1</No>
+						<No>5</No>
+						<No>73</No>
+					</Cue>
+				</Event>
+				<Event index="73" time="1607" command="Goto" pressed="true" step="74">
+					<Cue name="Beam 74">
+						<No>1</No>
+						<No>5</No>
+						<No>74</No>
+					</Cue>
+				</Event>
+				<Event index="74" time="1620" command="Goto" pressed="true" step="75">
+					<Cue name="Beam 75">
+						<No>1</No>
+						<No>5</No>
+						<No>75</No>
+					</Cue>
+				</Event>
+				<Event index="75" time="1633" command="Goto" pressed="true" step="76">
+					<Cue name="Beam 76">
+						<No>1</No>
+						<No>5</No>
+						<No>76</No>
+					</Cue>
+				</Event>
+				<Event index="76" time="1646" command="Goto" pressed="true" step="77">
+					<Cue name="Beam 77">
+						<No>1</No>
+						<No>5</No>
+						<No>77</No>
+					</Cue>
+				</Event>
+				<Event index="77" time="1659" command="Goto" pressed="true" step="78">
+					<Cue name="Beam 78">
+						<No>1</No>
+						<No>5</No>
+						<No>78</No>
+					</Cue>
+				</Event>
+				<Event index="78" time="1671" command="Goto" pressed="true" step="79">
+					<Cue name="Beam 79">
+						<No>1</No>
+						<No>5</No>
+						<No>79</No>
+					</Cue>
+				</Event>
+				<Event index="79" time="1684" command="Goto" pressed="true" step="80">
+					<Cue name="Beam 80">
+						<No>1</No>
+						<No>5</No>
+						<No>80</No>
+					</Cue>
+				</Event>
+				<Event index="80" time="1697" command="Goto" pressed="true" step="81">
+					<Cue name="Beam 81">
+						<No>1</No>
+						<No>5</No>
+						<No>81</No>
+					</Cue>
+				</Event>
+				<Event index="81" time="1710" command="Goto" pressed="true" step="82">
+					<Cue name="Beam 82">
+						<No>1</No>
+						<No>5</No>
+						<No>82</No>
+					</Cue>
+				</Event>
+				<Event index="82" time="1723" command="Goto" pressed="true" step="83">
+					<Cue name="Beam 83">
+						<No>1</No>
+						<No>5</No>
+						<No>83</No>
+					</Cue>
+				</Event>
+				<Event index="83" time="1736" command="Goto" pressed="true" step="84">
+					<Cue name="Beam 84">
+						<No>1</No>
+						<No>5</No>
+						<No>84</No>
+					</Cue>
+				</Event>
+				<Event index="84" time="1749" command="Goto" pressed="true" step="85">
+					<Cue name="Beam 85">
+						<No>1</No>
+						<No>5</No>
+						<No>85</No>
+					</Cue>
+				</Event>
+				<Event index="85" time="1761" command="Goto" pressed="true" step="86">
+					<Cue name="Beam 86">
+						<No>1</No>
+						<No>5</No>
+						<No>86</No>
+					</Cue>
+				</Event>
+				<Event index="86" time="1774" command="Goto" pressed="true" step="87">
+					<Cue name="Beam 87">
+						<No>1</No>
+						<No>5</No>
+						<No>87</No>
+					</Cue>
+				</Event>
+				<Event index="87" time="1787" command="Goto" pressed="true" step="88">
+					<Cue name="Beam 88">
+						<No>1</No>
+						<No>5</No>
+						<No>88</No>
+					</Cue>
+				</Event>
+				<Event index="88" time="1800" command="Goto" pressed="true" step="89">
+					<Cue name="Beam 89">
+						<No>1</No>
+						<No>5</No>
+						<No>89</No>
+					</Cue>
+				</Event>
+				<Event index="89" time="2044" command="Goto" pressed="true" step="90">
+					<Cue name="Build 90">
+						<No>1</No>
+						<No>5</No>
+						<No>90</No>
+					</Cue>
+				</Event>
+				<Event index="90" time="2048" command="Goto" pressed="true" step="91">
+					<Cue name="Build 91">
+						<No>1</No>
+						<No>5</No>
+						<No>91</No>
+					</Cue>
+				</Event>
+				<Event index="91" time="2051" command="Goto" pressed="true" step="92">
+					<Cue name="Build 92">
+						<No>1</No>
+						<No>5</No>
+						<No>92</No>
+					</Cue>
+				</Event>
+				<Event index="92" time="2054" command="Goto" pressed="true" step="93">
+					<Cue name="Build 93">
+						<No>1</No>
+						<No>5</No>
+						<No>93</No>
+					</Cue>
+				</Event>
+				<Event index="93" time="2057" command="Goto" pressed="true" step="94">
+					<Cue name="Beam 94">
+						<No>1</No>
+						<No>5</No>
+						<No>94</No>
+					</Cue>
+				</Event>
+				<Event index="94" time="2083" command="Goto" pressed="true" step="95">
+					<Cue name="Beam 95">
+						<No>1</No>
+						<No>5</No>
+						<No>95</No>
+					</Cue>
+				</Event>
+				<Event index="95" time="2096" command="Goto" pressed="true" step="96">
+					<Cue name="Beam 96">
+						<No>1</No>
+						<No>5</No>
+						<No>96</No>
+					</Cue>
+				</Event>
+				<Event index="96" time="2109" command="Goto" pressed="true" step="97">
+					<Cue name="Beam 97">
+						<No>1</No>
+						<No>5</No>
+						<No>97</No>
+					</Cue>
+				</Event>
+				<Event index="97" time="2121" command="Goto" pressed="true" step="98">
+					<Cue name="Beam 98">
+						<No>1</No>
+						<No>5</No>
+						<No>98</No>
+					</Cue>
+				</Event>
+				<Event index="98" time="2134" command="Goto" pressed="true" step="99">
+					<Cue name="Beam 99">
+						<No>1</No>
+						<No>5</No>
+						<No>99</No>
+					</Cue>
+				</Event>
+				<Event index="99" time="2160" command="Goto" pressed="true" step="100">
+					<Cue name="Beam 100">
+						<No>1</No>
+						<No>5</No>
+						<No>100</No>
+					</Cue>
+				</Event>
+				<Event index="100" time="2186" command="Goto" pressed="true" step="101">
+					<Cue name="Beam 101">
+						<No>1</No>
+						<No>5</No>
+						<No>101</No>
+					</Cue>
+				</Event>
+				<Event index="101" time="2211" command="Goto" pressed="true" step="102">
+					<Cue name="Beam 102">
+						<No>1</No>
+						<No>5</No>
+						<No>102</No>
+					</Cue>
+				</Event>
+				<Event index="102" time="2263" command="Goto" pressed="true" step="103">
+					<Cue name="Beam 103">
+						<No>1</No>
+						<No>5</No>
+						<No>103</No>
+					</Cue>
+				</Event>
+				<Event index="103" time="2289" command="Goto" pressed="true" step="104">
+					<Cue name="Beam 104">
+						<No>1</No>
+						<No>5</No>
+						<No>104</No>
+					</Cue>
+				</Event>
+				<Event index="104" time="2314" command="Goto" pressed="true" step="105">
+					<Cue name="Beam 105">
+						<No>1</No>
+						<No>5</No>
+						<No>105</No>
+					</Cue>
+				</Event>
+				<Event index="105" time="2340" command="Goto" pressed="true" step="106">
+					<Cue name="Beam 106">
+						<No>1</No>
+						<No>5</No>
+						<No>106</No>
+					</Cue>
+				</Event>
+				<Event index="106" time="2366" command="Goto" pressed="true" step="107">
+					<Cue name="Beam 107">
+						<No>1</No>
+						<No>5</No>
+						<No>107</No>
+					</Cue>
+				</Event>
+				<Event index="107" time="2391" command="Goto" pressed="true" step="108">
+					<Cue name="Beam 108">
+						<No>1</No>
+						<No>5</No>
+						<No>108</No>
+					</Cue>
+				</Event>
+				<Event index="108" time="2417" command="Goto" pressed="true" step="109">
+					<Cue name="Beam 109">
+						<No>1</No>
+						<No>5</No>
+						<No>109</No>
+					</Cue>
+				</Event>
+				<Event index="109" time="2443" command="Goto" pressed="true" step="110">
+					<Cue name="Beam 110">
+						<No>1</No>
+						<No>5</No>
+						<No>110</No>
+					</Cue>
+				</Event>
+				<Event index="110" time="2469" command="Goto" pressed="true" step="111">
+					<Cue name="Beam 111">
+						<No>1</No>
+						<No>5</No>
+						<No>111</No>
+					</Cue>
+				</Event>
+				<Event index="111" time="2494" command="Goto" pressed="true" step="112">
+					<Cue name="Beam 112">
+						<No>1</No>
+						<No>5</No>
+						<No>112</No>
+					</Cue>
+				</Event>
+				<Event index="112" time="2507" command="Goto" pressed="true" step="113">
+					<Cue name="Beam 113">
+						<No>1</No>
+						<No>5</No>
+						<No>113</No>
+					</Cue>
+				</Event>
+				<Event index="113" time="2520" command="Goto" pressed="true" step="114">
+					<Cue name="Beam 114">
+						<No>1</No>
+						<No>5</No>
+						<No>114</No>
+					</Cue>
+				</Event>
+				<Event index="114" time="2533" command="Goto" pressed="true" step="115">
+					<Cue name="Beam 115">
+						<No>1</No>
+						<No>5</No>
+						<No>115</No>
+					</Cue>
+				</Event>
+				<Event index="115" time="2546" command="Goto" pressed="true" step="116">
+					<Cue name="Beam 116">
+						<No>1</No>
+						<No>5</No>
+						<No>116</No>
+					</Cue>
+				</Event>
+				<Event index="116" time="2571" command="Goto" pressed="true" step="117">
+					<Cue name="Beam 117">
+						<No>1</No>
+						<No>5</No>
+						<No>117</No>
+					</Cue>
+				</Event>
+				<Event index="117" time="2584" command="Goto" pressed="true" step="118">
+					<Cue name="Beam 118">
+						<No>1</No>
+						<No>5</No>
+						<No>118</No>
+					</Cue>
+				</Event>
+				<Event index="118" time="2597" command="Goto" pressed="true" step="119">
+					<Cue name="Beam 119">
+						<No>1</No>
+						<No>5</No>
+						<No>119</No>
+					</Cue>
+				</Event>
+				<Event index="119" time="2610" command="Goto" pressed="true" step="120">
+					<Cue name="Beam 120">
+						<No>1</No>
+						<No>5</No>
+						<No>120</No>
+					</Cue>
+				</Event>
+				<Event index="120" time="2623" command="Goto" pressed="true" step="121">
+					<Cue name="Beam 121">
+						<No>1</No>
+						<No>5</No>
+						<No>121</No>
+					</Cue>
+				</Event>
+				<Event index="121" time="2649" command="Goto" pressed="true" step="122">
+					<Cue name="Beam 122">
+						<No>1</No>
+						<No>5</No>
+						<No>122</No>
+					</Cue>
+				</Event>
+				<Event index="122" time="2674" command="Goto" pressed="true" step="123">
+					<Cue name="Beam 123">
+						<No>1</No>
+						<No>5</No>
+						<No>123</No>
+					</Cue>
+				</Event>
+				<Event index="123" time="2700" command="Goto" pressed="true" step="124">
+					<Cue name="Beam 124">
+						<No>1</No>
+						<No>5</No>
+						<No>124</No>
+					</Cue>
+				</Event>
+				<Event index="124" time="2713" command="Goto" pressed="true" step="125">
+					<Cue name="Beam 125">
+						<No>1</No>
+						<No>5</No>
+						<No>125</No>
+					</Cue>
+				</Event>
+				<Event index="125" time="2726" command="Goto" pressed="true" step="126">
+					<Cue name="Beam 126">
+						<No>1</No>
+						<No>5</No>
+						<No>126</No>
+					</Cue>
+				</Event>
+				<Event index="126" time="2739" command="Goto" pressed="true" step="127">
+					<Cue name="Beam 127">
+						<No>1</No>
+						<No>5</No>
+						<No>127</No>
+					</Cue>
+				</Event>
+				<Event index="127" time="2751" command="Goto" pressed="true" step="128">
+					<Cue name="Beam 128">
+						<No>1</No>
+						<No>5</No>
+						<No>128</No>
+					</Cue>
+				</Event>
+				<Event index="128" time="2764" command="Goto" pressed="true" step="129">
+					<Cue name="Beam 129">
+						<No>1</No>
+						<No>5</No>
+						<No>129</No>
+					</Cue>
+				</Event>
+				<Event index="129" time="2777" command="Goto" pressed="true" step="130">
+					<Cue name="Beam 130">
+						<No>1</No>
+						<No>5</No>
+						<No>130</No>
+					</Cue>
+				</Event>
+				<Event index="130" time="2790" command="Goto" pressed="true" step="131">
+					<Cue name="Beam 131">
+						<No>1</No>
+						<No>5</No>
+						<No>131</No>
+					</Cue>
+				</Event>
+				<Event index="131" time="2803" command="Goto" pressed="true" step="132">
+					<Cue name="Beam 132">
+						<No>1</No>
+						<No>5</No>
+						<No>132</No>
+					</Cue>
+				</Event>
+				<Event index="132" time="2816" command="Goto" pressed="true" step="133">
+					<Cue name="Beam 133">
+						<No>1</No>
+						<No>5</No>
+						<No>133</No>
+					</Cue>
+				</Event>
+				<Event index="133" time="2829" command="Goto" pressed="true" step="134">
+					<Cue name="Beam 134">
+						<No>1</No>
+						<No>5</No>
+						<No>134</No>
+					</Cue>
+				</Event>
+				<Event index="134" time="2854" command="Goto" pressed="true" step="135">
+					<Cue name="Beam 135">
+						<No>1</No>
+						<No>5</No>
+						<No>135</No>
+					</Cue>
+				</Event>
+				<Event index="135" time="2880" command="Goto" pressed="true" step="136">
+					<Cue name="Beam 136">
+						<No>1</No>
+						<No>5</No>
+						<No>136</No>
+					</Cue>
+				</Event>
+				<Event index="136" time="2906" command="Goto" pressed="true" step="137">
+					<Cue name="Beam 137">
+						<No>1</No>
+						<No>5</No>
+						<No>137</No>
+					</Cue>
+				</Event>
+				<Event index="137" time="2919" command="Goto" pressed="true" step="138">
+					<Cue name="Beam 138">
+						<No>1</No>
+						<No>5</No>
+						<No>138</No>
+					</Cue>
+				</Event>
+				<Event index="138" time="2931" command="Goto" pressed="true" step="139">
+					<Cue name="Beam 139">
+						<No>1</No>
+						<No>5</No>
+						<No>139</No>
+					</Cue>
+				</Event>
+				<Event index="139" time="2944" command="Goto" pressed="true" step="140">
+					<Cue name="Beam 140">
+						<No>1</No>
+						<No>5</No>
+						<No>140</No>
+					</Cue>
+				</Event>
+				<Event index="140" time="2957" command="Goto" pressed="true" step="141">
+					<Cue name="Beam 141">
+						<No>1</No>
+						<No>5</No>
+						<No>141</No>
+					</Cue>
+				</Event>
+				<Event index="141" time="2970" command="Goto" pressed="true" step="142">
+					<Cue name="Beam 142">
+						<No>1</No>
+						<No>5</No>
+						<No>142</No>
+					</Cue>
+				</Event>
+				<Event index="142" time="2983" command="Goto" pressed="true" step="143">
+					<Cue name="Beam 143">
+						<No>1</No>
+						<No>5</No>
+						<No>143</No>
+					</Cue>
+				</Event>
+				<Event index="143" time="3034" command="Goto" pressed="true" step="144">
+					<Cue name="Beam 144">
+						<No>1</No>
+						<No>5</No>
+						<No>144</No>
+					</Cue>
+				</Event>
 			</SubTrack>
 		</Track>
 		<Track index="5" active="true" expanded="true">
-			<Object name="Blinders 2.6">
+			<Object name="Strobe FX 1.6">
 				<No>30</No>
 				<No>1</No>
 				<No>1</No>
 				<No>6</No>
 			</Object>
 			<SubTrack index="0">
-				<Event index="0" time="300" command="Goto" pressed="true" step="1">
-					<Cue name="Blinder Pop 1">
+				<Event index="0" time="501" command="Goto" pressed="true" step="1">
+					<Cue name="Strobe 1">
 						<No>1</No>
 						<No>6</No>
 						<No>1</No>
 					</Cue>
 				</Event>
-				<Event index="1" time="1260" command="Goto" pressed="true" step="2">
-					<Cue name="Blinder Pop 2">
+				<Event index="1" time="527" command="Goto" pressed="true" step="2">
+					<Cue name="Strobe 2">
 						<No>1</No>
 						<No>6</No>
 						<No>2</No>
 					</Cue>
 				</Event>
-				<Event index="2" time="2220" command="Goto" pressed="true" step="3">
-					<Cue name="Blinder Pop 3">
+				<Event index="2" time="553" command="Goto" pressed="true" step="3">
+					<Cue name="Strobe 3">
 						<No>1</No>
 						<No>6</No>
 						<No>3</No>
 					</Cue>
 				</Event>
-				<Event index="3" time="3180" command="Goto" pressed="true" step="4">
-					<Cue name="Blinder Pop 4">
+				<Event index="3" time="579" command="Goto" pressed="true" step="4">
+					<Cue name="Strobe 4">
 						<No>1</No>
 						<No>6</No>
 						<No>4</No>
 					</Cue>
 				</Event>
-				<Event index="4" time="4080" command="Goto" pressed="true" step="5">
-					<Cue name="Blinder Pop 5">
+				<Event index="4" time="604" command="Goto" pressed="true" step="5">
+					<Cue name="Strobe 5">
 						<No>1</No>
 						<No>6</No>
 						<No>5</No>
+					</Cue>
+				</Event>
+				<Event index="5" time="630" command="Goto" pressed="true" step="6">
+					<Cue name="Strobe 6">
+						<No>1</No>
+						<No>6</No>
+						<No>6</No>
+					</Cue>
+				</Event>
+				<Event index="6" time="656" command="Goto" pressed="true" step="7">
+					<Cue name="Strobe 7">
+						<No>1</No>
+						<No>6</No>
+						<No>7</No>
+					</Cue>
+				</Event>
+				<Event index="7" time="707" command="Goto" pressed="true" step="8">
+					<Cue name="Strobe 8">
+						<No>1</No>
+						<No>6</No>
+						<No>8</No>
+					</Cue>
+				</Event>
+				<Event index="8" time="759" command="Goto" pressed="true" step="9">
+					<Cue name="Strobe 9">
+						<No>1</No>
+						<No>6</No>
+						<No>9</No>
+					</Cue>
+				</Event>
+				<Event index="9" time="771" command="Goto" pressed="true" step="10">
+					<Cue name="Riser 10">
+						<No>1</No>
+						<No>6</No>
+						<No>10</No>
+					</Cue>
+				</Event>
+				<Event index="10" time="778" command="Goto" pressed="true" step="11">
+					<Cue name="Riser 11">
+						<No>1</No>
+						<No>6</No>
+						<No>11</No>
+					</Cue>
+				</Event>
+				<Event index="11" time="784" command="Goto" pressed="true" step="12">
+					<Cue name="Riser 12">
+						<No>1</No>
+						<No>6</No>
+						<No>12</No>
+					</Cue>
+				</Event>
+				<Event index="12" time="791" command="Goto" pressed="true" step="13">
+					<Cue name="Riser 13">
+						<No>1</No>
+						<No>6</No>
+						<No>13</No>
+					</Cue>
+				</Event>
+				<Event index="13" time="797" command="Goto" pressed="true" step="14">
+					<Cue name="Riser 14">
+						<No>1</No>
+						<No>6</No>
+						<No>14</No>
+					</Cue>
+				</Event>
+				<Event index="14" time="804" command="Goto" pressed="true" step="15">
+					<Cue name="Riser 15">
+						<No>1</No>
+						<No>6</No>
+						<No>15</No>
+					</Cue>
+				</Event>
+				<Event index="15" time="810" command="Goto" pressed="true" step="16">
+					<Cue name="Riser 16">
+						<No>1</No>
+						<No>6</No>
+						<No>16</No>
+					</Cue>
+				</Event>
+				<Event index="16" time="816" command="Goto" pressed="true" step="17">
+					<Cue name="Riser 17">
+						<No>1</No>
+						<No>6</No>
+						<No>17</No>
+					</Cue>
+				</Event>
+				<Event index="17" time="964" command="Goto" pressed="true" step="18">
+					<Cue name="Strobe 18">
+						<No>1</No>
+						<No>6</No>
+						<No>18</No>
+					</Cue>
+				</Event>
+				<Event index="18" time="1273" command="Goto" pressed="true" step="19">
+					<Cue name="Strobe 19">
+						<No>1</No>
+						<No>6</No>
+						<No>19</No>
+					</Cue>
+				</Event>
+				<Event index="19" time="1376" command="Goto" pressed="true" step="20">
+					<Cue name="Strobe 20">
+						<No>1</No>
+						<No>6</No>
+						<No>20</No>
+					</Cue>
+				</Event>
+				<Event index="20" time="1581" command="Goto" pressed="true" step="21">
+					<Cue name="Strobe 21">
+						<No>1</No>
+						<No>6</No>
+						<No>21</No>
+					</Cue>
+				</Event>
+				<Event index="21" time="1607" command="Goto" pressed="true" step="22">
+					<Cue name="Strobe 22">
+						<No>1</No>
+						<No>6</No>
+						<No>22</No>
+					</Cue>
+				</Event>
+				<Event index="22" time="2006" command="Goto" pressed="true" step="23">
+					<Cue name="Riser 23">
+						<No>1</No>
+						<No>6</No>
+						<No>23</No>
+					</Cue>
+				</Event>
+				<Event index="23" time="2012" command="Goto" pressed="true" step="24">
+					<Cue name="Riser 24">
+						<No>1</No>
+						<No>6</No>
+						<No>24</No>
+					</Cue>
+				</Event>
+				<Event index="24" time="2019" command="Goto" pressed="true" step="25">
+					<Cue name="Riser 25">
+						<No>1</No>
+						<No>6</No>
+						<No>25</No>
+					</Cue>
+				</Event>
+				<Event index="25" time="2025" command="Goto" pressed="true" step="26">
+					<Cue name="Riser 26">
+						<No>1</No>
+						<No>6</No>
+						<No>26</No>
+					</Cue>
+				</Event>
+				<Event index="26" time="2031" command="Goto" pressed="true" step="27">
+					<Cue name="Riser 27">
+						<No>1</No>
+						<No>6</No>
+						<No>27</No>
+					</Cue>
+				</Event>
+				<Event index="27" time="2038" command="Goto" pressed="true" step="28">
+					<Cue name="Riser 28">
+						<No>1</No>
+						<No>6</No>
+						<No>28</No>
+					</Cue>
+				</Event>
+				<Event index="28" time="2044" command="Goto" pressed="true" step="29">
+					<Cue name="Riser 29">
+						<No>1</No>
+						<No>6</No>
+						<No>29</No>
+					</Cue>
+				</Event>
+				<Event index="29" time="2051" command="Goto" pressed="true" step="30">
+					<Cue name="Riser 30">
+						<No>1</No>
+						<No>6</No>
+						<No>30</No>
+					</Cue>
+				</Event>
+				<Event index="30" time="2096" command="Goto" pressed="true" step="31">
+					<Cue name="Strobe 31">
+						<No>1</No>
+						<No>6</No>
+						<No>31</No>
+					</Cue>
+				</Event>
+				<Event index="31" time="2276" command="Goto" pressed="true" step="32">
+					<Cue name="Strobe 32">
+						<No>1</No>
+						<No>6</No>
+						<No>32</No>
+					</Cue>
+				</Event>
+				<Event index="32" time="2507" command="Goto" pressed="true" step="33">
+					<Cue name="Strobe 33">
+						<No>1</No>
+						<No>6</No>
+						<No>33</No>
+					</Cue>
+				</Event>
+				<Event index="33" time="2687" command="Goto" pressed="true" step="34">
+					<Cue name="Strobe 34">
+						<No>1</No>
+						<No>6</No>
+						<No>34</No>
+					</Cue>
+				</Event>
+				<Event index="34" time="2713" command="Goto" pressed="true" step="35">
+					<Cue name="Strobe 35">
+						<No>1</No>
+						<No>6</No>
+						<No>35</No>
+					</Cue>
+				</Event>
+				<Event index="35" time="2867" command="Goto" pressed="true" step="36">
+					<Cue name="Strobe 36">
+						<No>1</No>
+						<No>6</No>
+						<No>36</No>
+					</Cue>
+				</Event>
+				<Event index="36" time="2919" command="Goto" pressed="true" step="37">
+					<Cue name="Strobe 37">
+						<No>1</No>
+						<No>6</No>
+						<No>37</No>
+					</Cue>
+				</Event>
+			</SubTrack>
+		</Track>
+		<Track index="6" active="true" expanded="true">
+			<Object name="Blinders 1.7">
+				<No>30</No>
+				<No>1</No>
+				<No>1</No>
+				<No>7</No>
+			</Object>
+			<SubTrack index="0">
+				<Event index="0" time="823" command="Goto" pressed="true" step="1">
+					<Cue name="Blinder 1">
+						<No>1</No>
+						<No>7</No>
+						<No>1</No>
+					</Cue>
+				</Event>
+				<Event index="1" time="1646" command="Goto" pressed="true" step="2">
+					<Cue name="Blinder 2">
+						<No>1</No>
+						<No>7</No>
+						<No>2</No>
+					</Cue>
+				</Event>
+				<Event index="2" time="2057" command="Goto" pressed="true" step="3">
+					<Cue name="Blinder 3">
+						<No>1</No>
+						<No>7</No>
+						<No>3</No>
+					</Cue>
+				</Event>
+			</SubTrack>
+		</Track>
+		<Track index="7" active="true" expanded="true">
+			<Object name="Haze 1.8">
+				<No>30</No>
+				<No>1</No>
+				<No>1</No>
+				<No>8</No>
+			</Object>
+			<SubTrack index="0">
+				<Event index="0" time="0" command="Goto" pressed="true" step="1">
+					<Cue name="Haze 1">
+						<No>1</No>
+						<No>8</No>
+						<No>1</No>
+					</Cue>
+				</Event>
+				<Event index="1" time="823" command="Goto" pressed="true" step="2">
+					<Cue name="Haze 2">
+						<No>1</No>
+						<No>8</No>
+						<No>2</No>
+					</Cue>
+				</Event>
+				<Event index="2" time="1646" command="Goto" pressed="true" step="3">
+					<Cue name="Haze 3">
+						<No>1</No>
+						<No>8</No>
+						<No>3</No>
+					</Cue>
+				</Event>
+				<Event index="3" time="2469" command="Goto" pressed="true" step="4">
+					<Cue name="Haze 4">
+						<No>1</No>
+						<No>8</No>
+						<No>4</No>
 					</Cue>
 				</Event>
 			</SubTrack>

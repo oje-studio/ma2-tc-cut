@@ -102,25 +102,35 @@ a:hover {
   padding: 0 24px;
 }
 .hero {
-  padding: 88px 24px 64px;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  align-items: center;
+  gap: 48px;
+  padding: 72px 24px 60px;
   max-width: var(--maxw);
   margin: 0 auto;
 }
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-top: 52px;
+  }
+}
 .hero h1 {
-  font-size: clamp(34px, 6vw, 64px);
-  line-height: 1.04;
+  font-size: clamp(32px, 4.4vw, 54px);
+  line-height: 1.05;
   letter-spacing: -1px;
   margin: 0 0 20px;
-  max-width: 16ch;
 }
 .hero h1 .accent {
   color: var(--op-audio);
 }
 .hero p.lede {
-  font-size: clamp(16px, 2.2vw, 20px);
+  font-size: clamp(15px, 1.5vw, 18px);
   color: var(--text-muted);
-  max-width: 56ch;
-  margin: 0 0 32px;
+  max-width: 48ch;
+  margin: 0 0 30px;
 }
 .cta-row {
   display: flex;
@@ -200,14 +210,16 @@ a:hover {
 /* ---------------- hero screenshot ---------------- */
 .hero-shot {
   display: block;
-  margin-top: 48px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--bg-surface);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.hero-shot:hover {
+  transform: translateY(-2px);
 }
 .hero-shot:hover {
   border-color: var(--border-strong);
@@ -275,6 +287,14 @@ body.tool-open .app-view {
   max-width: 1600px;
   margin: 0 auto;
   padding: 16px;
+}
+.app-credit {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 16px 24px;
+  color: var(--text-dim);
+  font-size: 12px;
 }
 .tool {
   background: var(--bg-app);
