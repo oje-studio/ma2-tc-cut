@@ -6,6 +6,15 @@ const app = new ToolApp();
 app.mount(mount);
 (window as unknown as { tool: ToolApp }).tool = app;
 
+// GA4 virtual pageviews for in-page overlays (#tool, #t/ma2, #t/cuemon)
+type Gtag = (...args: unknown[]) => void;
+function track(title: string, path: string): void {
+  (window as unknown as { gtag?: Gtag }).gtag?.("event", "page_view", {
+    page_title: title,
+    page_location: location.origin + location.pathname + path,
+  });
+}
+
 // ---- full-window tool view -------------------------------------------------
 const appView = document.getElementById("app-view")!;
 
@@ -20,6 +29,7 @@ function loadDemoOnce(): void {
 
 function openTool(): void {
   loadDemoOnce();
+  track("MA2 Timecode Tools", "#tool");
   document.body.classList.add("tool-open");
   appView.setAttribute("aria-hidden", "false");
   void appView.offsetWidth; // force a synchronous reflow so fit() reads the real width
@@ -32,8 +42,13 @@ function closeTool(): void {
 }
 
 // ---- per-tool detail overlays ----
+const DETAIL_TITLES: Record<string, string> = {
+  ma2: "MA2 Timecode Tools — details",
+  cuemon: "ØJE Cue Monitor — details",
+};
 function openDetail(slug: string): void {
   closeDetail();
+  track(DETAIL_TITLES[slug] ?? slug, "#t/" + slug);
   const d = document.getElementById("detail-" + slug);
   if (!d) return;
   d.classList.add("open");
