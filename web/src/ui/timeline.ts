@@ -65,6 +65,8 @@ export class Timeline {
   private viewStart = 0; // visible frame range (zoom + pan); equals [first,last] when fit
   private viewEnd = 1;
   private mode: "cut" | "insert" = "cut"; // colours the window red (cut) or green (insert)
+  private fillH = 0; // target height from the container (fills vertical space)
+  private uiScale = 1; // canvas text scale on big screens
   private audioTop: number | null = null;
   private dragMode: Zone = null;
   private winDrag = 0;
@@ -206,14 +208,20 @@ export class Timeline {
     return Math.max(220, AXIS_H + n * LANE_MIN + 14 + extra);
   }
   relayout(): void {
-    this.cssH = this.contentHeight();
+    // fill the container vertically (taller lanes on big screens), floored at the minimum
+    this.cssH = Math.max(this.contentHeight(), this.fillH);
+    // scale canvas text up on large timelines so it stays readable
+    this.uiScale = Math.max(1, Math.min(1.5, this.cssW / 1500));
     this.resizeCanvas();
     this.draw();
   }
-  setWidth(cssW: number): void {
+  setSize(cssW: number, cssH: number): void {
     this.cssW = Math.max(320, cssW);
-    this.resizeCanvas();
-    this.draw();
+    this.fillH = Math.max(0, cssH);
+    this.relayout();
+  }
+  setWidth(cssW: number): void {
+    this.setSize(cssW, this.fillH);
   }
   private resizeCanvas(): void {
     const dpr = window.devicePixelRatio || 1;
@@ -300,6 +308,11 @@ export class Timeline {
     }
     return null;
   }
+  /** Canvas font string, scaled up on large timelines for readability. */
+  private font(px: number, mono = false, weight = ""): string {
+    const w = weight ? `${weight} ` : "";
+    return `${w}${Math.round(px * this.uiScale)}px ${mono ? t.FONT_MONO : t.FONT_SANS}`;
+  }
 
   // ---------- drawing ----------
   draw(): void {
@@ -316,7 +329,7 @@ export class Timeline {
     if (this.lanes.length === 0) {
       this.audioTop = null;
       p.fillStyle = t.TEXT_MUTED;
-      p.font = `13px ${t.FONT_SANS}`;
+      p.font = this.font(13);
       p.textAlign = "center";
       p.textBaseline = "middle";
       p.fillText("Click or drop a grandMA2 timecode .xml here", W / 2, H / 2);
@@ -325,8 +338,9 @@ export class Timeline {
     }
 
     const bf = this.barFrames();
-    const audioH = AUDIO_H;
-    const barsH = bf > 0 ? BARS_H : 0;
+    // waveform grows a little on a tall timeline so it stays readable
+    const audioH = Math.round(Math.min(150, Math.max(AUDIO_H, (H - AXIS_H) * 0.16)));
+    const barsH = bf > 0 ? Math.round(BARS_H * this.uiScale) : 0;
     const lanesBottom = H - 4 - audioH - barsH - SCROLL_H;
     const gridBottom = lanesBottom + barsH;
     this.audioTop = gridBottom;
@@ -354,12 +368,12 @@ export class Timeline {
 
     // CUES gutter
     p.textBaseline = "alphabetic";
-    p.font = `12px ${t.FONT_SANS}`;
+    p.font = this.font(12);
     p.fillStyle = t.OPERATOR_LIGHTING;
     p.fillText("CUES", 10, 15);
     if (this.showName) {
       this.ejectShow = this.drawEject(p, LBL_W - 13, 10, this.hoverEject === "show");
-      p.font = `10px ${t.FONT_SANS}`;
+      p.font = this.font(10);
       p.fillStyle = t.TEXT_MUTED;
       p.fillText(this.elide(p, this.showName, LBL_W - 16, "middle"), 10, 28);
     }
@@ -376,7 +390,7 @@ export class Timeline {
         p.stroke();
       }
       const fl = this.flash.get(i) ?? 0;
-      p.font = `${fl > 0.4 ? "600 " : ""}12px ${t.FONT_SANS}`;
+      p.font = this.font(12, false, fl > 0.4 ? "600" : "");
       p.fillStyle = fl > 0 ? blend(t.TEXT_MUTED, t.TEXT_BRIGHT, fl) : t.TEXT_MUTED;
       p.textBaseline = "middle";
       p.fillText(this.elide(p, this.lanes[i].name, LBL_W - 16, "end"), 10, yc);
@@ -465,14 +479,14 @@ export class Timeline {
     p.moveTo(LBL_W, y);
     p.lineTo(W - PAD_R, y);
     p.stroke();
-    p.font = `10px ${t.FONT_SANS}`;
+    p.font = this.font(10);
     p.fillStyle = t.TEXT_MUTED;
     p.textBaseline = "middle";
     p.fillText("BARS", 10, y + h / 2);
     const barPx = (bf / (this.viewEnd - this.viewStart)) * this.plotW();
     const steps = [1, 2, 4, 8, 16, 32, 64];
     const step = steps.find((s) => s * barPx >= 34) ?? 64;
-    p.font = `10px ${t.FONT_MONO}`;
+    p.font = this.font(10, true);
     let k = 0;
     let fr = this.anchor;
     while (fr <= this.last + bf) {
@@ -490,7 +504,7 @@ export class Timeline {
   }
 
   private drawTcRuler(p: CanvasRenderingContext2D, W: number, gridBottom: number, drawLines: boolean): void {
-    p.font = `10px ${t.FONT_MONO}`;
+    p.font = this.font(10, true);
     let lastRight = -1e9;
     for (let i = 0; i < 7; i++) {
       const fr = this.viewStart + ((this.viewEnd - this.viewStart) * i) / 6;
@@ -518,17 +532,17 @@ export class Timeline {
     p.moveTo(LBL_W, top);
     p.lineTo(W - PAD_R, top);
     p.stroke();
-    p.font = `12px ${t.FONT_SANS}`;
+    p.font = this.font(12);
     p.fillStyle = t.OPERATOR_AUDIO;
     p.fillText("AUDIO", 10, top + 15);
     if (this.audioName) {
       this.ejectAudio = this.drawEject(p, LBL_W - 13, top + 11, this.hoverEject === "audio");
-      p.font = `10px ${t.FONT_SANS}`;
+      p.font = this.font(10);
       p.fillStyle = t.TEXT_MUTED;
       p.fillText(this.elide(p, this.audioName, LBL_W - 16, "middle"), 10, top + 31);
     }
     if (!this.audioPeaks) {
-      p.font = `12px ${t.FONT_SANS}`;
+      p.font = this.font(12);
       p.fillStyle = t.TEXT_MUTED;
       p.textAlign = "center";
       p.textBaseline = "middle";
@@ -588,14 +602,14 @@ export class Timeline {
     const len = b - a;
     const col = this.mode === "insert" ? t.SEMANTIC_SUCCESS : t.SEMANTIC_DANGER;
     const sign = this.mode === "insert" ? "+" : "−";
-    p.font = `11px ${t.FONT_MONO}`;
+    p.font = this.font(11, true);
     p.fillStyle = col;
     const la = tc(a, this.fps);
     p.fillText(la, Math.max(LBL_W, xa - p.measureText(la).width - 4), AXIS_H + 14);
     p.fillText(tc(b, this.fps), xb + 4, AXIS_H + 14);
     // length readout, centred under the window near the bars row
     const lab = `${sign}${len}f / ${(len / this.fps).toFixed(2)}s`;
-    p.font = `10px ${t.FONT_MONO}`;
+    p.font = this.font(10, true);
     const lw = p.measureText(lab).width;
     p.fillStyle = col;
     p.fillText(lab, (xa + xb) / 2 - lw / 2, lanesBottom - 4);
@@ -604,7 +618,7 @@ export class Timeline {
     p.fillStyle = col;
     p.fillRect(xa, AXIS_H, xb - xa, HANDLE_H);
     p.fillStyle = t.BG_APP;
-    p.font = `9px ${t.FONT_SANS}`;
+    p.font = this.font(9);
     p.textAlign = "center";
     p.fillText("···", (xa + xb) / 2, AXIS_H + 8);
     p.textAlign = "left";

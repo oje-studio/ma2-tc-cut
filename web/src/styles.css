@@ -438,6 +438,9 @@ body.tool-open .app-view {
   width: 100%;
   margin: 0 auto;
   padding: 16px;
+  flex: 1;
+  display: flex;
+  min-height: 0;
 }
 .rotate-hint {
   display: none;
@@ -484,6 +487,10 @@ body.tool-open .app-view {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 /* header */
@@ -667,6 +674,9 @@ body.tool-open .app-view {
 .tl-wrap {
   padding: 10px 16px 12px;
   background: var(--bg-app);
+  flex: 1;
+  min-height: 260px;
+  min-width: 0;
 }
 .timeline {
   display: block;
@@ -1002,4 +1012,74 @@ footer.site .wrap {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+/* ---------------- large-screen scale-up ---------------- */
+/* The timeline grows vertically via flex; bump the DOM controls/text too so
+   the whole tool stays readable on big monitors. */
+@media (min-width: 1700px) {
+  .tc-disp {
+    font-size: 26px;
+  }
+  .bar-disp,
+  .bpm-cap,
+  .vol-cap,
+  .snap-lbl,
+  .zoom-lbl,
+  .brand-name,
+  .brand-ver {
+    font-size: 15px;
+  }
+  .report {
+    font-size: 14px;
+  }
+  .info-row,
+  .field label,
+  .seg,
+  .info-tip {
+    font-size: 15px;
+  }
+  .tc-input,
+  .num-input {
+    font-size: 16px;
+  }
+  .field-val .tc-input {
+    flex-basis: 180px;
+    max-width: 180px;
+  }
+  .unit,
+  .btn-auto,
+  .snap-btn,
+  .bpm-mul {
+    font-size: 13px;
+  }
+  .actions button {
+    font-size: 17px;
+    padding: 16px;
+  }
+}
+@media (min-width: 2200px) {
+  .tc-disp {
+    font-size: 30px;
+  }
+  .report {
+    font-size: 16px;
+  }
+  .info-row,
+  .field label,
+  .seg {
+    font-size: 17px;
+  }
+  .tc-input,
+  .num-input {
+    font-size: 18px;
+  }
+  .field-val .tc-input {
+    flex-basis: 200px;
+    max-width: 200px;
+  }
+  .actions button {
+    font-size: 19px;
+    padding: 18px;
+  }
 }

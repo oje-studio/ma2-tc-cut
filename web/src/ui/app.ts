@@ -226,16 +226,20 @@ export class ToolApp {
 
   mount(parent: HTMLElement): void {
     parent.append(this.el);
-    const ro = new ResizeObserver(() => {
-      this.timeline.setWidth(this.timeline.el.parentElement!.clientWidth);
-    });
-    ro.observe(this.el);
-    this.timeline.setWidth(this.timeline.el.parentElement!.clientWidth || 900);
+    const wrap = this.timeline.el.parentElement!;
+    const ro = new ResizeObserver(() => this.fit());
+    ro.observe(wrap); // tl-wrap grows with the window → timeline fills width AND height
+    this.fit();
   }
 
-  /** Re-measure the timeline to its container — call when the view becomes visible. */
+  /** Re-measure the timeline to its container (content box) — fills width + height. */
   fit(): void {
-    this.timeline.setWidth(this.timeline.el.parentElement?.clientWidth || 900);
+    const wrap = this.timeline.el.parentElement;
+    if (!wrap) return;
+    const cs = getComputedStyle(wrap);
+    const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+    this.timeline.setSize((wrap.clientWidth || 900) - padX, (wrap.clientHeight || 300) - padY);
   }
 
   /** Optionally preload a bundled demo show so the tool isn't empty on first view.
