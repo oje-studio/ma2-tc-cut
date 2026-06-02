@@ -84,17 +84,6 @@ a:hover {
 .nav a:hover {
   color: var(--text-primary);
 }
-.nav a.donate {
-  color: var(--bg-app);
-  background: var(--action);
-  padding: 6px 14px;
-  border-radius: var(--radius-md);
-  font-weight: 700;
-}
-.nav a.donate:hover {
-  background: var(--action-hover);
-  color: var(--bg-app);
-}
 
 .brand-mark {
   font-size: 22px;
@@ -181,12 +170,11 @@ a:hover {
   max-width: 60ch;
 }
 .eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-size: 12px;
+  letter-spacing: 0.5px;
+  font-size: 13px;
   color: var(--op-audio);
-  margin: 0 0 10px;
-  font-weight: 600;
+  margin: 0 0 12px;
+  font-weight: 500;
 }
 .features {
   display: grid;
@@ -607,30 +595,7 @@ a:hover {
   cursor: default;
 }
 
-/* ---------------- donate + footer ---------------- */
-.donate-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 28px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 20px;
-  justify-content: space-between;
-}
-.donate-card .txt h2 {
-  margin: 0 0 6px;
-}
-.donate-card .txt p {
-  margin: 0;
-  color: var(--text-muted);
-}
-.donate-buttons {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
+/* ---------------- footer ---------------- */
 footer.site {
   border-top: 1px solid var(--border-subtle);
   padding: 28px 24px;
