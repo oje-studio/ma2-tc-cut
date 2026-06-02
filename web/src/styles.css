@@ -436,7 +436,6 @@ body.tool-open .app-view {
 }
 #tool-mount {
   width: 100%;
-  max-width: 1600px;
   margin: 0 auto;
   padding: 16px;
 }
@@ -779,6 +778,45 @@ body.tool-open .app-view {
 .tc-input:disabled,
 .num-input:disabled {
   color: var(--text-disabled);
+}
+/* value + independent TC/BAR (or sec/bars) unit toggle */
+.field-val {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.end-val {
+  flex: 1;
+  min-width: 0;
+}
+.unit-seg {
+  display: inline-flex;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.unit {
+  background: var(--bg-raised);
+  color: var(--text-dim);
+  border: none;
+  padding: 6px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+.unit + .unit {
+  border-left: 1px solid var(--border);
+}
+.unit:hover:not(.active) {
+  color: var(--text-muted);
+}
+.unit.active {
+  background: rgba(122, 183, 255, 0.16);
+  color: var(--info);
 }
 .bpm-row label {
   width: 40px;

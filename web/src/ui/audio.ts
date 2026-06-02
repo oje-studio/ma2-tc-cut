@@ -7,7 +7,7 @@ export interface DecodedAudio {
   duration: number; // seconds
 }
 
-export async function decodeAudio(file: ArrayBuffer, nBins = 2000): Promise<DecodedAudio> {
+export async function decodeAudio(file: ArrayBuffer, peaksPerSec = 400): Promise<DecodedAudio> {
   // Decode on a throwaway OfflineAudioContext so audio can load before any user
   // gesture — the real (output) AudioContext is created later, on first play.
   const Offline = (window.OfflineAudioContext ||
@@ -16,6 +16,8 @@ export async function decodeAudio(file: ArrayBuffer, nBins = 2000): Promise<Deco
   const ctx = new Offline(1, 1, 44100);
   // decodeAudioData detaches its argument, so hand it a copy.
   const buffer = await ctx.decodeAudioData(file.slice(0));
+  // resolution scales with length so the waveform stays detailed when zoomed in
+  const nBins = Math.min(80000, Math.max(2000, Math.round(buffer.duration * peaksPerSec)));
   return { buffer, peaks: peaksFrom(buffer, nBins), duration: buffer.duration };
 }
 

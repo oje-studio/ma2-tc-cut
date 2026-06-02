@@ -249,7 +249,12 @@ export class Timeline {
     this.setView(centerFrame - ratio * newSpan, centerFrame - ratio * newSpan + newSpan);
   }
   zoomBy(factor: number): void {
-    this.zoomAtFrame((this.viewStart + this.viewEnd) / 2, factor);
+    // zoom around the playhead when it's set, otherwise the view centre
+    const center =
+      this.playhead !== null && this.playhead >= this.first && this.playhead <= this.last
+        ? this.playhead
+        : (this.viewStart + this.viewEnd) / 2;
+    this.zoomAtFrame(center, factor);
   }
   panByFrames(df: number): void {
     this.setView(this.viewStart + df, this.viewEnd + df);
@@ -489,19 +494,43 @@ export class Timeline {
     const yc = top + audioH / 2;
     const half = audioH / 2 - 5;
     const m = this.audioPeaks.length;
+    const peaks = this.audioPeaks;
     const normal = t.withAlpha(t.OPERATOR_AUDIO, 0.78);
     const danger = t.withAlpha(t.SEMANTIC_DANGER, 0.9);
+    const right = W - PAD_R;
+    const audioFrames = this.audioDur * this.fps;
+    // amplitude for a column's [f0,f1) frame range = max peak in that range
+    const ampAt = (f0: number, f1: number): number => {
+      let i0 = Math.floor(((f0 - this.first) / audioFrames) * m);
+      let i1 = Math.ceil(((f1 - this.first) / audioFrames) * m);
+      i0 = Math.max(0, i0);
+      i1 = Math.min(m, Math.max(i0 + 1, i1));
+      let mx = 0;
+      for (let i = i0; i < i1; i++) if (peaks[i] > mx) mx = peaks[i];
+      return Math.min(1, mx * this.gain) * half;
+    };
     p.lineWidth = 1;
-    for (let i = 0; i < m; i++) {
-      const fr = this.first + (i / m) * this.audioDur * this.fps;
-      const xx = Math.round(this.x(fr));
-      if (xx < LBL_W || xx > W - PAD_R) continue;
-      const inside = !!win && win[0] <= fr && fr < win[1];
-      const a = Math.min(1, this.audioPeaks[i] * this.gain) * half;
-      p.strokeStyle = inside ? danger : normal;
+    // one line per pixel column → solid waveform at any zoom (no gaps)
+    p.strokeStyle = normal;
+    p.beginPath();
+    for (let px = LBL_W; px <= right; px++) {
+      const f0 = this.frameAt(px);
+      if (f0 < this.first || f0 > this.first + audioFrames) continue;
+      const a = ampAt(f0, this.frameAt(px + 1));
+      p.moveTo(px + 0.5, yc - a);
+      p.lineTo(px + 0.5, yc + a);
+    }
+    p.stroke();
+    if (win) {
+      p.strokeStyle = danger; // overdraw the cut window in red
       p.beginPath();
-      p.moveTo(xx, yc - a);
-      p.lineTo(xx, yc + a);
+      for (let px = LBL_W; px <= right; px++) {
+        const f0 = this.frameAt(px);
+        if (f0 < win[0] || f0 >= win[1] || f0 < this.first || f0 > this.first + audioFrames) continue;
+        const a = ampAt(f0, this.frameAt(px + 1));
+        p.moveTo(px + 0.5, yc - a);
+        p.lineTo(px + 0.5, yc + a);
+      }
       p.stroke();
     }
   }

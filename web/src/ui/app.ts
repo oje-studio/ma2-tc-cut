@@ -65,14 +65,16 @@ export class ToolApp {
   private cutBtn!: HTMLButtonElement;
   private uncutBtn!: HTMLButtonElement;
   private saveBtn!: HTMLButtonElement;
-  private modeTc!: HTMLButtonElement;
-  private modeBars!: HTMLButtonElement;
   private endOut!: HTMLButtonElement;
   private endDur!: HTMLButtonElement;
-  private fromBar!: HTMLInputElement;
-  private removeBars!: HTMLInputElement;
-  private tcStack!: HTMLElement;
-  private barsStack!: HTMLElement;
+  private coutField!: HTMLElement;
+  private durField!: HTMLElement;
+  private cinUnit: "tc" | "bar" = "tc";
+  private coutUnit: "tc" | "bar" = "tc";
+  private durUnit: "sec" | "bar" = "sec";
+  private cinUnitBtns: HTMLButtonElement[] = [];
+  private coutUnitBtns: HTMLButtonElement[] = [];
+  private durUnitBtns: HTMLButtonElement[] = [];
   private endStack!: HTMLElement;
   private snapBtns: HTMLButtonElement[] = [];
   private zoomLbl!: HTMLSpanElement;
@@ -154,28 +156,22 @@ export class ToolApp {
     const tlWrap = h("div", { class: "tl-wrap" }, this.timeline.el);
 
     // cut panel
-    this.modeTc = h("button", { class: "seg active" }, "By timecode");
-    this.modeBars = h("button", { class: "seg" }, "By bars");
-    const modeRow = h("div", { class: "seg-row" }, this.modeTc, this.modeBars);
-
+    // unified cut spec — Cut in + End by, each with an independent unit toggle
     this.cinInput = h("input", { class: "tc-input", value: "00:00:00:00", "aria-label": "Cut in", spellcheck: "false" }) as HTMLInputElement;
-    const cinRow = h("div", { class: "field" }, h("label", {}, "Cut in"), this.cinInput);
+    const cinRow = h("div", { class: "field" }, h("label", {}, "Cut in"),
+      h("div", { class: "field-val" }, this.cinInput, this.buildUnit("cin")));
 
     this.endOut = h("button", { class: "seg active" }, "Cut out");
     this.endDur = h("button", { class: "seg" }, "Duration");
     const endSeg = h("div", { class: "seg-row small" }, this.endOut, this.endDur);
-    this.coutInput = h("input", { class: "tc-input", value: "00:00:00:00", "aria-label": "Cut out", spellcheck: "false" }) as HTMLInputElement;
-    this.durInput = h("input", { class: "tc-input", value: "4.000", "aria-label": "Duration seconds", spellcheck: "false" }) as HTMLInputElement;
-    this.endStack = h("div", { class: "end-stack" }, this.coutInput);
-    const endRow = h("div", { class: "field" }, h("label", {}, "End by"), h("div", { class: "end-wrap" }, endSeg, this.endStack));
-    this.tcStack = h("div", { class: "mode-stack" }, cinRow, endRow);
-
-    this.fromBar = h("input", { class: "num-input", type: "number", min: "1", value: "1", "aria-label": "From bar" }) as HTMLInputElement;
-    this.removeBars = h("input", { class: "num-input", type: "number", min: "1", value: "4", "aria-label": "Remove bars" }) as HTMLInputElement;
-    this.barsStack = h("div", { class: "mode-stack hidden" },
-      h("div", { class: "field" }, h("label", {}, "From bar"), this.fromBar),
-      h("div", { class: "field" }, h("label", {}, "Remove bars"), this.removeBars),
-    );
+    this.coutInput = h("input", { class: "tc-input", value: "00:00:04:00", "aria-label": "Cut out", spellcheck: "false" }) as HTMLInputElement;
+    this.durInput = h("input", { class: "tc-input", value: "4.000", "aria-label": "Duration", spellcheck: "false" }) as HTMLInputElement;
+    this.coutField = h("div", { class: "field-val" }, this.coutInput, this.buildUnit("cout"));
+    this.durField = h("div", { class: "field-val" }, this.durInput, this.buildUnit("dur"));
+    this.endStack = h("div", { class: "end-val" }, this.coutField);
+    const endRow = h("div", { class: "field" }, h("label", {}, "End by"),
+      h("div", { class: "end-wrap" }, endSeg, this.endStack));
+    const cutStack = h("div", { class: "mode-stack" }, cinRow, endRow);
 
     this.bpmInput = h("input", { class: "num-input", value: "", placeholder: "—", "aria-label": "BPM", spellcheck: "false" }) as HTMLInputElement;
     const setBtn = h("button", { class: "btn-sec" }, "Set");
@@ -195,7 +191,7 @@ export class ToolApp {
     this.calcSec.addEventListener("input", () => this.calcFromSec());
     this.calcBars.addEventListener("input", () => this.calcFromBars());
 
-    const cutPanel = h("div", { class: "panel cut-panel" }, modeRow, this.tcStack, this.barsStack, bpmRow, this.bpmHint, calcRow);
+    const cutPanel = h("div", { class: "panel cut-panel" }, cutStack, bpmRow, this.bpmHint, calcRow);
 
     // preview
     this.report = h("pre", { class: "report" }, "Load a grandMA2 timecode .xml to begin.") as HTMLPreElement;
@@ -268,12 +264,10 @@ export class ToolApp {
     this.knob.onChange = (v) => this.onVolume(v);
     this.engine.onState = (p) => this.onState(p);
 
-    this.modeTc.addEventListener("click", () => this.setMode(false));
-    this.modeBars.addEventListener("click", () => this.setMode(true));
     this.endOut.addEventListener("click", () => this.setEndMode(false));
     this.endDur.addEventListener("click", () => this.setEndMode(true));
 
-    for (const i of [this.cinInput, this.coutInput, this.durInput, this.fromBar, this.removeBars]) {
+    for (const i of [this.cinInput, this.coutInput, this.durInput]) {
       i.addEventListener("input", () => this.recompute());
       i.addEventListener("blur", () => this.reformat());
     }
@@ -321,7 +315,12 @@ export class ToolApp {
       this.reloadWorking(this.song === null);
       this.setLoaded(true);
       this.autoBpm(false);
-      // default to a visible 4-second cut window so it's obvious from the start
+      // reset units to TC/sec and default to a visible 4-second cut window
+      this.cinUnit = this.coutUnit = "tc";
+      this.durUnit = "sec";
+      this.setUnitActive(this.cinUnitBtns, true);
+      this.setUnitActive(this.coutUnitBtns, true);
+      this.setUnitActive(this.durUnitBtns, true);
       this.cinInput.value = framesToTc(this.anchor, this.fps);
       this.coutInput.value = framesToTc(this.anchor + 4 * this.fps, this.fps);
       this.recompute();
@@ -432,29 +431,57 @@ export class ToolApp {
   }
 
   // ---------- cut compute ----------
-  private byBars(): boolean {
-    return this.modeBars.classList.contains("active");
-  }
   private endIsDuration(): boolean {
     return this.endDur.classList.contains("active");
+  }
+  private barFrames(): number {
+    return this.appliedBpm > 0 ? (this.fps * 240) / this.appliedBpm : 0;
+  }
+  private barToFrame(bar: number): number | null {
+    const bf = this.barFrames();
+    return bf > 0 && isFinite(bar) ? Math.round(this.anchor + (bar - 1) * bf) : null;
+  }
+  private frameToBar(fr: number): number {
+    const bf = this.barFrames();
+    return bf > 0 ? (fr - this.anchor) / bf + 1 : 1;
+  }
+  private tcSafe(s: string): number | null {
+    try {
+      return tcToFrames(s, this.fps);
+    } catch {
+      return null;
+    }
+  }
+  private pointFrame(value: string, unit: "tc" | "bar"): number | null {
+    return unit === "bar" ? this.barToFrame(parseFloat(value)) : this.tcSafe(value);
+  }
+  /** a bar/bars unit is active but there's no BPM yet */
+  private barsNeedBpm(): boolean {
+    const endBar = this.endIsDuration() ? this.durUnit === "bar" : this.coutUnit === "bar";
+    return this.appliedBpm <= 0 && (this.cinUnit === "bar" || endBar);
   }
 
   private cutWindow(): { cin: number; len: number } | null {
     if (!this.text) return null;
-    if (this.byBars()) {
-      if (this.appliedBpm <= 0) return null;
-      const bar = (this.fps * 240) / this.appliedBpm;
-      const fromN = Math.max(1, Math.round(num(this.fromBar.value, 1)));
-      const cnt = Math.max(1, Math.round(num(this.removeBars.value, 1)));
-      return { cin: Math.round(this.anchor + (fromN - 1) * bar), len: Math.round(cnt * bar) };
-    }
-    const cin = tcToFrames(this.cinInput.value, this.fps);
+    const cin = this.pointFrame(this.cinInput.value, this.cinUnit);
+    if (cin === null) return null;
+    let len: number;
     if (this.endIsDuration()) {
-      const len = Math.round(num(this.durInput.value, 0) * this.fps);
-      return { cin, len };
+      const v = parseFloat(this.durInput.value);
+      if (!isFinite(v) || v <= 0) return null;
+      if (this.durUnit === "bar") {
+        const bf = this.barFrames();
+        if (bf <= 0) return null;
+        len = Math.round(v * bf);
+      } else {
+        len = Math.round(v * this.fps);
+      }
+    } else {
+      const cout = this.pointFrame(this.coutInput.value, this.coutUnit);
+      if (cout === null) return null;
+      len = cout - cin;
     }
-    const cout = tcToFrames(this.coutInput.value, this.fps);
-    return { cin, len: cout - cin };
+    return len > 0 ? { cin, len } : null;
   }
 
   private recompute(): void {
@@ -462,10 +489,9 @@ export class ToolApp {
     const w = this.cutWindow();
     if (!w || w.len <= 0) {
       this.timeline.setCut(null, null);
-      this.report.textContent =
-        this.byBars() && this.appliedBpm <= 0
-          ? "Set a BPM first to cut by bars."
-          : "Cut out must be later than cut in.";
+      this.report.textContent = this.barsNeedBpm()
+        ? "Set a BPM to use bar units."
+        : "Cut out must be later than cut in.";
       this.cutBtn.disabled = true;
       return;
     }
@@ -502,14 +528,14 @@ export class ToolApp {
   }
 
   private onCutDragged(a: number, b: number): void {
-    if (this.byBars()) {
-      const bar = (this.fps * 240) / this.appliedBpm;
-      this.fromBar.value = String(Math.max(1, Math.round((a - this.anchor) / bar) + 1));
-      this.removeBars.value = String(Math.max(1, Math.round((b - a) / bar)));
+    // write the dragged window back into whatever units are selected
+    this.cinInput.value = this.cinUnit === "bar" ? this.frameToBar(a).toFixed(2) : framesToTc(a, this.fps);
+    if (this.endIsDuration()) {
+      const bf = this.barFrames();
+      this.durInput.value =
+        this.durUnit === "bar" && bf > 0 ? ((b - a) / bf).toFixed(2) : ((b - a) / this.fps).toFixed(3);
     } else {
-      this.cinInput.value = framesToTc(a, this.fps);
-      if (this.endIsDuration()) this.durInput.value = ((b - a) / this.fps).toFixed(3);
-      else this.coutInput.value = framesToTc(b, this.fps);
+      this.coutInput.value = this.coutUnit === "bar" ? this.frameToBar(b).toFixed(2) : framesToTc(b, this.fps);
     }
     this.recompute();
   }
@@ -647,25 +673,72 @@ export class ToolApp {
     this.applyMetro();
   }
 
-  // ---------- modes / state ----------
-  private setMode(bars: boolean): void {
-    this.modeBars.classList.toggle("active", bars);
-    this.modeTc.classList.toggle("active", !bars);
-    this.tcStack.classList.toggle("hidden", bars);
-    this.barsStack.classList.toggle("hidden", !bars);
+  // ---------- units / modes / state ----------
+  private buildUnit(which: "cin" | "cout" | "dur"): HTMLElement {
+    const dur = which === "dur";
+    const aLbl = dur ? "sec" : "TC";
+    const bLbl = dur ? "bars" : "BAR";
+    const aBtn = h("button", { class: "unit active", "aria-label": aLbl, title: aLbl }, aLbl) as HTMLButtonElement;
+    const bBtn = h("button", { class: "unit", "aria-label": bLbl, title: bLbl }, bLbl) as HTMLButtonElement;
+    aBtn.addEventListener("click", () => this.setUnit(which, dur ? "sec" : "tc"));
+    bBtn.addEventListener("click", () => this.setUnit(which, "bar"));
+    if (which === "cin") this.cinUnitBtns = [aBtn, bBtn];
+    else if (which === "cout") this.coutUnitBtns = [aBtn, bBtn];
+    else this.durUnitBtns = [aBtn, bBtn];
+    return h("div", { class: "unit-seg" }, aBtn, bBtn);
+  }
+  private setUnit(which: "cin" | "cout" | "dur", unit: "tc" | "bar" | "sec"): void {
+    const bf = this.barFrames();
+    if (which === "dur") {
+      if (unit !== this.durUnit) {
+        const cur = parseFloat(this.durInput.value);
+        if (isFinite(cur) && bf > 0) {
+          this.durInput.value =
+            unit === "bar" ? ((cur * this.fps) / bf).toFixed(2) : ((cur * bf) / this.fps).toFixed(3);
+        }
+      }
+      this.durUnit = unit === "bar" ? "bar" : "sec";
+      this.setUnitActive(this.durUnitBtns, this.durUnit === "sec");
+    } else {
+      const input = which === "cin" ? this.cinInput : this.coutInput;
+      const prev = which === "cin" ? this.cinUnit : this.coutUnit;
+      const next: "tc" | "bar" = unit === "bar" ? "bar" : "tc";
+      if (next !== prev) {
+        if (next === "bar") {
+          const fr = bf > 0 ? this.tcSafe(input.value) : null;
+          input.value = fr !== null ? this.frameToBar(fr).toFixed(2) : "1";
+        } else {
+          const fr = bf > 0 ? this.barToFrame(parseFloat(input.value)) : null;
+          input.value = framesToTc(fr ?? this.anchor, this.fps);
+        }
+      }
+      if (which === "cin") {
+        this.cinUnit = next;
+        this.setUnitActive(this.cinUnitBtns, next === "tc");
+      } else {
+        this.coutUnit = next;
+        this.setUnitActive(this.coutUnitBtns, next === "tc");
+      }
+    }
     this.recompute();
+  }
+  private setUnitActive(btns: HTMLButtonElement[], firstActive: boolean): void {
+    btns[0].classList.toggle("active", firstActive);
+    btns[1].classList.toggle("active", !firstActive);
   }
   private setEndMode(dur: boolean): void {
     this.endDur.classList.toggle("active", dur);
     this.endOut.classList.toggle("active", !dur);
     this.endStack.innerHTML = "";
-    this.endStack.append(dur ? this.durInput : this.coutInput);
+    this.endStack.append(dur ? this.durField : this.coutField);
     this.recompute();
   }
   private setLoaded(ok: boolean): void {
-    for (const c of [this.cinInput, this.coutInput, this.durInput, this.bpmInput, this.fromBar, this.removeBars, this.modeTc, this.modeBars, this.endOut, this.endDur]) {
-      (c as HTMLInputElement | HTMLButtonElement).disabled = !ok;
-    }
+    const ctrls: Array<HTMLInputElement | HTMLButtonElement> = [
+      this.cinInput, this.coutInput, this.durInput, this.bpmInput, this.endOut, this.endDur,
+      ...this.cinUnitBtns, ...this.coutUnitBtns, ...this.durUnitBtns,
+    ];
+    for (const c of ctrls) c.disabled = !ok;
     this.cutBtn.disabled = !ok;
     this.metroBtn.disabled = !ok;
     this.updateMetroEnabled();
@@ -676,11 +749,13 @@ export class ToolApp {
   }
   private reformat(): void {
     if (!this.text) return;
-    try {
-      this.cinInput.value = framesToTc(tcToFrames(this.cinInput.value, this.fps), this.fps);
-      if (!this.endIsDuration()) this.coutInput.value = framesToTc(tcToFrames(this.coutInput.value, this.fps), this.fps);
-    } catch {
-      /* leave as typed */
+    if (this.cinUnit === "tc") {
+      const f = this.tcSafe(this.cinInput.value);
+      if (f !== null) this.cinInput.value = framesToTc(f, this.fps);
+    }
+    if (!this.endIsDuration() && this.coutUnit === "tc") {
+      const f = this.tcSafe(this.coutInput.value);
+      if (f !== null) this.coutInput.value = framesToTc(f, this.fps);
     }
   }
   private firstFrame(): number {
@@ -713,10 +788,6 @@ function metroSvg(): SVGSVGElement {
   pend.setAttribute("stroke-linecap", "round");
   svg.append(body, pend);
   return svg;
-}
-function num(s: string, dflt: number): number {
-  const v = parseFloat(s);
-  return isFinite(v) ? v : dflt;
 }
 function isTyping(): boolean {
   const a = document.activeElement;
