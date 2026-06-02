@@ -118,6 +118,27 @@ document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]:not([data-open-tool])
   });
 });
 
+// ---- GDPR consent banner ----
+(function initConsent() {
+  const KEY = "oje_consent";
+  const saved = localStorage.getItem(KEY);
+  if (saved) return; // already decided — banner stays hidden
+  const banner = document.getElementById("consent-banner");
+  if (!banner) return;
+  banner.removeAttribute("hidden");
+  const grant = (): void => {
+    localStorage.setItem(KEY, "granted");
+    (window as unknown as { gtag?: Gtag }).gtag?.("consent", "update", { analytics_storage: "granted" });
+    banner.setAttribute("hidden", "");
+  };
+  const deny = (): void => {
+    localStorage.setItem(KEY, "denied");
+    banner.setAttribute("hidden", "");
+  };
+  document.getElementById("consent-accept")?.addEventListener("click", grant);
+  document.getElementById("consent-decline")?.addEventListener("click", deny);
+})();
+
 // ---- logo → back to top ----
 document
   .querySelector("[data-to-top]")

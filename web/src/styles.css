@@ -1322,3 +1322,49 @@ body.detail-open {
   font-size: 13px;
   border-top: 1px solid var(--border-subtle);
 }
+
+/* ---- GDPR consent banner ---- */
+.consent-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: var(--bg-header);
+  border-top: 1px solid var(--border-subtle);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+.consent-banner[hidden] { display: none; }
+.consent-text {
+  flex: 1;
+  color: var(--text-muted);
+  margin: 0;
+  min-width: 260px;
+}
+.consent-text a { color: var(--text-muted); text-decoration: underline; text-underline-offset: 2px; }
+.consent-text a:hover { color: var(--text-primary); }
+.consent-btns { display: flex; gap: 10px; flex-shrink: 0; }
+.consent-btn {
+  padding: 7px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+}
+.consent-btn.primary {
+  background: var(--action);
+  color: var(--bg-app);
+  border-color: transparent;
+}
+.consent-btn.primary:hover { background: var(--action-hover); }
+.consent-btn.ghost {
+  background: transparent;
+  color: var(--text-muted);
+}
+.consent-btn.ghost:hover { color: var(--text-primary); border-color: var(--border-strong); }

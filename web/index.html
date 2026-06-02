@@ -3,15 +3,27 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JQFQ6618DP"></script>
+    <!-- Google tag (gtag.js) — Consent Mode v2 -->
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
+      function gtag() { dataLayer.push(arguments); }
+      // Set defaults BEFORE loading gtag so no data fires without consent
+      gtag("consent", "default", {
+        analytics_storage: "denied",
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        wait_for_update: 500,
+      });
+      // Restore consent if already given in a previous visit
+      if (localStorage.getItem("oje_consent") === "granted") {
+        gtag("consent", "update", { analytics_storage: "granted" });
       }
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JQFQ6618DP"></script>
+    <script>
       gtag("js", new Date());
-      gtag("config", "G-JQFQ6618DP");
+      gtag("config", "G-JQFQ6618DP", { anonymize_ip: true });
     </script>
     <title>ØJE Tools — software for live shows</title>
     <meta
@@ -139,9 +151,22 @@
     <footer class="site">
       <div class="wrap">
         <span>© 2026 ØJE Studio · tools.oje.studio</span>
-        <span><a href="https://oje.studio">oje.studio</a> · <a href="https://github.com/oje-studio" target="_blank" rel="noopener">github</a></span>
+        <span><a href="https://oje.studio">oje.studio</a> · <a href="https://github.com/oje-studio" target="_blank" rel="noopener">github ↗</a></span>
       </div>
     </footer>
+
+    <!-- GDPR consent banner — shown only if no prior choice stored -->
+    <div id="consent-banner" class="consent-banner" role="dialog" aria-label="Cookie consent" hidden>
+      <p class="consent-text">
+        We use Google Analytics to understand which tools people find useful.
+        No advertising, no selling of data.
+        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's privacy policy ↗</a>
+      </p>
+      <div class="consent-btns">
+        <button class="consent-btn primary" id="consent-accept">OK, that's fine</button>
+        <button class="consent-btn ghost" id="consent-decline">No analytics</button>
+      </div>
+    </div>
 
     <!-- ───────── MA2 Timecode Tools — detail ───────── -->
     <div id="detail-ma2" class="tool-detail" aria-hidden="true">
