@@ -31,6 +31,31 @@
   --radius-md: 6px;
   --radius-lg: 10px;
   --maxw: 1320px;
+
+  /* spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --section-y: 72px;
+
+  /* landing helpers */
+  --text-faint: #8a8a8a; /* AA-safe dim for footer / credit (5.6:1 on bg) */
+  --bg-nav: rgba(15, 15, 15, 0.82);
+  --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    transition: none !important;
+  }
 }
 
 * {
@@ -64,14 +89,20 @@ a:hover {
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 12px 24px;
-  background: rgba(15, 15, 15, 0.82);
+  gap: 20px;
+  padding: 14px 24px;
+  background: var(--bg-nav);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-subtle);
 }
-.nav .brand-mark {
-  color: var(--op-audio);
+.nav-logo {
+  display: inline-flex;
+  align-items: center;
+}
+.nav-logo img {
+  height: 22px;
+  width: auto;
+  display: block;
 }
 .nav-spacer {
   flex: 1;
@@ -83,6 +114,21 @@ a:hover {
 }
 .nav a:hover {
   color: var(--text-primary);
+}
+.nav a.ext::after {
+  content: " ↗";
+  color: var(--text-dim);
+}
+
+/* keyboard focus — landing links, buttons, the clickable hero shot */
+.nav a:focus-visible,
+.nav-logo:focus-visible,
+.cta:focus-visible,
+.hero-shot:focus-visible,
+footer.site a:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
 }
 
 .brand-mark {
@@ -105,8 +151,8 @@ a:hover {
   display: grid;
   grid-template-columns: 1.05fr 1fr;
   align-items: center;
-  gap: 48px;
-  padding: 72px 24px 60px;
+  gap: var(--space-7);
+  padding: var(--section-y) 24px var(--space-8);
   max-width: var(--maxw);
   margin: 0 auto;
 }
@@ -165,7 +211,7 @@ a:hover {
 }
 
 .section {
-  padding: 56px 24px;
+  padding: var(--section-y) 24px;
   max-width: var(--maxw);
   margin: 0 auto;
 }
@@ -206,23 +252,45 @@ a:hover {
   color: var(--text-muted);
   font-size: 14px;
 }
+.feature p a,
+.section .sub a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 
 /* ---------------- hero screenshot ---------------- */
 .hero-shot {
+  position: relative;
   display: block;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--bg-surface);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--shadow-lg);
   cursor: pointer;
   transition: border-color 0.15s, transform 0.15s;
 }
-.hero-shot:hover {
-  transform: translateY(-2px);
+.hero-shot::after {
+  content: "Open the tool ▸";
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 6px 12px;
+  background: var(--action);
+  color: var(--bg-app);
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  opacity: 0;
+  transition: opacity 0.15s;
 }
 .hero-shot:hover {
+  transform: translateY(-2px);
   border-color: var(--border-strong);
+}
+.hero-shot:hover::after,
+.hero-shot:focus-visible::after {
+  opacity: 1;
 }
 .hero-shot img {
   display: block;
@@ -293,7 +361,7 @@ body.tool-open .app-view {
   max-width: 1600px;
   margin: 0 auto;
   padding: 0 16px 24px;
-  color: var(--text-dim);
+  color: var(--text-faint);
   font-size: 12px;
 }
 .tool {
@@ -684,12 +752,34 @@ body.tool-open .app-view {
   cursor: default;
 }
 
+/* ---------------- work / contact ---------------- */
+.work .panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+}
+.work .panel h2 {
+  margin-top: 0;
+}
+
 /* ---------------- footer ---------------- */
 footer.site {
   border-top: 1px solid var(--border-subtle);
   padding: 28px 24px;
-  color: var(--text-dim);
+  color: var(--text-faint);
   font-size: 13px;
+}
+footer.site a {
+  color: var(--text-faint);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+footer.site a:hover {
+  color: var(--text-primary);
+}
+footer.site .credit {
+  color: var(--text-faint);
 }
 footer.site .wrap {
   display: flex;

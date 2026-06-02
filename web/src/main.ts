@@ -15,7 +15,7 @@ let demoLoaded = false;
 function loadDemoOnce(): void {
   if (demoLoaded) return;
   demoLoaded = true;
-  void app.loadDemo("./demo/demo_show.xml").then(() => app.loadAudioUrl("./demo/demo_audio.mp3"));
+  void app.loadDemo("./demo/demo_show.xml", 140).then(() => app.loadAudioUrl("./demo/demo_audio.mp3"));
 }
 
 function openTool(): void {

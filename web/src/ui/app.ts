@@ -202,14 +202,19 @@ export class ToolApp {
     this.timeline.setWidth(this.timeline.el.parentElement?.clientWidth || 900);
   }
 
-  /** Optionally preload a bundled demo show so the tool isn't empty on first view. */
-  async loadDemo(url: string): Promise<void> {
+  /** Optionally preload a bundled demo show so the tool isn't empty on first view.
+   *  Pass `bpm` to pin a known tempo instead of the auto-detect estimate. */
+  async loadDemo(url: string, bpm?: number): Promise<void> {
     try {
       const r = await fetch(url);
       if (!r.ok) return;
       const blob = await r.blob();
       const name = url.split("/").pop() || "demo.xml";
       await this.loadShowFile(new File([blob], name));
+      if (bpm && this.text) {
+        this.bpmInput.value = String(bpm);
+        this.applyBpm();
+      }
     } catch {
       /* demo is optional */
     }
