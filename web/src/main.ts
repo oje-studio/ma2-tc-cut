@@ -31,13 +31,39 @@ function closeTool(): void {
   appView.setAttribute("aria-hidden", "true");
 }
 
+// ---- per-tool detail overlays ----
+function openDetail(slug: string): void {
+  closeDetail();
+  const d = document.getElementById("detail-" + slug);
+  if (!d) return;
+  d.classList.add("open");
+  d.setAttribute("aria-hidden", "false");
+  d.scrollTop = 0;
+  document.body.classList.add("detail-open");
+  history.replaceState(null, "", "#t/" + slug);
+}
+function closeDetail(): void {
+  document.querySelectorAll(".tool-detail").forEach((d) => {
+    d.classList.remove("open");
+    d.setAttribute("aria-hidden", "true");
+  });
+  document.body.classList.remove("detail-open");
+  if (location.hash.startsWith("#t/")) history.replaceState(null, "", location.pathname + location.search);
+}
+document.querySelectorAll<HTMLElement>(".tool-card[data-detail]").forEach((card) =>
+  card.addEventListener("click", () => openDetail(card.dataset.detail!)),
+);
+document.querySelectorAll<HTMLElement>("[data-close-detail]").forEach((b) =>
+  b.addEventListener("click", () => closeDetail()),
+);
+
 document.querySelectorAll<HTMLElement>("[data-open-tool]").forEach((el) =>
   el.addEventListener("click", (e) => {
     e.preventDefault();
     openTool();
   }),
 );
-document.querySelector(".app-close")?.addEventListener("click", () => closeTool());
+appView.querySelector(".app-close")?.addEventListener("click", () => closeTool());
 
 // ---- fullscreen (true edge-to-edge; great on tablet / projector) ----
 function toggleFullscreen(): void {
@@ -52,11 +78,18 @@ document.addEventListener("fullscreenchange", () => requestAnimationFrame(() => 
 
 window.addEventListener("keydown", (e) => {
   const typing = document.activeElement && ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName);
-  const open = document.body.classList.contains("tool-open");
-  if (e.key === "Escape" && open && !typing && !document.fullscreenElement) closeTool();
-  if ((e.key === "f" || e.key === "F") && open && !typing) toggleFullscreen();
+  const appOpen = document.body.classList.contains("tool-open");
+  if (e.key === "Escape" && !typing) {
+    if (appOpen && !document.fullscreenElement) closeTool();
+    else if (document.body.classList.contains("detail-open")) closeDetail();
+  }
+  if ((e.key === "f" || e.key === "F") && appOpen && !typing) toggleFullscreen();
 });
+
+// deep links
 if (location.hash === "#tool") openTool();
+else if (location.hash === "#t/ma2") openDetail("ma2");
+else if (location.hash === "#t/cuemon") openDetail("cuemon");
 
 // ---- smooth-scroll in-page anchors (e.g. about), skipping the tool opener ----
 document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]:not([data-open-tool])').forEach((a) => {

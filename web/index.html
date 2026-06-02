@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ØJE Studio — Software</title>
+    <title>ØJE Tools — software for live shows</title>
     <meta
       name="description"
-      content="Tools from ØJE Studio for live-show timecode. MA2 Timecode Tools: ripple-cut a grandMA2 timecode show in the browser — byte-exact, nothing leaves your machine."
+      content="Tools from ØJE Studio for live shows — MA2 Timecode Tools (ripple-cut a grandMA2 show in the browser) and ØJE Cue Monitor (LTC timecode reader + cue list with a phone remote)."
     />
     <link rel="icon" type="image/png" href="./icon.png" />
     <meta name="theme-color" content="#0f0f0f" />
@@ -14,150 +14,214 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="ØJE Tools" />
     <link rel="apple-touch-icon" href="./icon.png" />
-    <meta property="og:title" content="ØJE Studio — Software" />
-    <meta property="og:description" content="MA2 Timecode Tools and other live-show tools, in the browser." />
+    <meta property="og:title" content="ØJE Tools — software for live shows" />
+    <meta property="og:description" content="MA2 Timecode Tools and ØJE Cue Monitor — software written at front of house." />
     <meta property="og:type" content="website" />
   </head>
   <body>
     <nav class="nav">
       <div class="brand-lock">
-        <span class="nav-logo">
-          <img src="./oje-logo.svg" alt="ØJE Studio" />
-        </span>
+        <span class="nav-logo"><img src="./oje-logo.svg" alt="ØJE Studio" /></span>
         <span class="brand-tools">TOOLS</span>
       </div>
       <span class="nav-spacer"></span>
-      <a href="#guide">guide</a>
-      <a href="#about">about</a>
+      <a href="#tools">the tools</a>
       <a href="#work">work with us</a>
       <a class="ext" href="https://oje.studio" target="_blank" rel="noopener">studio</a>
-      <a href="https://github.com/oje-studio/ma2-tc-cut" target="_blank" rel="noopener">github</a>
+      <a href="https://github.com/oje-studio" target="_blank" rel="noopener">github</a>
     </nav>
 
     <main>
-    <header class="hero">
-      <div class="hero-text">
+      <header class="hero hero-index">
         <p class="eyebrow">software · written at front of house</p>
         <h1>If the right tool does not exist, <span class="accent">we build it.</span></h1>
         <p class="lede">
-          These are the tools we needed and could not find — so we built them. First:
-          <strong>MA2 Timecode Tools</strong>. Ripple-cut or insert time in a grandMA2 timecode
-          show to match an audio edit, byte-for-byte intact, entirely in the browser. The show
-          file never leaves your machine.
+          These are the tools we needed and could not find — so we built them. Open one in the
+          browser, or take it to the show on your own machine.
         </p>
-        <div class="cta-row">
-          <a class="cta primary" href="#tool" data-open-tool>Open the tool</a>
-          <a class="cta ghost" href="#about">How it works</a>
-        </div>
-      </div>
-      <a class="hero-shot" href="#tool" data-open-tool aria-label="Open MA2 Timecode Tools">
-        <img
-          src="./hero.png"
-          alt="MA2 Timecode Tools — timeline of 474 cues across 8 tracks, BPM bar grid, waveform and a ripple-cut window"
-        />
-      </a>
-    </header>
+        <a class="cta ghost" href="#tools">Browse the tools ↓</a>
+      </header>
 
-    <section class="section" id="about">
-      <p class="eyebrow">about</p>
-      <h2>Made by operators, for operators.</h2>
-      <p class="sub">
-        Cut a section from a track and the timecode show has to collapse with it — drop the
-        cues inside the removed window, slide everything after it left by the exact length of
-        the cut. MA2 Timecode Tools runs that ripple across every subtrack at once and hands
-        back a file grandMA2 re-imports without a fight.
-      </p>
-      <div class="features">
-        <div class="feature">
-          <h3>Byte-exact</h3>
-          <p>BOM, namespace, tabs, line endings — everything but the cut stays untouched. The import never chokes.</p>
-        </div>
-        <div class="feature">
-          <h3>Bars, not seconds</h3>
-          <p>Cut whole bars at the track BPM, or frame-accurate by timecode. A live preview names every cue that moves.</p>
-        </div>
-        <div class="feature">
-          <h3>Stays on your machine</h3>
-          <p>Everything runs in the browser. Nothing is uploaded — no server sees your show.</p>
-        </div>
-        <div class="feature">
-          <h3>Also on the desktop</h3>
-          <p>Native build too — macOS and Windows. <a href="https://github.com/oje-studio/ma2-tc-cut/releases">Get it on GitHub →</a></p>
-        </div>
-      </div>
-    </section>
+      <section class="section tools-section" id="tools">
+        <div class="tools-grid">
+          <!-- MA2 Timecode Tools -->
+          <button class="tool-card" type="button" data-detail="ma2">
+            <span class="tool-thumb"><img src="./tools/ma2.png" alt="MA2 Timecode Tools — timeline, bar grid, waveform and a cut window" /></span>
+            <span class="tool-info">
+              <span class="tool-head">
+                <img class="tool-ic" src="./tools/ma2-icon.png" alt="" />
+                <span class="tool-name">MA2 Timecode Tools</span>
+                <span class="tool-tag">Web · Desktop</span>
+              </span>
+              <span class="tool-line">Ripple-cut, insert, erase or move cues in a grandMA2 timecode show to match an audio edit — byte-for-byte intact, in the browser.</span>
+              <span class="tool-go">Open ▸</span>
+            </span>
+          </button>
 
-    <section class="section guide" id="guide">
-      <p class="eyebrow">guide</p>
-      <h2>Getting the file in and out of grandMA2</h2>
-      <div class="guide-grid">
-        <div class="guide-card">
-          <h3>Export from grandMA2</h3>
-          <p>
-            The tool operates on the XML that grandMA2 exports from a Timecode pool object.
-            Command line — one line, unambiguous:
-          </p>
-          <pre class="cmd">Export Timecode 14 "tc_show"</pre>
-          <ul>
-            <li><strong>14</strong> — the number of the Timecode pool object to export.</li>
-            <li><strong>"tc_show"</strong> — output filename, without extension (MA appends <code>.xml</code>).</li>
-          </ul>
-          <p>
-            grandMA2 writes the file into the <code>gma2/importexport</code> folder on the
-            currently selected drive (internal, USB, or the onPC data folder). Copy
-            <code>tc_show.xml</code> from there to the machine where you run this tool — USB
-            stick, network share, or directly from the onPC folder.
-          </p>
-          <p class="muted">
-            GUI alternative: in the Timecode pool you can also export via the object’s
-            edit/menu, but the command line above is a single unambiguous line.
-          </p>
+          <!-- ØJE Cue Monitor -->
+          <button class="tool-card" type="button" data-detail="cuemon">
+            <span class="tool-thumb"><img src="./tools/cuemon.png" alt="ØJE Cue Monitor — Performance Mode and the cue editor" /></span>
+            <span class="tool-info">
+              <span class="tool-head">
+                <img class="tool-ic" src="./tools/cuemon-icon.png" alt="" />
+                <span class="tool-name">ØJE Cue Monitor</span>
+                <span class="tool-tag alt">Desktop</span>
+              </span>
+              <span class="tool-line">Reads LTC/SMPTE off any audio input and fires your cue list by timecode — full-screen operator view, a remote on every phone.</span>
+              <span class="tool-go">Details ▸</span>
+            </span>
+          </button>
         </div>
+      </section>
 
-        <div class="guide-card">
-          <h3>Import back into grandMA2</h3>
-          <p>
-            Import syntax puts the filename first (that’s the “NAME”), destination after; the
-            <code>.xml</code> extension is not written (MA adds it):
+      <section class="section work" id="work">
+        <div class="panel">
+          <p class="eyebrow">work with us</p>
+          <h2>We are open to complex briefs — and we close them.</h2>
+          <p class="sub">
+            Stages, environments, real-time systems — or the missing tool no one sells. If it
+            has to run under pressure and hold, tell us what it needs to do.
           </p>
-          <pre class="cmd">Import "SHOW_cut" At Timecode 40</pre>
-          <p>
-            <code>Import Timecode 40 "…"</code> gives <strong>Error #12: EXPECTED NAME</strong>
-            — the argument order is the reverse of Export.
-          </p>
-          <p>Import into an empty slot, keep the original as a backup, and check the length.</p>
+          <a class="cta primary" href="mailto:hello@oje.studio">hello@oje.studio</a>
         </div>
-      </div>
-    </section>
-
-    <section class="section work" id="work">
-      <div class="panel">
-        <p class="eyebrow">work with us</p>
-        <h2>We are open to complex briefs — and we close them.</h2>
-        <p class="sub">
-          Stages, environments, real-time systems — or the missing tool no one sells. If it
-          has to run under pressure and hold, tell us what it needs to do.
-        </p>
-        <a class="cta primary" href="mailto:hello@oje.studio">hello@oje.studio</a>
-      </div>
-    </section>
+      </section>
     </main>
 
     <footer class="site">
       <div class="wrap">
-        <span>© 2026 ØJE Studio · MA2 Timecode Tools · MIT</span>
-        <span class="credit">Demo track by Artem Kharchenko · © 2026</span>
-        <span><a href="https://oje.studio">oje.studio</a> · <a href="https://github.com/oje-studio/ma2-tc-cut">source</a> · tools.oje.studio</span>
+        <span>© 2026 ØJE Studio · tools.oje.studio</span>
+        <span><a href="https://oje.studio">oje.studio</a> · <a href="https://github.com/oje-studio" target="_blank" rel="noopener">github</a></span>
       </div>
     </footer>
 
-    <!-- full-window tool view (shown when "Open the tool" is clicked / #tool) -->
+    <!-- ───────── MA2 Timecode Tools — detail ───────── -->
+    <div id="detail-ma2" class="tool-detail" aria-hidden="true">
+      <header class="app-bar">
+        <div class="brand-lock">
+          <span class="nav-logo"><img src="./oje-logo.svg" alt="ØJE Studio" /></span>
+          <span class="brand-tools">TOOLS</span>
+        </div>
+        <span class="app-bar-sep">·</span>
+        <span class="app-bar-tool">MA2 Timecode Tools</span>
+        <span class="nav-spacer"></span>
+        <button class="app-close" type="button" data-close-detail>← back</button>
+      </header>
+      <div class="detail-body">
+        <div class="detail-hero">
+          <div class="detail-shot"><img src="./tools/ma2.png" alt="MA2 Timecode Tools" /></div>
+          <div class="detail-intro">
+            <p class="eyebrow">web tool · also on the desktop</p>
+            <h2>MA2 Timecode Tools</h2>
+            <p class="sub">
+              Cut a section from a track and the timecode show has to collapse with it — drop the
+              cues inside the removed window, slide everything after it left by the exact length of
+              the cut. MA2 Timecode Tools runs that ripple across every subtrack at once and hands
+              back a file grandMA2 re-imports without a fight.
+            </p>
+            <div class="cta-row">
+              <a class="cta primary" href="#tool" data-open-tool>Open the tool ▸</a>
+              <a class="cta ghost" href="https://github.com/oje-studio/ma2-tc-cut/releases" target="_blank" rel="noopener">Desktop build ↓</a>
+              <a class="cta ghost" href="https://github.com/oje-studio/ma2-tc-cut" target="_blank" rel="noopener">Source</a>
+            </div>
+          </div>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <h3>Cut · insert · erase · move</h3>
+            <p>Ripple-cut a window, open a gap, erase in place, or drag a single cue — each snapping to the bar grid.</p>
+          </div>
+          <div class="feature">
+            <h3>Byte-exact</h3>
+            <p>BOM, namespace, tabs, line endings — everything but the edit stays untouched. The import never chokes.</p>
+          </div>
+          <div class="feature">
+            <h3>Bars, not seconds</h3>
+            <p>Work in whole bars at the track BPM, or frame-accurate by timecode. A live preview names every cue that moves.</p>
+          </div>
+          <div class="feature">
+            <h3>Stays on your machine</h3>
+            <p>Everything runs in the browser. Nothing is uploaded — no server sees your show.</p>
+          </div>
+        </div>
+        <div class="guide-grid">
+          <div class="guide-card">
+            <h3>Export from grandMA2</h3>
+            <p>The tool operates on the XML grandMA2 exports from a Timecode pool object. Command line — one line, unambiguous:</p>
+            <pre class="cmd">Export Timecode 14 "tc_show"</pre>
+            <ul>
+              <li><strong>14</strong> — the number of the Timecode pool object to export.</li>
+              <li><strong>"tc_show"</strong> — output filename, without extension (MA appends <code>.xml</code>).</li>
+            </ul>
+            <p>It writes into <code>gma2/importexport</code> on the selected drive. Copy <code>tc_show.xml</code> to the machine running this tool.</p>
+          </div>
+          <div class="guide-card">
+            <h3>Import back into grandMA2</h3>
+            <p>Import puts the filename first (the “NAME”), destination after; the <code>.xml</code> extension is not written:</p>
+            <pre class="cmd">Import "SHOW_cut" At Timecode 40</pre>
+            <p><code>Import Timecode 40 "…"</code> gives <strong>Error #12: EXPECTED NAME</strong> — the order is the reverse of Export.</p>
+            <p>Import into an empty slot, keep the original as a backup, and check the length.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── ØJE Cue Monitor — detail ───────── -->
+    <div id="detail-cuemon" class="tool-detail" aria-hidden="true">
+      <header class="app-bar">
+        <div class="brand-lock">
+          <span class="nav-logo"><img src="./oje-logo.svg" alt="ØJE Studio" /></span>
+          <span class="brand-tools">TOOLS</span>
+        </div>
+        <span class="app-bar-sep">·</span>
+        <span class="app-bar-tool">ØJE Cue Monitor</span>
+        <span class="nav-spacer"></span>
+        <button class="app-close" type="button" data-close-detail>← back</button>
+      </header>
+      <div class="detail-body">
+        <div class="detail-hero">
+          <div class="detail-shot"><img src="./tools/cuemon.png" alt="ØJE Cue Monitor" /></div>
+          <div class="detail-intro">
+            <p class="eyebrow">desktop app · macOS &amp; Windows</p>
+            <h2>ØJE Cue Monitor</h2>
+            <p class="sub">
+              Timecode comes in over the PA and the cues have to fire on the hit, in the order you
+              set — not sorted. ØJE Cue Monitor reads LTC/SMPTE off any audio input, triggers each
+              cue by the frame it's pinned to, and throws a full-screen Performance view to the
+              operators — lighting, audio, stage manager — each reading only their own column. The
+              same view goes out over the local network to any phone.
+            </p>
+            <div class="cta-row">
+              <a class="cta primary" href="https://github.com/oje-studio/oje-cue-monitor/releases" target="_blank" rel="noopener">Download ↓ <span class="cta-sub">macOS · Windows</span></a>
+              <a class="cta ghost" href="https://github.com/oje-studio/oje-cue-monitor" target="_blank" rel="noopener">Source</a>
+            </div>
+          </div>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <h3>Fires on the hit</h3>
+            <p>Cues trigger by timecode in the order you set, not sorted — non-linear shows behave.</p>
+          </div>
+          <div class="feature">
+            <h3>Every operator, one column</h3>
+            <p>Role-coloured columns — lighting blue · audio amber · stage manager purple — so each operator finds their cues at a glance.</p>
+          </div>
+          <div class="feature">
+            <h3>A remote on every phone</h3>
+            <p>The Performance view goes out over the local network — password-protected, filtered so each phone shows only its operator's cues.</p>
+          </div>
+          <div class="feature">
+            <h3>Knows the signal</h3>
+            <p>Reads LTC/SMPTE off any input, with a five-bar VU and live · weak · clipping · no-signal states.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── MA2 full-window tool ───────── -->
     <div id="app-view" class="app-view" aria-hidden="true">
       <header class="app-bar">
         <div class="brand-lock">
-          <span class="nav-logo">
-            <img src="./oje-logo.svg" alt="ØJE Studio" />
-          </span>
+          <span class="nav-logo"><img src="./oje-logo.svg" alt="ØJE Studio" /></span>
           <span class="brand-tools">TOOLS</span>
         </div>
         <span class="app-bar-sep">·</span>

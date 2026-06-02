@@ -1126,3 +1126,166 @@ footer.site .wrap {
     padding: 24px;
   }
 }
+
+/* ============ tools directory ============ */
+.hero-index {
+  display: block;
+  max-width: 780px;
+  padding: var(--section-y) 24px var(--space-7);
+}
+.hero-index h1 {
+  max-width: 15ch;
+}
+.tools-section {
+  padding-top: 0;
+}
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 20px;
+}
+.tool-card {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.tool-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-3px);
+}
+.tool-card:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 3px;
+}
+.tool-thumb {
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--bg-app);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.tool-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+.tool-info {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 18px 20px 20px;
+}
+.tool-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tool-ic {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+}
+.tool-name {
+  font-size: 17px;
+  font-weight: 600;
+}
+.tool-tag {
+  margin-left: auto;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: var(--op-lighting);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+.tool-tag.alt {
+  color: var(--op-audio);
+}
+.tool-line {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.tool-go {
+  color: var(--action);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+}
+.tool-card:hover .tool-go {
+  color: var(--action-hover);
+}
+
+/* ---- per-tool detail overlay ---- */
+.tool-detail {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: var(--bg-app);
+  display: none;
+  overflow-y: auto;
+}
+.tool-detail.open {
+  display: block;
+}
+body.detail-open {
+  overflow: hidden;
+}
+.detail-body {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 32px 24px 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+.detail-hero {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 40px;
+  align-items: center;
+}
+@media (max-width: 880px) {
+  .detail-hero {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+.detail-shot {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-lg);
+}
+.detail-shot img {
+  width: 100%;
+  height: auto;
+  max-height: 64vh;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+.detail-intro h2 {
+  font-size: clamp(26px, 3.2vw, 40px);
+  letter-spacing: -0.5px;
+  margin: 6px 0 14px;
+}
+.cta-sub {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.85;
+  letter-spacing: 0.3px;
+}
