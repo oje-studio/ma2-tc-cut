@@ -227,8 +227,9 @@ export class Timeline {
     return Math.max(220, AXIS_H + n * LANE_MIN + 14 + extra);
   }
   relayout(): void {
-    // fill the container vertically (taller lanes on big screens), floored at the minimum
-    this.cssH = Math.max(this.contentHeight(), this.fillH);
+    // Fill exactly the container height (taller lanes on big screens). Must NOT
+    // exceed it, or the canvas overflows its wrapper onto the panels below.
+    this.cssH = this.fillH > 0 ? this.fillH : this.contentHeight();
     // scale canvas text up on large timelines so it stays readable
     this.uiScale = Math.max(1, Math.min(1.5, this.cssW / 1500));
     this.resizeCanvas();

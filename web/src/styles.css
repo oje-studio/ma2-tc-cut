@@ -677,6 +677,7 @@ body.tool-open .app-view {
   flex: 1;
   min-height: 260px;
   min-width: 0;
+  overflow: hidden; /* the canvas never bleeds onto the panels below */
 }
 .timeline {
   display: block;
