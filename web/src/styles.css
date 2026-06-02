@@ -89,7 +89,8 @@ a:hover {
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 8px 18px;
   padding: 14px 24px;
   background: var(--bg-nav);
   backdrop-filter: blur(10px);
@@ -103,6 +104,25 @@ a:hover {
   height: 22px;
   width: auto;
   display: block;
+}
+.brand-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand-tools {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--text-primary);
+  padding-top: 1px; /* optical baseline match to the logo */
+}
+.app-bar .brand-tools {
+  font-size: 13px;
+  letter-spacing: 3px;
 }
 .nav-spacer {
   flex: 1;
@@ -256,6 +276,64 @@ footer.site a:focus-visible {
 .section .sub a {
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+/* ---------------- guide ---------------- */
+.guide-block {
+  max-width: 760px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-subtle);
+}
+.guide-block:first-of-type {
+  border-top: none;
+  padding-top: 4px;
+}
+.guide-block h3 {
+  font-size: 18px;
+  margin: 0 0 12px;
+}
+.guide-block p {
+  color: var(--text-muted);
+  margin: 0 0 12px;
+}
+.guide-block p.muted {
+  color: var(--text-faint);
+  font-size: 13px;
+}
+.guide-block ul,
+.guide-block ol {
+  color: var(--text-muted);
+  margin: 0 0 12px;
+  padding-left: 20px;
+}
+.guide-block li {
+  margin: 0 0 8px;
+}
+.guide-block strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.guide-block code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  color: var(--op-lighting);
+  background: var(--bg-surface);
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+}
+.cmd {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg-header);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--op-audio);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin: 0 0 14px;
+  max-width: 760px;
+  overflow-x: auto;
 }
 
 /* ---------------- hero screenshot ---------------- */
