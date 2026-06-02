@@ -1290,3 +1290,22 @@ body.detail-open {
   opacity: 0.85;
   letter-spacing: 0.3px;
 }
+
+.detail-extra {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+.detail-extra img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.detail-extra figcaption {
+  padding: 12px 16px;
+  color: var(--text-faint);
+  font-size: 13px;
+  border-top: 1px solid var(--border-subtle);
+}
