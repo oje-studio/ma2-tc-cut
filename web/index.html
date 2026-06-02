@@ -16,13 +16,12 @@
   <body>
     <nav class="nav">
       <div class="brand-lock">
-        <a class="nav-logo" href="https://oje.studio" target="_blank" rel="noopener" aria-label="ØJE Studio — oje.studio">
+        <span class="nav-logo">
           <img src="./oje-logo.svg" alt="ØJE Studio" />
-        </a>
+        </span>
         <span class="brand-tools">TOOLS</span>
       </div>
       <span class="nav-spacer"></span>
-      <a href="#tool" data-open-tool>the tool</a>
       <a href="#guide">guide</a>
       <a href="#about">about</a>
       <a href="#work">work with us</a>
@@ -86,70 +85,43 @@
     <section class="section guide" id="guide">
       <p class="eyebrow">guide</p>
       <h2>Getting the file in and out of grandMA2</h2>
+      <div class="guide-grid">
+        <div class="guide-card">
+          <h3>Export from grandMA2</h3>
+          <p>
+            The tool operates on the XML that grandMA2 exports from a Timecode pool object.
+            Command line — one line, unambiguous:
+          </p>
+          <pre class="cmd">Export Timecode 14 "tc_show"</pre>
+          <ul>
+            <li><strong>14</strong> — the number of the Timecode pool object to export.</li>
+            <li><strong>"tc_show"</strong> — output filename, without extension (MA appends <code>.xml</code>).</li>
+          </ul>
+          <p>
+            grandMA2 writes the file into the <code>gma2/importexport</code> folder on the
+            currently selected drive (internal, USB, or the onPC data folder). Copy
+            <code>tc_show.xml</code> from there to the machine where you run this tool — USB
+            stick, network share, or directly from the onPC folder.
+          </p>
+          <p class="muted">
+            GUI alternative: in the Timecode pool you can also export via the object’s
+            edit/menu, but the command line above is a single unambiguous line.
+          </p>
+        </div>
 
-      <div class="guide-block">
-        <h3>Export from grandMA2</h3>
-        <p>
-          The tool operates on the XML that grandMA2 exports from a Timecode pool object.
-          Command line — one line, unambiguous:
-        </p>
-        <pre class="cmd">Export Timecode 14 "tc_show"</pre>
-        <ul>
-          <li><strong>14</strong> — the number of the Timecode pool object to export.</li>
-          <li><strong>"tc_show"</strong> — output filename, without extension (MA appends <code>.xml</code>).</li>
-        </ul>
-        <p>
-          grandMA2 writes the file into the <code>gma2/importexport</code> folder on the
-          currently selected drive (internal, USB, or the onPC data folder). Copy
-          <code>tc_show.xml</code> from there to the machine where you run this tool — USB
-          stick, network share, or directly from the onPC folder.
-        </p>
-        <p class="muted">
-          GUI alternative: in the Timecode pool you can also export via the object's edit/menu,
-          but the command line above is a single unambiguous line.
-        </p>
-      </div>
-
-      <div class="guide-block">
-        <h3>Musical correctness — the real gotcha</h3>
-        <p>The tool moves light, not audio. The cut lands “on the beat” only if:</p>
-        <ol>
-          <li>
-            <strong>The cut mirrors the audio edit.</strong> Cut the light with the same
-            [cut_in; cut_out) window as the track. If the audio wasn’t cut (or was cut at a
-            different point / by a different length), light and music drift apart.
-          </li>
-          <li>
-            <strong>The length is a whole number of bars/beats, not round seconds.</strong> A
-            musical splice always lands on the bar grid. “14.000 s” is almost never a whole
-            number of bars — e.g. at ~84 BPM that’s 19.5 beats, half a beat off, and everything
-            after the cut is off the beat. Think in bars. (4 bars at 84 BPM ≈ 346 frames ≈
-            11.5 s.)
-          </li>
-          <li>
-            <strong>Put the in-point on a downbeat.</strong> cut_in must land on a real beat,
-            not on a “round” second between hits.
-          </li>
-        </ol>
-        <p class="muted">
-          Hint: moments where several subtracks fire at the same time are almost always
-          downbeats. The spacing between them lets you estimate the bar grid and pick clean
-          cut edges.
-        </p>
-      </div>
-
-      <div class="guide-block">
-        <h3>Import back into grandMA2</h3>
-        <p>
-          Import syntax puts the filename first (that’s the “NAME”), destination after; the
-          <code>.xml</code> extension is not written (MA adds it):
-        </p>
-        <pre class="cmd">Import "SHOW_cut" At Timecode 40</pre>
-        <p>
-          <code>Import Timecode 40 "…"</code> gives <strong>Error #12: EXPECTED NAME</strong> —
-          the argument order is the reverse of Export. Import into an empty slot, keep the
-          original as a backup, and check the length.
-        </p>
+        <div class="guide-card">
+          <h3>Import back into grandMA2</h3>
+          <p>
+            Import syntax puts the filename first (that’s the “NAME”), destination after; the
+            <code>.xml</code> extension is not written (MA adds it):
+          </p>
+          <pre class="cmd">Import "SHOW_cut" At Timecode 40</pre>
+          <p>
+            <code>Import Timecode 40 "…"</code> gives <strong>Error #12: EXPECTED NAME</strong>
+            — the argument order is the reverse of Export.
+          </p>
+          <p>Import into an empty slot, keep the original as a backup, and check the length.</p>
+        </div>
       </div>
     </section>
 
@@ -178,9 +150,9 @@
     <div id="app-view" class="app-view" aria-hidden="true">
       <header class="app-bar">
         <div class="brand-lock">
-          <a class="nav-logo" href="https://oje.studio" target="_blank" rel="noopener" aria-label="ØJE Studio — oje.studio">
+          <span class="nav-logo">
             <img src="./oje-logo.svg" alt="ØJE Studio" />
-          </a>
+          </span>
           <span class="brand-tools">TOOLS</span>
         </div>
         <span class="app-bar-sep">·</span>

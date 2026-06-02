@@ -279,60 +279,68 @@ footer.site a:focus-visible {
 }
 
 /* ---------------- guide ---------------- */
-.guide-block {
-  max-width: 760px;
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border-subtle);
+.guide-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
 }
-.guide-block:first-of-type {
-  border-top: none;
-  padding-top: 4px;
+@media (max-width: 820px) {
+  .guide-grid {
+    grid-template-columns: 1fr;
+  }
 }
-.guide-block h3 {
+.guide-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 26px;
+}
+.guide-card h3 {
   font-size: 18px;
-  margin: 0 0 12px;
+  margin: 0 0 14px;
 }
-.guide-block p {
+.guide-card p {
   color: var(--text-muted);
   margin: 0 0 12px;
 }
-.guide-block p.muted {
+.guide-card p:last-child {
+  margin-bottom: 0;
+}
+.guide-card p.muted {
   color: var(--text-faint);
   font-size: 13px;
 }
-.guide-block ul,
-.guide-block ol {
+.guide-card ul {
   color: var(--text-muted);
   margin: 0 0 12px;
   padding-left: 20px;
 }
-.guide-block li {
+.guide-card li {
   margin: 0 0 8px;
 }
-.guide-block strong {
+.guide-card strong {
   color: var(--text-primary);
   font-weight: 600;
 }
-.guide-block code {
+.guide-card code {
   font-family: var(--mono);
   font-size: 0.9em;
   color: var(--op-lighting);
-  background: var(--bg-surface);
+  background: var(--bg-app);
   padding: 1px 5px;
   border-radius: var(--radius-sm);
 }
 .cmd {
   font-family: var(--mono);
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-primary);
   background: var(--bg-header);
   border: 1px solid var(--border-subtle);
   border-left: 3px solid var(--op-audio);
   border-radius: var(--radius-md);
-  padding: 12px 16px;
+  padding: 12px 14px;
   margin: 0 0 14px;
-  max-width: 760px;
   overflow-x: auto;
 }
 
