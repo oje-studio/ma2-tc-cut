@@ -18,7 +18,7 @@
       <span class="brand-mark">Ø</span>
       <strong class="brand-name">ØJE&nbsp;STUDIO</strong>
       <span class="nav-spacer"></span>
-      <a href="#tool">the tool</a>
+      <a href="#tool" data-open-tool>the tool</a>
       <a href="#about">about</a>
       <a href="https://github.com/oje-studio/ma2-tc-cut" target="_blank" rel="noopener">github</a>
     </nav>
@@ -33,16 +33,16 @@
         your machine.
       </p>
       <div class="cta-row">
-        <a class="cta primary" href="#tool">Open the tool</a>
+        <a class="cta primary" href="#tool" data-open-tool>Open the tool</a>
         <a class="cta ghost" href="#about">How it works</a>
       </div>
+      <a class="hero-shot" href="#tool" data-open-tool aria-label="Open MA2 Timecode Cut">
+        <img
+          src="./hero.png"
+          alt="MA2 Timecode Cut — timeline of cues, BPM bar grid, waveform and a ripple-cut window"
+        />
+      </a>
     </header>
-
-    <section class="tool-section" id="tool">
-      <div class="tool-shell">
-        <div id="tool-mount"></div>
-      </div>
-    </section>
 
     <section class="section" id="about">
       <p class="eyebrow">about</p>
@@ -79,6 +79,19 @@
         <span><a href="https://github.com/oje-studio/ma2-tc-cut">Source on GitHub</a> · soft.oje.studio</span>
       </div>
     </footer>
+
+    <!-- full-window tool view (shown when "Open the tool" is clicked / #tool) -->
+    <div id="app-view" class="app-view" aria-hidden="true">
+      <header class="app-bar">
+        <span class="brand-mark">Ø</span>
+        <strong class="brand-name">ØJE&nbsp;STUDIO</strong>
+        <span class="app-bar-sep">·</span>
+        <span class="app-bar-tool">MA2 Timecode Cut</span>
+        <span class="nav-spacer"></span>
+        <button class="app-close" type="button">← back to studio</button>
+      </header>
+      <div id="tool-mount"></div>
+    </div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

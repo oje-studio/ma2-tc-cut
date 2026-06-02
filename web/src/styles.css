@@ -197,17 +197,84 @@ a:hover {
   font-size: 14px;
 }
 
-/* ---------------- tool section ---------------- */
-.tool-section {
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
-  background: linear-gradient(180deg, #0c0c0c, var(--bg-app));
-  padding: 40px 0 56px;
+/* ---------------- hero screenshot ---------------- */
+.hero-shot {
+  display: block;
+  margin-top: 48px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-surface);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  transition: border-color 0.15s;
 }
-.tool-shell {
-  max-width: var(--maxw);
+.hero-shot:hover {
+  border-color: var(--border-strong);
+}
+.hero-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ---------------- full-window tool view ---------------- */
+.app-view {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--bg-app);
+  display: none;
+  flex-direction: column;
+  overflow: auto;
+}
+body.tool-open {
+  overflow: hidden;
+}
+body.tool-open .app-view {
+  display: flex;
+}
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.app-bar .brand-mark {
+  color: var(--op-audio);
+  font-size: 18px;
+}
+.app-bar .brand-name {
+  letter-spacing: 1.2px;
+}
+.app-bar-sep,
+.app-bar-tool {
+  color: var(--text-dim);
+  font-size: 13px;
+}
+.app-close {
+  background: var(--bg-raised);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.app-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+#tool-mount {
+  width: 100%;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 16px;
 }
 .tool {
   background: var(--bg-app);

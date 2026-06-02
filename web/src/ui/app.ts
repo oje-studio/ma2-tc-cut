@@ -197,6 +197,11 @@ export class ToolApp {
     this.timeline.setWidth(this.timeline.el.parentElement!.clientWidth || 900);
   }
 
+  /** Re-measure the timeline to its container — call when the view becomes visible. */
+  fit(): void {
+    this.timeline.setWidth(this.timeline.el.parentElement?.clientWidth || 900);
+  }
+
   /** Optionally preload a bundled demo show so the tool isn't empty on first view. */
   async loadDemo(url: string): Promise<void> {
     try {
@@ -331,6 +336,7 @@ export class ToolApp {
     }
     this.engine.setShow(info.firstFrame, info.lastFrame, info.fps);
     this.engine.setVolume(this.knob.value() / 100);
+    this.engine.seekFrame(this.firstFrame()); // reset position so the cut/uncut length change can't strand the playhead
     this.applyMetro();
     this.playBtn.disabled = false;
     this.timeline.setPlayhead(this.firstFrame());

@@ -6,11 +6,39 @@ const app = new ToolApp();
 app.mount(mount);
 (window as unknown as { tool: ToolApp }).tool = app;
 
-// Preload the bundled synthetic demo so the timeline isn't empty on first view.
+// Preload the bundled synthetic demo so the tool isn't empty on first open.
 void app.loadDemo("./demo/demo_show.xml").then(() => app.loadAudioUrl("./demo/demo_audio.mp3"));
 
-// Smooth-scroll the in-page nav / CTA links.
-document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((a) => {
+// ---- full-window tool view -------------------------------------------------
+const appView = document.getElementById("app-view")!;
+
+function openTool(): void {
+  document.body.classList.add("tool-open");
+  appView.setAttribute("aria-hidden", "false");
+  void appView.offsetWidth; // force a synchronous reflow so fit() reads the real width
+  app.fit();
+  requestAnimationFrame(() => app.fit()); // backup once layout fully settles
+}
+function closeTool(): void {
+  document.body.classList.remove("tool-open");
+  appView.setAttribute("aria-hidden", "true");
+}
+
+document.querySelectorAll<HTMLElement>("[data-open-tool]").forEach((el) =>
+  el.addEventListener("click", (e) => {
+    e.preventDefault();
+    openTool();
+  }),
+);
+document.querySelector(".app-close")?.addEventListener("click", () => closeTool());
+window.addEventListener("keydown", (e) => {
+  const typing = document.activeElement && ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName);
+  if (e.key === "Escape" && document.body.classList.contains("tool-open") && !typing) closeTool();
+});
+if (location.hash === "#tool") openTool();
+
+// ---- smooth-scroll in-page anchors (e.g. about), skipping the tool opener ----
+document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]:not([data-open-tool])').forEach((a) => {
   a.addEventListener("click", (e) => {
     const id = a.getAttribute("href")!.slice(1);
     const target = document.getElementById(id);

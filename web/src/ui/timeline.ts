@@ -46,7 +46,8 @@ export class Timeline {
 
   fps = 30;
   first = 0;
-  last = 1;
+  last = 1; // effective right edge = max(showLast, audio end) so nothing clips
+  private showLast = 1;
   lanes: Lane[] = [];
   cutIn: number | null = null;
   cutOut: number | null = null;
@@ -89,15 +90,21 @@ export class Timeline {
   }
 
   // ---------- data ----------
+  /** Effective right edge spans the longer of the show and the audio. */
+  private applyRange(): void {
+    const audioEnd = this.audioDur > 0 ? Math.round(this.first + this.audioDur * this.fps) : this.first;
+    this.last = Math.max(this.showLast, audioEnd, this.first + 1);
+  }
   setShow(fps: number, lanes: Lane[], first: number, last: number, name = ""): void {
     this.fps = Math.max(1, fps);
     this.lanes = lanes || [];
     this.first = first;
-    this.last = Math.max(last, first + 1);
+    this.showLast = Math.max(last, first + 1);
     this.anchor = first;
     if (name) this.showName = name;
     this.cutIn = this.cutOut = this.playhead = this.prevPlayhead = null;
     this.flash.clear();
+    this.applyRange();
     this.relayout();
   }
   setCut(a: number | null, b: number | null): void {
@@ -109,6 +116,7 @@ export class Timeline {
     this.audioPeaks = peaks;
     this.audioDur = durationS;
     if (name) this.audioName = name;
+    this.applyRange();
     this.draw();
   }
   clearAudio(): void {
@@ -116,6 +124,7 @@ export class Timeline {
     this.audioDur = 0;
     this.audioName = "";
     this.playhead = null;
+    this.applyRange();
     this.draw();
   }
   reset(): void {
@@ -125,6 +134,7 @@ export class Timeline {
     this.audioName = "";
     this.showName = "";
     this.bpm = 0;
+    this.showLast = this.last = 1;
     this.cutIn = this.cutOut = this.playhead = this.prevPlayhead = null;
     this.flash.clear();
     this.ejectShow = this.ejectAudio = this.hoverEject = null;
