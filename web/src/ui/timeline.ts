@@ -64,7 +64,7 @@ export class Timeline {
 
   private viewStart = 0; // visible frame range (zoom + pan); equals [first,last] when fit
   private viewEnd = 1;
-  private mode: "cut" | "insert" = "cut"; // colours the window red (cut) or green (insert)
+  private mode: "cut" | "insert" | "erase" = "cut"; // red (cut) / green (insert) / amber (erase)
   private fillH = 0; // target height from the container (fills vertical space)
   private uiScale = 1; // canvas text scale on big screens
   private audioTop: number | null = null;
@@ -125,9 +125,12 @@ export class Timeline {
     this.cutOut = b;
     this.draw();
   }
-  setMode(mode: "cut" | "insert"): void {
+  setMode(mode: "cut" | "insert" | "erase"): void {
     this.mode = mode;
     this.draw();
+  }
+  private winColor(): string {
+    return this.mode === "insert" ? t.SEMANTIC_SUCCESS : this.mode === "erase" ? t.SEMANTIC_WARNING : t.SEMANTIC_DANGER;
   }
   setAudio(peaks: Float32Array, durationS: number, name = ""): void {
     this.audioPeaks = peaks;
@@ -352,13 +355,14 @@ export class Timeline {
     if (win) {
       const xa = Math.max(LBL_W, Math.min(this.x(win[0]), W - PAD_R));
       const xb = Math.max(LBL_W, Math.min(this.x(win[1]), W - PAD_R));
-      if (this.mode === "insert") {
-        p.fillStyle = t.withAlpha(t.SEMANTIC_SUCCESS, 0.18); // a gap to open
-        p.fillRect(xa, AXIS_H, xb - xa, gridBottom - AXIS_H);
-      } else {
-        p.fillStyle = t.withAlpha(t.SEMANTIC_INFO, 0.06);
+      if (this.mode === "cut") {
+        p.fillStyle = t.withAlpha(t.SEMANTIC_INFO, 0.06); // everything right shifts left
         p.fillRect(xb, AXIS_H, W - PAD_R - xb, gridBottom - AXIS_H);
         p.fillStyle = t.withAlpha(t.SEMANTIC_DANGER, 0.16);
+        p.fillRect(xa, AXIS_H, xb - xa, gridBottom - AXIS_H);
+      } else {
+        // insert (green gap) / erase (amber, no shift): just the window
+        p.fillStyle = t.withAlpha(this.mode === "insert" ? t.SEMANTIC_SUCCESS : t.SEMANTIC_WARNING, 0.18);
         p.fillRect(xa, AXIS_H, xb - xa, gridBottom - AXIS_H);
       }
     }
@@ -401,7 +405,7 @@ export class Timeline {
         const xx = this.x(fr);
         if (xx < LBL_W || xx > W - PAD_R) continue;
         const inside = win && win[0] <= fr && fr < win[1];
-        p.strokeStyle = inside && this.mode === "cut" ? t.SEMANTIC_DANGER : lit;
+        p.strokeStyle = inside && this.mode !== "insert" ? this.winColor() : lit;
         p.lineWidth = 2;
         p.beginPath();
         p.moveTo(xx, yc - th / 2);
@@ -600,7 +604,7 @@ export class Timeline {
     const xa = this.x(a);
     const xb = this.x(b);
     const len = b - a;
-    const col = this.mode === "insert" ? t.SEMANTIC_SUCCESS : t.SEMANTIC_DANGER;
+    const col = this.winColor();
     const sign = this.mode === "insert" ? "+" : "−";
     p.font = this.font(11, true);
     p.fillStyle = col;

@@ -92,6 +92,69 @@ export function rippleCut(text: string, cutIn: number, cutLen: number): CutResul
   return { text: out.join(eol), deleted, shifted };
 }
 
+export interface EraseResult {
+  text: string;
+  deleted: Array<[number, string]>;
+}
+
+/** Erase — delete the events inside [start, end) but DON'T move anything else.
+ *  Unlike rippleCut, later events keep their time; the show length is unchanged.
+ *  Indices are renumbered per SubTrack (deletion changes the count). */
+export function eraseRange(text: string, start: number, end: number): EraseResult {
+  const eol = text.includes("\r\n") ? "\r\n" : "\n";
+  const lines = text.split(eol);
+  const n = lines.length;
+  const out: string[] = [];
+  const deleted: Array<[number, string]> = [];
+  let idx = 0;
+  let i = 0;
+  while (i < n) {
+    const line = lines[i];
+    if (SUBTRACK.test(line)) {
+      idx = 0;
+      out.push(line);
+      i += 1;
+      continue;
+    }
+    if (EVENT_OPEN.test(line)) {
+      const block: string[] = [line];
+      let j = i;
+      const single = line.includes("</Event>") || SELF_CLOSE_END.test(line);
+      if (!single) {
+        j = i + 1;
+        while (j < n) {
+          block.push(lines[j]);
+          if (lines[j].includes("</Event>")) break;
+          j += 1;
+        }
+      }
+      const t = parseInt(TIME_ATTR.exec(line)![2], 10);
+      if (start <= t && t < end) {
+        let name = "?";
+        for (const bl of block) {
+          const cm = CUE_NAME.exec(bl);
+          if (cm) {
+            name = cm[1];
+            break;
+          }
+        }
+        deleted.push([t, name]);
+        i = j + 1;
+        continue;
+      }
+      const head = block[0].replace(INDEX_ATTR, (_m, a, _d, c) => a + String(idx) + c);
+      idx += 1;
+      out.push(head);
+      for (let k = 1; k < block.length; k++) out.push(block[k]);
+      i = j + 1;
+      continue;
+    }
+    out.push(line);
+    i += 1;
+  }
+  return { text: out.join(eol), deleted };
+}
+
 export interface InsertResult {
   text: string;
   shifted: number;

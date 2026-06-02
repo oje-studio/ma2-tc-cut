@@ -948,6 +948,12 @@ body.tool-open .app-view {
 .btn-cut.insert:not(:disabled):active {
   background: var(--info-active);
 }
+.btn-cut.erase:not(:disabled) {
+  background: var(--warning);
+}
+.btn-cut.erase:not(:disabled):hover {
+  background: var(--warning-hover);
+}
 .btn-uncut {
   background: var(--bg-raised);
   color: var(--text-muted);
@@ -1015,9 +1021,9 @@ footer.site .wrap {
 }
 
 /* ---------------- large-screen scale-up ---------------- */
-/* The timeline grows vertically via flex; bump the DOM controls/text too so
-   the whole tool stays readable on big monitors. */
-@media (min-width: 1700px) {
+/* The timeline grows vertically via flex; scale the DOM controls/text up in
+   steps so the whole tool stays readable on big monitors. */
+@media (min-width: 1500px) {
   .tc-disp {
     font-size: 26px;
   }
@@ -1026,12 +1032,17 @@ footer.site .wrap {
   .vol-cap,
   .snap-lbl,
   .zoom-lbl,
-  .brand-name,
-  .brand-ver {
+  .brand-name {
     font-size: 15px;
   }
+  .cols {
+    grid-template-columns: 440px 1fr;
+    gap: 18px;
+    padding: 8px 22px 18px;
+  }
   .report {
-    font-size: 14px;
+    font-size: 15px;
+    padding: 20px;
   }
   .info-row,
   .field label,
@@ -1041,11 +1052,12 @@ footer.site .wrap {
   }
   .tc-input,
   .num-input {
-    font-size: 16px;
+    font-size: 17px;
+    padding: 9px 12px;
   }
   .field-val .tc-input {
-    flex-basis: 180px;
-    max-width: 180px;
+    flex-basis: 200px;
+    max-width: 200px;
   }
   .unit,
   .btn-auto,
@@ -1053,14 +1065,20 @@ footer.site .wrap {
   .bpm-mul {
     font-size: 13px;
   }
+  .field {
+    gap: 12px;
+  }
   .actions button {
-    font-size: 17px;
-    padding: 16px;
+    font-size: 18px;
+    padding: 18px;
   }
 }
-@media (min-width: 2200px) {
+@media (min-width: 1900px) {
   .tc-disp {
     font-size: 30px;
+  }
+  .cols {
+    grid-template-columns: 500px 1fr;
   }
   .report {
     font-size: 16px;
@@ -1068,18 +1086,46 @@ footer.site .wrap {
   .info-row,
   .field label,
   .seg {
-    font-size: 17px;
+    font-size: 16px;
   }
   .tc-input,
   .num-input {
     font-size: 18px;
   }
   .field-val .tc-input {
-    flex-basis: 200px;
-    max-width: 200px;
+    flex-basis: 220px;
+    max-width: 220px;
   }
   .actions button {
-    font-size: 19px;
-    padding: 18px;
+    font-size: 20px;
+    padding: 20px;
+  }
+}
+@media (min-width: 2400px) {
+  .tc-disp {
+    font-size: 34px;
+  }
+  .cols {
+    grid-template-columns: 580px 1fr;
+  }
+  .report {
+    font-size: 18px;
+  }
+  .info-row,
+  .field label,
+  .seg {
+    font-size: 18px;
+  }
+  .tc-input,
+  .num-input {
+    font-size: 20px;
+  }
+  .field-val .tc-input {
+    flex-basis: 250px;
+    max-width: 250px;
+  }
+  .actions button {
+    font-size: 22px;
+    padding: 24px;
   }
 }

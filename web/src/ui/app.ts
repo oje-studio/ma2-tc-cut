@@ -1,7 +1,7 @@
 // MA2 Timecode Cut — the tool UI. Port of gui.py (MainWindow), wired to the
 // shared TS core. Pure DOM + the canvas Timeline + the Web Audio Player.
 import { tcToFrames, framesToTc } from "../core/frames.ts";
-import { rippleCut, rippleInsert } from "../core/cut.ts";
+import { rippleCut, rippleInsert, eraseRange } from "../core/cut.ts";
 import { decodeShow, encodeShow, summary, lanes, estimateBeat } from "../core/tcshow.ts";
 import type { ShowSummary } from "../core/tcshow.ts";
 import { decodeAudio, estimateBpmFromPeaks } from "./audio.ts";
@@ -67,7 +67,8 @@ export class ToolApp {
   private saveBtn!: HTMLButtonElement;
   private tabCut!: HTMLButtonElement;
   private tabInsert!: HTMLButtonElement;
-  private cutMode: "cut" | "insert" = "cut";
+  private tabErase!: HTMLButtonElement;
+  private cutMode: "cut" | "insert" | "erase" = "cut";
   private cinLabel!: HTMLElement;
   private endLabel!: HTMLElement;
   private endSeg!: HTMLElement;
@@ -173,7 +174,8 @@ export class ToolApp {
     // cut panel — two tabs: Cut (ripple-delete) and Insert (open a gap)
     this.tabCut = h("button", { class: "seg active" }, "Cut");
     this.tabInsert = h("button", { class: "seg" }, "Insert");
-    const tabRow = h("div", { class: "seg-row" }, this.tabCut, this.tabInsert);
+    this.tabErase = h("button", { class: "seg" }, "Erase");
+    const tabRow = h("div", { class: "seg-row" }, this.tabCut, this.tabInsert, this.tabErase);
 
     // Cut in / Insert at — a point with an independent TC/BAR toggle
     this.cinInput = h("input", { class: "tc-input", value: "00:00:00:00", "aria-label": "Cut in", spellcheck: "false" }) as HTMLInputElement;
@@ -204,7 +206,7 @@ export class ToolApp {
 
     // action bar
     this.cutBtn = h("button", { class: "btn-cut", disabled: "" }, "CUT!");
-    this.uncutBtn = h("button", { class: "btn-uncut", disabled: "" }, "UNCUT");
+    this.uncutBtn = h("button", { class: "btn-uncut", disabled: "" }, "UNDO");
     this.saveBtn = h("button", { class: "btn-save", disabled: "" }, "SAVE FILE");
     const actions = h("div", { class: "actions" }, this.cutBtn, this.uncutBtn, this.saveBtn);
 
@@ -274,6 +276,7 @@ export class ToolApp {
 
     this.tabCut.addEventListener("click", () => this.setCutMode("cut"));
     this.tabInsert.addEventListener("click", () => this.setCutMode("insert"));
+    this.tabErase.addEventListener("click", () => this.setCutMode("erase"));
     this.endOut.addEventListener("click", () => this.setEndMode(false));
     this.endDur.addEventListener("click", () => this.setEndMode(true));
 
@@ -282,7 +285,11 @@ export class ToolApp {
       i.addEventListener("blur", () => this.reformat());
     }
 
-    this.cutBtn.addEventListener("click", () => (this.cutMode === "insert" ? this.applyInsert() : this.applyCut()));
+    this.cutBtn.addEventListener("click", () => {
+      if (this.cutMode === "insert") this.applyInsert();
+      else if (this.cutMode === "erase") this.applyErase();
+      else this.applyCut();
+    });
     this.uncutBtn.addEventListener("click", () => this.doUncut());
     this.saveBtn.addEventListener("click", () => this.saveFile());
 
@@ -501,6 +508,7 @@ export class ToolApp {
   private recompute(): void {
     if (!this.text) return;
     const insert = this.cutMode === "insert";
+    const erase = this.cutMode === "erase";
     const w = this.cutWindow();
     if (!w || w.len <= 0) {
       this.timeline.setCut(null, null);
@@ -508,7 +516,7 @@ export class ToolApp {
         ? "Set a BPM to use bar units."
         : insert
           ? "Set an insert point and a positive length."
-          : "Cut out must be later than cut in.";
+          : "End must be later than the start.";
       this.cutBtn.disabled = true;
       return;
     }
@@ -540,6 +548,18 @@ export class ToolApp {
       lines.push("");
       lines.push(`SHIFT ${shifted} cues right by ${len} frames.`);
       lines.push("Opens a gap — nothing is deleted.");
+    } else if (erase) {
+      const { deleted } = eraseRange(this.text, cin, cout);
+      lines.push("PENDING — press ERASE! to apply", "");
+      lines.push(`Erase window:  ${framesToTc(cin, this.fps)}  →  ${framesToTc(cout, this.fps)}`);
+      lines.push(`Length:      ${len} frames  /  ${(len / this.fps).toFixed(3)} s`);
+      barsLine("window ends at");
+      lines.push("");
+      lines.push(`ERASE ${deleted.length} cues:`);
+      for (const [fr, nm] of deleted.slice(0, 18)) lines.push(`    ${framesToTc(fr, this.fps)}  ${nm}`);
+      if (deleted.length > 18) lines.push(`    … and ${deleted.length - 18} more`);
+      lines.push("");
+      lines.push("Timeline length unchanged — later cues stay put.");
     } else {
       const { deleted, shifted } = rippleCut(this.text, cin, len);
       lines.push("PENDING — press CUT! to apply", "");
@@ -582,7 +602,7 @@ export class ToolApp {
     this.uncutBtn.disabled = false;
     this.refreshSave();
     const n = this.undo.length;
-    this.report.textContent = `✓ CUT APPLIED  (UNCUT to undo · ${n} edit${n === 1 ? "" : "s"})`;
+    this.report.textContent = `✓ CUT APPLIED  (UNDO to revert · ${n} edit${n === 1 ? "" : "s"})`;
   }
 
   private applyInsert(): void {
@@ -597,7 +617,22 @@ export class ToolApp {
     this.uncutBtn.disabled = false;
     this.refreshSave();
     const n = this.undo.length;
-    this.report.textContent = `✓ INSERTED  (UNCUT to undo · ${n} edit${n === 1 ? "" : "s"})`;
+    this.report.textContent = `✓ INSERTED  (UNDO to revert · ${n} edit${n === 1 ? "" : "s"})`;
+  }
+
+  private applyErase(): void {
+    if (!this.text) return;
+    const w = this.cutWindow();
+    if (!w || w.len <= 0) return;
+    this.undo.push(this.text);
+    const { text } = eraseRange(this.text, w.cin, w.cin + w.len);
+    this.text = text;
+    this.reloadWorking(false);
+    this.timeline.setCut(null, null);
+    this.uncutBtn.disabled = false;
+    this.refreshSave();
+    const n = this.undo.length;
+    this.report.textContent = `✓ ERASED  (UNDO to revert · ${n} edit${n === 1 ? "" : "s"})`;
   }
 
   private doUncut(): void {
@@ -770,19 +805,21 @@ export class ToolApp {
     btns[0].classList.toggle("active", firstActive);
     btns[1].classList.toggle("active", !firstActive);
   }
-  private setCutMode(mode: "cut" | "insert"): void {
+  private setCutMode(mode: "cut" | "insert" | "erase"): void {
     this.cutMode = mode;
     const insert = mode === "insert";
+    this.tabCut.classList.toggle("active", mode === "cut");
     this.tabInsert.classList.toggle("active", insert);
-    this.tabCut.classList.toggle("active", !insert);
-    this.cinLabel.textContent = insert ? "Insert at" : "Cut in";
+    this.tabErase.classList.toggle("active", mode === "erase");
+    this.cinLabel.textContent = insert ? "Insert at" : mode === "erase" ? "Erase from" : "Cut in";
     this.endLabel.textContent = insert ? "Length" : "End by";
-    // insert is always point + length → force Duration and hide the Cut out toggle
+    // insert is point + length → force Duration and hide the Cut out toggle; cut/erase use a window
     this.endSeg.style.display = insert ? "none" : "";
     if (insert && !this.endIsDuration()) this.setEndMode(true);
-    this.cutBtn.textContent = insert ? "INSERT!" : "CUT!";
+    this.cutBtn.textContent = insert ? "INSERT!" : mode === "erase" ? "ERASE!" : "CUT!";
     this.cutBtn.classList.toggle("insert", insert);
-    this.timeline.setMode(insert ? "insert" : "cut");
+    this.cutBtn.classList.toggle("erase", mode === "erase");
+    this.timeline.setMode(mode);
     this.recompute();
   }
   private setEndMode(dur: boolean): void {
@@ -808,7 +845,7 @@ export class ToolApp {
   private setLoaded(ok: boolean): void {
     const ctrls: Array<HTMLInputElement | HTMLButtonElement> = [
       this.cinInput, this.coutInput, this.durInput, this.bpmInput, this.endOut, this.endDur,
-      this.tabCut, this.tabInsert,
+      this.tabCut, this.tabInsert, this.tabErase,
       ...this.cinUnitBtns, ...this.coutUnitBtns, ...this.durUnitBtns,
     ];
     for (const c of ctrls) c.disabled = !ok;

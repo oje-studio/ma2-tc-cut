@@ -122,9 +122,14 @@ export class Player {
     return this.playing;
   }
 
-  /** Current playhead as a show frame. */
+  /** Current playhead as a show frame. While playing, shift back by the output
+   *  latency so the playhead matches what's actually heard (clicks/audio land
+   *  on the playhead instead of trailing it). */
   positionFrame(): number {
-    const sec = this.playing ? this.ctx!.currentTime - this.startCtx : this.positionSec;
+    let sec = this.positionSec;
+    if (this.playing && this.ctx) {
+      sec = this.ctx.currentTime - this.startCtx - (this.ctx.outputLatency || this.ctx.baseLatency || 0);
+    }
     const clamped = Math.max(0, Math.min(this.totalSec, sec));
     return this.showFirst + clamped * this.fps;
   }
@@ -206,13 +211,14 @@ export class Player {
     // metronome: schedule any beats landing in the lookahead window
     if (this.metroOn && this.beatFrames > 0) {
       const horizon = now + SCHEDULE_AHEAD;
+      const endFrame = this.showFirst + this.totalSec * this.fps; // metronome runs to the end of playback (audio), not just the show
       // guard against runaway loops on bad input
       for (let guard = 0; guard < 256; guard++) {
         const beatFrame = this.anchorFrame + this.nextBeatK * this.beatFrames;
         const beatSec = (beatFrame - this.showFirst) / this.fps;
         const when = this.startCtx + beatSec;
         if (when >= horizon) break;
-        if (beatFrame > this.showLast + this.beatFrames) break;
+        if (beatFrame > endFrame + this.beatFrames) break;
         if (when >= now - 0.05) this.scheduleClick(when, this.nextBeatK % 4 === 0);
         this.nextBeatK += 1;
       }
