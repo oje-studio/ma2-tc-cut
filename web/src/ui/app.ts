@@ -769,13 +769,8 @@ export class ToolApp {
   private setUnit(which: "cin" | "cout" | "dur", unit: "tc" | "bar" | "sec"): void {
     const bf = this.barFrames();
     if (which === "dur") {
-      if (unit !== this.durUnit) {
-        const cur = parseFloat(this.durInput.value);
-        if (isFinite(cur) && bf > 0) {
-          this.durInput.value =
-            unit === "bar" ? ((cur * this.fps) / bf).toFixed(2) : ((cur * bf) / this.fps).toFixed(3);
-        }
-      }
+      // keep the typed number and just reinterpret it in the new unit, so
+      // "pick bars, the value IS that many bars" — no surprise conversion
       this.durUnit = unit === "bar" ? "bar" : "sec";
       this.setUnitActive(this.durUnitBtns, this.durUnit === "sec");
     } else {
