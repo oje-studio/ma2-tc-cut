@@ -291,27 +291,41 @@ export class LtcApp {
     if (this.s.mode === "single") {
       this.waveCanvas.style.cursor = "ew-resize";
       let dragging = false;
+      let rafThrottle: number | null = null;
       const seek = (e: PointerEvent): void => {
         const rect = this.waveCanvas.getBoundingClientRect();
         const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
         this.playheadSec = (x / rect.width) * this.s.durationSec;
-        this.drawWave();
+        // Coalesce repaints to one per animation frame so fast drags stay smooth.
+        if (rafThrottle === null) {
+          rafThrottle = requestAnimationFrame(() => { rafThrottle = null; this.drawWave(); });
+        }
       };
       this.waveCanvas.addEventListener("pointerdown", (e) => {
+        // preventDefault stops the browser's text-/image-drag default from
+        // capturing the pointer mid-canvas (which would explain why dragging
+        // sometimes only worked at the strip edges).
+        e.preventDefault();
         dragging = true;
-        this.waveCanvas.setPointerCapture(e.pointerId);
+        try { this.waveCanvas.setPointerCapture(e.pointerId); } catch {/**/}
+        this.waveCanvas.style.cursor = "grabbing";
         seek(e);
       });
-      this.waveCanvas.addEventListener("pointermove", (e) => { if (dragging) seek(e); });
+      this.waveCanvas.addEventListener("pointermove", (e) => {
+        if (dragging) { e.preventDefault(); seek(e); }
+      });
       const release = (e: PointerEvent): void => {
         if (!dragging) return;
         dragging = false;
         try { this.waveCanvas.releasePointerCapture(e.pointerId); } catch {/**/}
+        this.waveCanvas.style.cursor = "ew-resize";
         // If audio was playing, restart from the new playhead position.
         if (this.playingNode) { this.stopPlay(); void this.togglePlay(); }
       };
       this.waveCanvas.addEventListener("pointerup", release);
       this.waveCanvas.addEventListener("pointercancel", release);
+      // Block native drag-image so the cursor stays predictable.
+      this.waveCanvas.addEventListener("dragstart", (e) => e.preventDefault());
     } else {
       this.waveCanvas.style.cursor = "default";
     }
@@ -588,7 +602,9 @@ export class LtcApp {
       if (this.s.mode === "single") {
         const end = this.estimateEndTc(this.s.startTc, this.s.durationSec);
         const bytes = Math.round(this.s.durationSec * sr * 2 + 44);
-        this.startReadout.textContent = this.s.startTc;
+        // Left transport TC is overwritten by drawWave() at the end (to the
+        // playhead's current TC). We don't preset it here so the readout
+        // never momentarily flashes the wrong value.
         this.endReadout.textContent = end;
         this.fpsBadge.textContent = `${this.s.fps}${this.s.dropFrame ? " DF" : ""} fps`;
         this.srBadge.textContent = `${sr / 1000} kHz`;
@@ -598,8 +614,7 @@ export class LtcApp {
           `≈ ${this.fmtBytes(bytes)}`,
         ].join("\n");
         this.genBtn.disabled = false;
-        return;
-      }
+      } else {
       // ---- batch ----
       const spec: BatchSpec = {
         rangeStart: this.s.rangeStart, rangeEnd: this.s.rangeEnd,
@@ -643,6 +658,7 @@ export class LtcApp {
       }
 
       this.preview.textContent = lines.join("\n");
+      }
     } catch (err) {
       this.preview.textContent = "⚠ " + (err as Error).message;
       this.genBtn.disabled = true;
@@ -731,6 +747,18 @@ export class LtcApp {
       });
       pcm = r.pcm;
     } catch {/**/}
+
+    // Live playback readout: in Single mode the left transport TC reflects
+    // the playhead position (so the transport bar reads "current → end"
+    // during playback), not the static file start. In Batch it stays the
+    // first file's start.
+    if (isSingle && this.startReadout) {
+      this.startReadout.textContent = fragTc;
+      // Glow it green while audio is rolling.
+      this.startReadout.classList.toggle("rolling", !!this.playingNode);
+    } else if (this.startReadout) {
+      this.startReadout.classList.remove("rolling");
+    }
 
     if (pcm && pcm.length) {
       // sync-word band (right 20%)

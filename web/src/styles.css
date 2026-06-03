@@ -1444,6 +1444,10 @@ body.detail-open {
   font-weight: 600;
   letter-spacing: 1px;
   color: var(--text-bright);
+  transition: color 80ms ease-out;
+}
+.ltc-transport .tc-disp.rolling {
+  color: var(--action); /* green while audio is rolling — matches the playhead */
 }
 .ltc-transport .tc-end { color: var(--text-muted); }
 .ltc-transport .sep { color: var(--text-dim); }
