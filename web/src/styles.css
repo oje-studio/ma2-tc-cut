@@ -1415,12 +1415,55 @@ body.detail-open {
 /* ============ LTC Generator ============ */
 .ltc-tool {
   max-width: 1100px;
-  margin: 24px auto;
+  margin: 18px auto 32px;
   padding: 0 24px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
+
+/* Transport bar — echoes the MA2 tool: mono TC + amber accent + badges. */
+.ltc-transport {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--bg-header);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  font-family: var(--mono);
+}
+.ltc-tx-glyph {
+  color: var(--op-audio); /* amber, like .app-bar .brand-mark */
+  font-size: 18px;
+  line-height: 1;
+}
+.ltc-transport .tc-disp {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--text-bright);
+}
+.ltc-transport .tc-end { color: var(--text-muted); }
+.ltc-transport .sep { color: var(--text-dim); }
+.ltc-tx-spacer { flex: 1; }
+.ltc-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ltc-badge {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-family: var(--mono);
+  letter-spacing: 0.3px;
+}
+
 .ltc-header { display: flex; align-items: center; gap: 14px; }
 .ltc-grid {
   display: grid;
@@ -1450,8 +1493,7 @@ body.detail-open {
   margin-bottom: 10px;
 }
 .ltc-row label { color: var(--text-muted); font-size: 13px; }
-.ltc-row .tc-input,
-.ltc-row .ltc-select {
+.ltc-row .tc-input {
   background: var(--bg-input);
   color: var(--text-primary);
   border: 1px solid var(--border);
@@ -1461,10 +1503,22 @@ body.detail-open {
   font-size: 14px;
   width: 100%;
 }
-.ltc-row .tc-input:focus,
-.ltc-row .ltc-select:focus {
+.ltc-row .tc-input:focus {
   border-color: var(--info);
   outline: none;
+}
+.ltc-row .tc-input.num { max-width: 110px; }
+.ltc-row .seg-row.small { justify-self: start; }
+.ltc-suffix {
+  color: var(--text-dim);
+  font-size: 12px;
+  font-family: var(--mono);
+}
+/* Duration field = number input + unit pill row */
+.ltc-dur {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 .ltc-check {
   display: inline-flex;
@@ -1474,7 +1528,7 @@ body.detail-open {
   font-size: 13px;
   cursor: pointer;
 }
-.ltc-check input[disabled] + span { opacity: 0.5; }
+.ltc-check input { accent-color: var(--info); }
 .ltc-range { width: 100%; accent-color: var(--action); }
 .ltc-range-out {
   font-family: var(--mono);
@@ -1483,7 +1537,7 @@ body.detail-open {
   white-space: nowrap;
 }
 .ltc-hint {
-  margin: 0;
+  margin: 6px 0 0;
   color: var(--text-dim);
   font-size: 12px;
   font-family: var(--mono);
@@ -1493,6 +1547,9 @@ body.detail-open {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 .ltc-preview {
   margin: 0;
@@ -1505,6 +1562,14 @@ body.detail-open {
   border: none;
   padding: 0;
 }
+.ltc-wave {
+  width: 100%;
+  height: 120px;
+  display: block;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-header);
+}
 .ltc-actions {
   display: flex;
   align-items: center;
@@ -1514,9 +1579,31 @@ body.detail-open {
 .ltc-actions .btn-cut {
   min-width: 220px;
   padding: 12px 24px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  cursor: pointer;
 }
 .ltc-status {
   color: var(--text-muted);
   font-family: var(--mono);
   font-size: 12px;
+}
+
+/* Focus rings — match the rest of the site. */
+.ltc-tool .seg:focus-visible,
+.ltc-tool .tc-input:focus-visible,
+.ltc-tool .ltc-check input:focus-visible,
+.ltc-tool .ltc-range:focus-visible,
+.ltc-tool .btn-cut:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 2px;
+}
+
+@media (max-width: 620px) {
+  .ltc-transport { flex-wrap: wrap; gap: 10px; }
+  .ltc-transport .tc-disp { font-size: 17px; }
+  .ltc-row { grid-template-columns: 92px 1fr; }
+  .ltc-row .ltc-suffix { display: none; }
 }

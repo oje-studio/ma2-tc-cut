@@ -144,7 +144,16 @@ function buildPacket(tc: string, fps: number, dropFrame: boolean): number[] {
 
 // --- Main render ------------------------------------------------------------
 
-export function generateLtcWav(spec: LtcSpec): LtcResult {
+export interface LtcPcmResult {
+  pcm: Int16Array;
+  sampleRate: number;
+  endTc: string;
+  frames: number;
+}
+
+/** Render BMC-encoded PCM (no WAV header). Used by both `generateLtcWav` and
+ *  the preview canvas — the canvas calls this at a small SR and short duration. */
+export function renderLtcPcm(spec: LtcSpec): LtcPcmResult {
   const sr = spec.sampleRate ?? SAMPLE_RATE;
   const level = Math.max(0, Math.min(1, spec.level ?? 0.5));
   const peak = Math.round(level * 32767);
@@ -153,54 +162,45 @@ export function generateLtcWav(spec: LtcSpec): LtcResult {
   // at minute boundaries via the TC math, NOT by changing audio rate).
   const isDf = !!spec.dropFrame && Math.abs(spec.fps - 29.97) < 0.01;
   const fpsNom = isDf ? 30 : Math.round(spec.fps);
-  const fpsActual = isDf ? 30000 / 1001 : spec.fps; // 29.97 = 30000/1001
+  const fpsActual = isDf ? 30000 / 1001 : spec.fps;
 
   const startFr = tcToFrames(spec.startTc, fpsNom, isDf);
   const totalFrames = Math.max(1, Math.round(spec.durationSec * fpsActual));
 
-  // Each frame: 80 bits → BMC → 160 transitions. samplesPerHalfBit = sr / (fps*160).
-  // We just track a running phase and toggle on every "1" half-bit; "0" only toggles
-  // once per bit. Output sample = peak when phase==1 else -peak (square LTC).
   const samplesPerFrame = sr / fpsActual;
   const totalSamples = Math.ceil(samplesPerFrame * totalFrames);
   const out = new Int16Array(totalSamples);
 
-  // Pre-compute the transition table for one frame's 80 bits.
-  // BMC: ALWAYS flip at the start of a bit cell; if the bit is 1, ALSO flip in the middle.
   let writeIdx = 0;
-  let phase = 1; // current level: +1 or -1
-  // Carry phase across frames so the BMC stream is continuous.
+  let phase = 1;
   for (let fi = 0; fi < totalFrames; fi++) {
     const tc = framesToTc(startFr + fi, fpsNom, isDf);
     const bits = buildPacket(tc, fpsNom, isDf);
-    // Each bit cell spans samplesPerFrame/80 samples.
     const cellSamples = samplesPerFrame / 80;
     for (let bi = 0; bi < 80; bi++) {
-      // Edge at the start of the cell.
       phase = -phase;
-      // Mid-cell edge if bit==1.
-      const halfStart = Math.floor(fi * samplesPerFrame + bi * cellSamples);
       const halfMid = Math.floor(fi * samplesPerFrame + (bi + 0.5) * cellSamples);
       const halfEnd = Math.floor(fi * samplesPerFrame + (bi + 1) * cellSamples);
-      // Fill first half
       for (let s = writeIdx; s < halfMid && s < totalSamples; s++) out[s] = phase * peak;
       writeIdx = Math.max(writeIdx, halfMid);
       if (bits[bi] === 1) phase = -phase;
-      // Fill second half
       for (let s = writeIdx; s < halfEnd && s < totalSamples; s++) out[s] = phase * peak;
       writeIdx = Math.max(writeIdx, halfEnd);
-      // halfStart kept for clarity / future debug — silence unused-var lint
-      void halfStart;
     }
   }
-  // Pad any remainder with the last phase
   for (let s = writeIdx; s < totalSamples; s++) out[s] = phase * peak;
 
   return {
-    wav: writeWavMono16(out, sr),
+    pcm: out,
+    sampleRate: sr,
     endTc: framesToTc(startFr + totalFrames - 1, fpsNom, isDf),
     frames: totalFrames,
   };
+}
+
+export function generateLtcWav(spec: LtcSpec): LtcResult {
+  const r = renderLtcPcm(spec);
+  return { wav: writeWavMono16(r.pcm, r.sampleRate), endTc: r.endTc, frames: r.frames };
 }
 
 // --- Batch planner ----------------------------------------------------------
@@ -223,6 +223,36 @@ export interface PlannedFile {
 }
 
 const DEFAULT_PATTERN = "ltc_{hh}-{mm}.wav";
+
+/** Split a list of files into N chunks each ≤ `maxBytesPerChunk`, capped at
+ *  `maxChunks`. Each item carries its expected on-disk size (WAV bytes). The
+ *  cap stops a careless input from queueing tens of GB of RAM. */
+export function chunkByBytes<T extends { bytes: number }>(
+  items: T[],
+  maxBytesPerChunk: number,
+  maxChunks: number,
+): { chunks: T[][]; truncated: number } {
+  const chunks: T[][] = [];
+  let current: T[] = [];
+  let currentBytes = 0;
+  let truncated = 0;
+  for (const it of items) {
+    // Always allow at least one item per chunk, even if it alone exceeds the limit.
+    if (current.length > 0 && currentBytes + it.bytes > maxBytesPerChunk) {
+      chunks.push(current);
+      if (chunks.length >= maxChunks) {
+        truncated = items.length - (chunks.flat().length);
+        return { chunks, truncated };
+      }
+      current = [];
+      currentBytes = 0;
+    }
+    current.push(it);
+    currentBytes += it.bytes;
+  }
+  if (current.length) chunks.push(current);
+  return { chunks, truncated };
+}
 
 export function planBatch(spec: BatchSpec): PlannedFile[] {
   const isDf = !!spec.dropFrame && Math.abs(spec.fps - 29.97) < 0.01;
