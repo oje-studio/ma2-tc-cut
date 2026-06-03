@@ -47,14 +47,14 @@ const DEFAULTS: State = {
   startTc: "00:00:00:00",
   durationSec: 60,
   durationUnit: "s",
-  filename: "ltc_00-00-00.wav",
+  filename: "ltc_00-00-00",          // .wav appended by the tool
   rangeStart: "00:00:00",
   rangeEnd: "23:59:00",
   intervalSec: 1800,
   intervalUnit: "min",
   batchDurationSec: 1500,
   batchDurationUnit: "min",
-  filenamePattern: "ltc_{hh}-{mm}.wav",
+  filenamePattern: "ltc_{hh}-{mm}",  // .wav appended by the tool
 };
 
 // Memory ceiling for each ZIP chunk (≈1.5 GB keeps Chrome / Safari happy).
@@ -76,12 +76,58 @@ export class LtcApp {
   private srBadge!: HTMLElement;
   private levelBadge!: HTMLElement;
   private genBtn!: HTMLButtonElement;
+  private playBtn?: HTMLButtonElement;
   private status!: HTMLElement;
+  // Web Audio playback (Single mode "Play" button)
+  private audioCtx: AudioContext | null = null;
+  private playingNode: AudioBufferSourceNode | null = null;
 
   constructor() {
     this.el = document.createElement("div");
     this.el.className = "ltc-tool";
     this.render();
+  }
+
+  // ---- TC mask -----------------------------------------------------------
+  /** Live mask: strip non-digits, re-insert colons every 2 digits, cap to slots. */
+  private formatTcLive(raw: string, slots: 6 | 8): string {
+    const digits = raw.replace(/[^\d]/g, "").slice(0, slots);
+    let out = "";
+    for (let i = 0; i < digits.length; i++) {
+      if (i > 0 && i % 2 === 0) out += ":";
+      out += digits[i];
+    }
+    return out;
+  }
+  /** Pad a partial TC to canonical form on blur (e.g. "1:2" → "00:00:01:02"). */
+  private formatTcCanonical(raw: string, slots: 6 | 8): string {
+    const digits = raw.replace(/[^\d]/g, "").slice(0, slots).padStart(slots, "0");
+    const parts: string[] = [];
+    for (let i = 0; i < digits.length; i += 2) parts.push(digits.slice(i, i + 2));
+    return parts.join(":");
+  }
+  /** Wire input mask + blur-normalize. `onCommit` fires on every keystroke. */
+  private wireTcInput(
+    input: HTMLInputElement, slots: 6 | 8,
+    onCommit: (value: string) => void,
+  ): void {
+    input.addEventListener("input", () => {
+      const caretEnd = input.selectionEnd ?? input.value.length;
+      const before = input.value;
+      const masked = this.formatTcLive(before, slots);
+      input.value = masked;
+      // best-effort caret restore: keep at the end of the digit run we typed
+      const digitsBefore = before.slice(0, caretEnd).replace(/[^\d]/g, "").length;
+      const newCaret = Math.min(masked.length, digitsBefore + Math.floor((digitsBefore - 1) / 2));
+      try { input.setSelectionRange(newCaret, newCaret); } catch {/**/}
+      onCommit(masked);
+    });
+    input.addEventListener("blur", () => {
+      if (!input.value) return;
+      const canon = this.formatTcCanonical(input.value, slots);
+      input.value = canon;
+      onCommit(canon);
+    });
   }
 
   // ---- DOM helpers ----
@@ -191,6 +237,8 @@ export class LtcApp {
       this.s.level = parseFloat(levelInput.value);
       levelOut.textContent = `${Math.round(this.s.level * 100)}%`;
       this.levelBadge.textContent = `${(20 * Math.log10(this.s.level)).toFixed(1)} dBFS`;
+      this.drawWave();        // amplitude follows the level visually
+      this.stopPlay();        // running playback would be stale at the new level
     });
 
     const optsCard = h("div", { class: "ltc-card" },
@@ -218,6 +266,23 @@ export class LtcApp {
     );
     this.genBtn.addEventListener("click", () => void this.generate());
 
+    // Play button — Single mode only. Lets you audition the LTC through the
+    // browser's audio output (field-test it through a speaker, headphones,
+    // or a console reading SMPTE off a 1/4" line input).
+    const actionChildren: Node[] = [];
+    if (this.s.mode === "single") {
+      this.playBtn = h("button", {
+        class: "btn-play", type: "button", "aria-label": "Play / stop preview",
+      }, "▶ Play") as HTMLButtonElement;
+      this.playBtn.addEventListener("click", () => void this.togglePlay());
+      actionChildren.push(this.playBtn);
+      // If the user navigates away from Single (tab swap), kill any playback.
+    } else {
+      this.playBtn = undefined;
+      this.stopPlay();
+    }
+    actionChildren.push(this.genBtn, this.status);
+
     // ---- mount ----------------------------------------------------------
     this.el.replaceChildren(
       transport,
@@ -230,11 +295,50 @@ export class LtcApp {
         this.preview,
         this.waveCanvas,
       ),
-      h("div", { class: "ltc-actions" }, this.genBtn, this.status),
+      h("div", { class: "ltc-actions" }, ...actionChildren),
     );
 
     this.updatePreview();
     this.drawWave();
+  }
+
+  // ---- Web Audio playback ------------------------------------------------
+  private async togglePlay(): Promise<void> {
+    if (this.playingNode) { this.stopPlay(); return; }
+    try {
+      if (!this.audioCtx) this.audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      if (this.audioCtx.state === "suspended") await this.audioCtx.resume();
+
+      this.setStatus("Rendering preview…");
+      // Yield so the status flushes before the (small) blocking render.
+      await new Promise((r) => setTimeout(r, 0));
+      const r = renderLtcPcm({
+        startTc: this.s.startTc, fps: this.s.fps, dropFrame: this.s.dropFrame,
+        durationSec: this.s.durationSec, sampleRate: this.s.sampleRate, level: this.s.level,
+      });
+      const buf = this.audioCtx.createBuffer(1, r.pcm.length, r.sampleRate);
+      const ch = buf.getChannelData(0);
+      for (let i = 0; i < r.pcm.length; i++) ch[i] = r.pcm[i] / 32768;
+      const src = this.audioCtx.createBufferSource();
+      src.buffer = buf;
+      src.connect(this.audioCtx.destination);
+      src.onended = () => { if (this.playingNode === src) this.stopPlay(); };
+      src.start();
+      this.playingNode = src;
+      if (this.playBtn) { this.playBtn.textContent = "◼ Stop"; this.playBtn.classList.add("on"); }
+      this.setStatus(`Playing ${this.s.startTc} → ${r.endTc} (${r.frames} frames)`);
+    } catch (err) {
+      this.setStatus("⚠ " + (err as Error).message);
+      this.stopPlay();
+    }
+  }
+  private stopPlay(): void {
+    if (this.playingNode) {
+      try { this.playingNode.stop(); } catch {/**/}
+      try { this.playingNode.disconnect(); } catch {/**/}
+      this.playingNode = null;
+    }
+    if (this.playBtn) { this.playBtn.textContent = "▶ Play"; this.playBtn.classList.remove("on"); }
   }
 
   private makeTab(label: string, mode: "single" | "batch"): HTMLElement {
@@ -246,10 +350,15 @@ export class LtcApp {
     return b;
   }
 
-  /** Number + unit pill row. Stores value internally in SECONDS. */
+  /** Number + unit pill row. Stores value internally in SECONDS.
+   *  `onSec` runs on every keystroke (no re-render — keeps the input focused).
+   *  `onUnit` runs when the user picks a different unit pill — and triggers a
+   *  full re-render so the "active" pill switches AND the input value gets
+   *  redisplayed in the new unit. */
   private durationField(
     sec: number, unit: DurUnit,
-    onChange: (sec: number, unit: DurUnit) => void,
+    onSec: (sec: number) => void,
+    onUnit: (sec: number, unit: DurUnit) => void,
     ariaLabel: string,
   ): HTMLElement {
     const h = this.h.bind(this);
@@ -257,48 +366,47 @@ export class LtcApp {
       type: "number", class: "tc-input num", min: "0", step: "any",
       value: String(toUnit(sec, unit)), "aria-label": ariaLabel,
     }) as HTMLInputElement;
+    input.addEventListener("input", () => {
+      const raw = parseFloat(input.value) || 0;
+      onSec(Math.round(raw * UNIT_S[unit]));
+    });
     const units = this.segRow(
       [{ value: "s" as DurUnit, label: "s" }, { value: "min", label: "min" }, { value: "h", label: "h" }] as const,
       unit,
       (u) => {
         const raw = parseFloat(input.value) || 0;
         const newSec = Math.round(raw * UNIT_S[unit]);
-        onChange(newSec, u);
+        onUnit(newSec, u);
       },
       `${ariaLabel} units`,
     );
-    input.addEventListener("input", () => {
-      const raw = parseFloat(input.value) || 0;
-      onChange(Math.round(raw * UNIT_S[unit]), unit);
-    });
-    const wrap = h("div", { class: "ltc-dur" }, input, units);
-    return wrap;
+    return h("div", { class: "ltc-dur" }, input, units);
   }
 
   private renderSingle(): HTMLElement {
     const h = this.h.bind(this);
     const tcIn = h("input", {
-      type: "text", class: "tc-input", value: this.s.startTc,
+      type: "text", class: "tc-input", value: this.s.startTc, inputmode: "numeric",
       spellcheck: "false", placeholder: "HH:MM:SS:FF", "aria-label": "Start timecode",
     }) as HTMLInputElement;
-    tcIn.addEventListener("input", () => { this.s.startTc = tcIn.value; this.updatePreview(); this.drawWave(); });
+    this.wireTcInput(tcIn, 8, (v) => { this.s.startTc = v; this.updatePreview(); this.drawWave(); });
 
     const durField = this.durationField(
       this.s.durationSec, this.s.durationUnit,
-      (sec, u) => { this.s.durationSec = sec; this.s.durationUnit = u; this.updatePreview(); },
+      (sec) => { this.s.durationSec = sec; this.updatePreview(); },
+      (sec, u) => { this.s.durationSec = sec; this.s.durationUnit = u; this.render(); },
       "Duration",
     );
 
     const nameIn = h("input", {
       type: "text", class: "tc-input", value: this.s.filename, spellcheck: "false",
-      "aria-label": "Filename",
+      "aria-label": "Filename (without extension)",
     }) as HTMLInputElement;
+    const hint = h("p", { class: "ltc-hint" }, `→ saves as ${this.ensureWav(this.s.filename || "ltc")}`);
     nameIn.addEventListener("input", () => {
       this.s.filename = nameIn.value;
-      hint.textContent = `→ saves as ${this.ensureWav(this.s.filename || "ltc.wav")}`;
+      hint.textContent = `→ saves as ${this.ensureWav(this.s.filename || "ltc")}`;
     });
-
-    const hint = h("p", { class: "ltc-hint" }, `→ saves as ${this.ensureWav(this.s.filename || "ltc.wav")}`);
 
     return h("div", { class: "ltc-card" },
       h("h3", { class: "ltc-card-h" }, "Single file"),
@@ -311,23 +419,34 @@ export class LtcApp {
 
   private renderBatch(): HTMLElement {
     const h = this.h.bind(this);
-    const startIn = h("input", { type: "text", class: "tc-input", value: this.s.rangeStart, placeholder: "HH:MM:SS", "aria-label": "Range start" }) as HTMLInputElement;
-    startIn.addEventListener("input", () => { this.s.rangeStart = startIn.value; this.updatePreview(); this.drawWave(); });
-    const endIn = h("input", { type: "text", class: "tc-input", value: this.s.rangeEnd, placeholder: "HH:MM:SS", "aria-label": "Range end" }) as HTMLInputElement;
-    endIn.addEventListener("input", () => { this.s.rangeEnd = endIn.value; this.updatePreview(); });
+    const startIn = h("input", {
+      type: "text", class: "tc-input", value: this.s.rangeStart, inputmode: "numeric",
+      placeholder: "HH:MM:SS", "aria-label": "Range start",
+    }) as HTMLInputElement;
+    this.wireTcInput(startIn, 6, (v) => { this.s.rangeStart = v; this.updatePreview(); this.drawWave(); });
+    const endIn = h("input", {
+      type: "text", class: "tc-input", value: this.s.rangeEnd, inputmode: "numeric",
+      placeholder: "HH:MM:SS", "aria-label": "Range end",
+    }) as HTMLInputElement;
+    this.wireTcInput(endIn, 6, (v) => { this.s.rangeEnd = v; this.updatePreview(); });
 
     const intField = this.durationField(
       this.s.intervalSec, this.s.intervalUnit,
-      (sec, u) => { this.s.intervalSec = sec; this.s.intervalUnit = u; this.updatePreview(); },
+      (sec) => { this.s.intervalSec = sec; this.updatePreview(); },
+      (sec, u) => { this.s.intervalSec = sec; this.s.intervalUnit = u; this.render(); },
       "Interval",
     );
     const durField = this.durationField(
       this.s.batchDurationSec, this.s.batchDurationUnit,
-      (sec, u) => { this.s.batchDurationSec = sec; this.s.batchDurationUnit = u; this.updatePreview(); },
+      (sec) => { this.s.batchDurationSec = sec; this.updatePreview(); },
+      (sec, u) => { this.s.batchDurationSec = sec; this.s.batchDurationUnit = u; this.render(); },
       "Length each",
     );
 
-    const patIn = h("input", { type: "text", class: "tc-input", value: this.s.filenamePattern, spellcheck: "false", "aria-label": "Filename pattern" }) as HTMLInputElement;
+    const patIn = h("input", {
+      type: "text", class: "tc-input", value: this.s.filenamePattern, spellcheck: "false",
+      "aria-label": "Filename pattern (without extension)",
+    }) as HTMLInputElement;
     patIn.addEventListener("input", () => { this.s.filenamePattern = patIn.value; this.updatePreview(); });
 
     return h("div", { class: "ltc-card" },
@@ -337,7 +456,7 @@ export class LtcApp {
       h("div", { class: "ltc-row" }, h("label", {}, "Interval"), intField),
       h("div", { class: "ltc-row" }, h("label", {}, "Length each"), durField),
       h("div", { class: "ltc-row" }, h("label", {}, "Filename"), patIn),
-      h("p", { class: "ltc-hint" }, "Tokens: {tc} {hh} {mm} {ss} {idx}  ·  extension .wav added automatically"),
+      h("p", { class: "ltc-hint" }, "Tokens: {tc} {hh} {mm} {ss} {idx}  ·  .wav appended"),
     );
   }
 
@@ -455,7 +574,8 @@ export class LtcApp {
       const r = renderLtcPcm({
         startTc: this.s.mode === "single" ? this.s.startTc : this.s.rangeStart + ":00",
         fps: this.s.fps, dropFrame: this.s.dropFrame,
-        durationSec: previewSec, sampleRate: previewSr, level: 1,
+        durationSec: previewSec, sampleRate: previewSr,
+        level: Math.max(0.05, this.s.level), // mirror the user's level visually
       });
       pcm = r.pcm;
     } catch {

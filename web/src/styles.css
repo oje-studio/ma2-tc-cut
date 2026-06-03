@@ -1570,11 +1570,31 @@ body.detail-open {
   border-radius: var(--radius-md);
   background: var(--bg-header);
 }
+/* Action bar — sticks to the bottom of the viewport so the Download button
+ * stays reachable even when the preview file list is long. The negative
+ * horizontal margin + extra padding gives a full-width scrim that blurs
+ * whatever's scrolling under it. */
 .ltc-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-top: 6px;
+  gap: 14px;
+  margin: 0 -24px -32px;
+  padding: 16px 24px 22px;
+  background: linear-gradient(
+    to top,
+    rgba(15, 15, 15, 0.97) 55%,
+    rgba(15, 15, 15, 0.85) 80%,
+    rgba(15, 15, 15, 0)
+  );
+  backdrop-filter: blur(6px);
+}
+/* While the GDPR consent banner is showing, lift the sticky action bar so
+ * the green Download button doesn't get hidden behind it. */
+body:has(#consent-banner:not([hidden])) .ltc-actions {
+  bottom: 72px;
 }
 .ltc-actions .btn-cut {
   min-width: 220px;
@@ -1584,11 +1604,41 @@ body.detail-open {
   font-weight: 600;
   letter-spacing: 1.2px;
   cursor: pointer;
+  background: var(--action);
+  color: var(--bg-app);
+}
+.ltc-actions .btn-cut:hover { background: var(--action-hover); }
+.ltc-actions .btn-cut:disabled {
+  background: var(--bg-raised);
+  color: var(--text-disabled);
+  cursor: default;
+}
+.btn-play {
+  background: var(--bg-raised);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 11px 18px;
+  font-size: 13px;
+  font-family: var(--mono);
+  cursor: pointer;
+  letter-spacing: 0.6px;
+}
+.btn-play:hover { border-color: var(--border-strong); background: var(--bg-hover); }
+.btn-play.on {
+  background: var(--warning);
+  border-color: var(--warning);
+  color: var(--bg-app);
 }
 .ltc-status {
   color: var(--text-muted);
   font-family: var(--mono);
   font-size: 12px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Focus rings — match the rest of the site. */
