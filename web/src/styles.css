@@ -1440,7 +1440,7 @@ body.detail-open {
 }
 .ltc-transport .tc-disp {
   font-family: var(--mono);
-  font-size: 22px;
+  font-size: 20px;             /* match MA2 .tc-disp (was 22, now sibling-consistent) */
   font-weight: 600;
   letter-spacing: 1px;
   color: var(--text-bright);
@@ -1542,7 +1542,7 @@ body.detail-open {
 }
 .ltc-hint {
   margin: 6px 0 0;
-  color: var(--text-dim);
+  color: var(--text-faint); /* 8a8a8a → 5.6:1 on bg-surface (WCAG AA pass for 12px) */
   font-size: 12px;
   font-family: var(--mono);
 }

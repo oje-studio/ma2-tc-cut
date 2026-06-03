@@ -204,7 +204,6 @@ export class LtcApp {
     const transport = h(
       "div",
       { class: "ltc-transport" },
-      h("span", { class: "ltc-tx-glyph" }, "▣"),
       this.startReadout,
       h("span", { class: "sep" }, "→"),
       this.endReadout,
@@ -286,10 +285,36 @@ export class LtcApp {
     this.waveCanvas = h("canvas", {
       class: "ltc-wave", width: "1200", height: "140",
       "aria-label": "LTC waveform preview with timeline and playhead",
+      role: "slider",
+      "aria-valuemin": "0",
+      "aria-valuemax": String(Math.round(this.s.durationSec)),
+      "aria-valuenow": String(Math.round(this.playheadSec)),
+      "aria-valuetext": `Playhead at ${Math.round(this.playheadSec)} seconds of ${Math.round(this.s.durationSec)}`,
     }) as HTMLCanvasElement;
     // Single mode: canvas is interactive — click/drag the playhead to seek.
     if (this.s.mode === "single") {
+      this.waveCanvas.tabIndex = 0; // focusable for keyboard seek (WCAG 2.1.1)
       this.waveCanvas.style.cursor = "ew-resize";
+      // Keyboard seek: ←/→ = ±1s, Shift+←/→ = ±10s, Home/End = start/end, Space = play/stop.
+      this.waveCanvas.addEventListener("keydown", (e) => {
+        const step = e.shiftKey ? 10 : 1;
+        let handled = true;
+        switch (e.key) {
+          case "ArrowLeft":  this.playheadSec = Math.max(0, this.playheadSec - step); break;
+          case "ArrowRight": this.playheadSec = Math.min(this.s.durationSec, this.playheadSec + step); break;
+          case "Home":       this.playheadSec = 0; break;
+          case "End":        this.playheadSec = this.s.durationSec; break;
+          case " ":          void this.togglePlay(); break;
+          default:           handled = false;
+        }
+        if (handled) {
+          e.preventDefault();
+          this.drawWave();
+          // If audio is rolling, restart playback from the new offset so what
+          // you hear matches what you see.
+          if (this.playingNode && e.key !== " ") { this.stopPlay(); void this.togglePlay(); }
+        }
+      });
       let dragging = false;
       let rafThrottle: number | null = null;
       const seek = (e: PointerEvent): void => {
@@ -554,7 +579,7 @@ export class LtcApp {
       this.s.batchDurationSec, this.s.batchDurationUnit,
       (sec) => { this.s.batchDurationSec = sec; this.updatePreview(); },
       (sec, u) => { this.s.batchDurationSec = sec; this.s.batchDurationUnit = u; this.render(); },
-      "Length each",
+      "Per file",
     );
 
     const patIn = h("input", {
@@ -568,7 +593,7 @@ export class LtcApp {
       h("div", { class: "ltc-row" }, h("label", {}, "Range start"), startIn),
       h("div", { class: "ltc-row" }, h("label", {}, "Range end"), endIn),
       h("div", { class: "ltc-row" }, h("label", {}, "Interval"), intField),
-      h("div", { class: "ltc-row" }, h("label", {}, "Length each"), durField),
+      h("div", { class: "ltc-row" }, h("label", {}, "Per file"), durField),
       h("div", { class: "ltc-row" }, h("label", {}, "Filename"), patIn),
       h("p", { class: "ltc-hint" }, "Tokens: {tc} {hh} {mm} {ss} {idx}  ·  .wav appended"),
     );
@@ -756,6 +781,10 @@ export class LtcApp {
       this.startReadout.textContent = fragTc;
       // Glow it green while audio is rolling.
       this.startReadout.classList.toggle("rolling", !!this.playingNode);
+      // Update aria-slider state so screen readers announce playhead position.
+      this.waveCanvas.setAttribute("aria-valuemax", String(Math.round(this.s.durationSec)));
+      this.waveCanvas.setAttribute("aria-valuenow", String(Math.round(this.playheadSec)));
+      this.waveCanvas.setAttribute("aria-valuetext", `${fragTc} (${Math.round(this.playheadSec)} of ${Math.round(this.s.durationSec)} seconds)`);
     } else if (this.startReadout) {
       this.startReadout.classList.remove("rolling");
     }
