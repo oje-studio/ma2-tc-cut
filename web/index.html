@@ -119,6 +119,20 @@
             </span>
           </button>
 
+          <!-- LTC Generator -->
+          <button class="tool-card" type="button" data-detail="ltc">
+            <span class="tool-thumb"><img src="./tools/ltc.png" alt="LTC Generator — SMPTE timecode WAV exporter" /></span>
+            <span class="tool-info">
+              <span class="tool-head">
+                <img class="tool-ic" src="./tools/ltc-icon.png" alt="" />
+                <span class="tool-name">LTC Generator</span>
+                <span class="tool-tag">Web</span>
+              </span>
+              <span class="tool-line">Generate SMPTE LTC timecode WAV files — one file, or a whole day's batch in one go (any FPS, drop-frame, custom interval).</span>
+              <span class="tool-go">Open ▸</span>
+            </span>
+          </button>
+
           <!-- ØJE Cue Monitor -->
           <button class="tool-card" type="button" data-detail="cuemon">
             <span class="tool-thumb"><img src="./tools/cuemon.png" alt="ØJE Cue Monitor — Performance Mode and the cue editor" /></span>
@@ -257,6 +271,55 @@
       </div>
     </div>
 
+    <!-- ───────── LTC Generator — detail ───────── -->
+    <div id="detail-ltc" class="tool-detail" aria-hidden="true">
+      <header class="app-bar">
+        <div class="brand-lock">
+          <span class="nav-logo"><img src="./oje-logo.svg" alt="ØJE Studio" /></span>
+          <span class="brand-tools">TOOLS</span>
+        </div>
+        <span class="app-bar-sep">·</span>
+        <span class="app-bar-tool">LTC Generator</span>
+        <span class="nav-spacer"></span>
+        <button class="app-close" type="button" data-close-detail>← back</button>
+      </header>
+      <div class="detail-body">
+        <div class="detail-hero">
+          <div class="detail-shot"><img src="./tools/ltc.png" alt="LTC Generator" /></div>
+          <div class="detail-intro">
+            <p class="eyebrow">web tool</p>
+            <h2>LTC Generator</h2>
+            <p class="sub">
+              Render SMPTE Linear Timecode (LTC) WAV files in the browser. A single file with a
+              custom start TC, length and FPS — or a whole day's batch in one go: any range, any
+              interval, any length per file, downloaded as a ZIP. Drop-frame supported for 29.97.
+            </p>
+            <div class="cta-row">
+              <a class="cta primary" href="#tool/ltc" data-open-tool-ltc>Open the tool ▸</a>
+            </div>
+          </div>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <h3>SMPTE-correct</h3>
+            <p>80-bit packet with parity, biphase-mark-coded at 80×fps, decoded by every console and DAW that reads LTC.</p>
+          </div>
+          <div class="feature">
+            <h3>Batch a whole day</h3>
+            <p>"00:00 → 23:59, every 30 min, 25 min each" gets you 48 files in one ZIP — no spreadsheets.</p>
+          </div>
+          <div class="feature">
+            <h3>Any rate</h3>
+            <p>24, 25, 29.97 (DF or NDF), 30. Sample rate 22.05 / 44.1 / 48 kHz, level in dBFS.</p>
+          </div>
+          <div class="feature">
+            <h3>Stays on your machine</h3>
+            <p>Everything renders in the browser. Nothing is uploaded.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ───────── ØJE Cue Monitor — detail ───────── -->
     <div id="detail-cuemon" class="tool-detail" aria-hidden="true">
       <header class="app-bar">
@@ -337,6 +400,21 @@
       <div class="app-credit">
         Demo track by Artem Kharchenko · © 2026. Drop your own show .xml and audio to cut for real.
       </div>
+    </div>
+
+    <!-- ───────── LTC Generator — full-window tool ───────── -->
+    <div id="app-view-ltc" class="app-view" aria-hidden="true">
+      <header class="app-bar">
+        <div class="brand-lock">
+          <span class="nav-logo"><img src="./oje-logo.svg" alt="ØJE Studio" /></span>
+          <span class="brand-tools">TOOLS</span>
+        </div>
+        <span class="app-bar-sep">·</span>
+        <span class="app-bar-tool">LTC Generator</span>
+        <span class="nav-spacer"></span>
+        <button class="app-close" type="button" data-close-ltc>← back</button>
+      </header>
+      <div id="ltc-mount"></div>
     </div>
 
     <script type="module" src="/src/main.ts"></script>

@@ -52,10 +52,39 @@ function closeTool(): void {
   appView.setAttribute("aria-hidden", "true");
 }
 
+// ---- LTC Generator (lazy mount on first open) ----
+const ltcView = document.getElementById("app-view-ltc")!;
+let ltcMounted = false;
+async function openLtc(): Promise<void> {
+  if (isMobile()) {
+    document.getElementById("mobile-notice")?.removeAttribute("hidden");
+    return;
+  }
+  track("LTC Generator", "#tool/ltc");
+  if (!ltcMounted) {
+    const { LtcApp } = await import("./ui/ltcApp.ts");
+    document.getElementById("ltc-mount")!.append(new LtcApp().el);
+    ltcMounted = true;
+  }
+  document.body.classList.add("tool-open");
+  ltcView.setAttribute("aria-hidden", "false");
+  history.replaceState(null, "", "#tool/ltc");
+}
+function closeLtc(): void {
+  document.body.classList.remove("tool-open");
+  ltcView.setAttribute("aria-hidden", "true");
+  if (location.hash === "#tool/ltc") history.replaceState(null, "", location.pathname + location.search);
+}
+document.querySelectorAll<HTMLElement>("[data-open-tool-ltc]").forEach((el) =>
+  el.addEventListener("click", (e) => { e.preventDefault(); void openLtc(); }),
+);
+ltcView.querySelector("[data-close-ltc]")?.addEventListener("click", () => closeLtc());
+
 // ---- per-tool detail overlays ----
 const DETAIL_TITLES: Record<string, string> = {
   ma2: "MA2 Timecode Tools — details",
   cuemon: "ØJE Cue Monitor — details",
+  ltc: "LTC Generator — details",
 };
 function openDetail(slug: string): void {
   closeDetail();
@@ -109,16 +138,20 @@ window.addEventListener("keydown", (e) => {
   const typing = document.activeElement && ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName);
   const appOpen = document.body.classList.contains("tool-open");
   if (e.key === "Escape" && !typing) {
-    if (appOpen && !document.fullscreenElement) closeTool();
-    else if (document.body.classList.contains("detail-open")) closeDetail();
+    if (appOpen && !document.fullscreenElement) {
+      if (ltcView.getAttribute("aria-hidden") === "false") closeLtc();
+      else closeTool();
+    } else if (document.body.classList.contains("detail-open")) closeDetail();
   }
-  if ((e.key === "f" || e.key === "F") && appOpen && !typing) toggleFullscreen();
+  if ((e.key === "f" || e.key === "F") && appOpen && !typing && ltcView.getAttribute("aria-hidden") !== "false") toggleFullscreen();
 });
 
 // deep links
 if (location.hash === "#tool") openTool();
+else if (location.hash === "#tool/ltc") void openLtc();
 else if (location.hash === "#t/ma2") openDetail("ma2");
 else if (location.hash === "#t/cuemon") openDetail("cuemon");
+else if (location.hash === "#t/ltc") openDetail("ltc");
 
 // ---- smooth-scroll in-page anchors (e.g. about), skipping the tool opener ----
 document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]:not([data-open-tool])').forEach((a) => {
