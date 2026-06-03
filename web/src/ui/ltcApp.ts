@@ -65,6 +65,36 @@ const MAX_ZIPS = 6;
 const UNIT_S: Record<DurUnit, number> = { s: 1, min: 60, h: 3600 };
 const toUnit = (sec: number, u: DurUnit): number => Math.round((sec / UNIT_S[u]) * 100) / 100;
 
+/** Pick a sensible tick interval (seconds) for a timeline spanning `total` s. */
+function chooseTickStep(total: number): number {
+  // Aim for ~12-24 ticks across the strip
+  const candidates = [0.5, 1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 1800, 3600];
+  for (const c of candidates) if (total / c <= 30) return c;
+  return 3600;
+}
+/** Every Nth tick is a "major" tick (with a label). Sparser for long spans
+ *  so the labels don't collide on the canvas. */
+function chooseMajorEvery(step: number): number {
+  if (step >= 3600) return 6;   // every 6 hours
+  if (step >= 1800) return 2;   // every hour
+  if (step >= 600) return 3;    // every 30 min
+  if (step >= 60) return 5;     // every 5 min
+  if (step >= 10) return 6;     // every minute
+  if (step >= 1) return 5;      // every 5 s
+  return 10;
+}
+/** Short timeline label — elapsed time from file start. HH:MM:SS over 1h,
+ *  MM:SS otherwise. Cleaner than absolute TC; the absolute moment is in the
+ *  "frame …" label under the waveform fragment instead. */
+function formatTimeShort(secOffset: number): string {
+  const total = Math.round(secOffset);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const p = (n: number): string => String(n).padStart(2, "0");
+  return h > 0 ? `${h}:${p(m)}:${p(s)}` : `${p(m)}:${p(s)}`;
+}
+
 export class LtcApp {
   readonly el: HTMLElement;
   private s: State = { ...DEFAULTS };
@@ -81,6 +111,12 @@ export class LtcApp {
   // Web Audio playback (Single mode "Play" button)
   private audioCtx: AudioContext | null = null;
   private playingNode: AudioBufferSourceNode | null = null;
+  // Playhead — offset in seconds from start of file. Visible as a green vertical
+  // line on the timeline strip above the LTC waveform. Click/drag to seek.
+  private playheadSec = 0;
+  private playStartedAt = 0;   // audioCtx.currentTime when last play started
+  private playStartOffset = 0; // playheadSec at the moment of play start
+  private rafId: number | null = null;
 
   constructor() {
     this.el = document.createElement("div");
@@ -89,16 +125,6 @@ export class LtcApp {
   }
 
   // ---- TC mask -----------------------------------------------------------
-  /** Live mask: strip non-digits, re-insert colons every 2 digits, cap to slots. */
-  private formatTcLive(raw: string, slots: 6 | 8): string {
-    const digits = raw.replace(/[^\d]/g, "").slice(0, slots);
-    let out = "";
-    for (let i = 0; i < digits.length; i++) {
-      if (i > 0 && i % 2 === 0) out += ":";
-      out += digits[i];
-    }
-    return out;
-  }
   /** Pad a partial TC to canonical form on blur (e.g. "1:2" → "00:00:01:02"). */
   private formatTcCanonical(raw: string, slots: 6 | 8): string {
     const digits = raw.replace(/[^\d]/g, "").slice(0, slots).padStart(slots, "0");
@@ -106,21 +132,24 @@ export class LtcApp {
     for (let i = 0; i < digits.length; i += 2) parts.push(digits.slice(i, i + 2));
     return parts.join(":");
   }
-  /** Wire input mask + blur-normalize. `onCommit` fires on every keystroke. */
+  /** No live-rewriting — that made editing the middle of an existing TC feel
+   *  squishy (backspace would silently get reformatted away). Just block
+   *  non-TC characters while typing, then canonicalize on blur. Matches the
+   *  MA2 Timecode Cut behaviour. */
   private wireTcInput(
     input: HTMLInputElement, slots: 6 | 8,
     onCommit: (value: string) => void,
   ): void {
     input.addEventListener("input", () => {
-      const caretEnd = input.selectionEnd ?? input.value.length;
-      const before = input.value;
-      const masked = this.formatTcLive(before, slots);
-      input.value = masked;
-      // best-effort caret restore: keep at the end of the digit run we typed
-      const digitsBefore = before.slice(0, caretEnd).replace(/[^\d]/g, "").length;
-      const newCaret = Math.min(masked.length, digitsBefore + Math.floor((digitsBefore - 1) / 2));
-      try { input.setSelectionRange(newCaret, newCaret); } catch {/**/}
-      onCommit(masked);
+      // Strip anything that isn't a digit or colon. Keep length unbounded —
+      // blur will normalise.
+      const cleaned = input.value.replace(/[^\d:;]/g, "");
+      if (cleaned !== input.value) {
+        const caret = input.selectionEnd ?? cleaned.length;
+        input.value = cleaned;
+        try { input.setSelectionRange(caret - 1, caret - 1); } catch {/**/}
+      }
+      onCommit(input.value);
     });
     input.addEventListener("blur", () => {
       if (!input.value) return;
@@ -255,9 +284,37 @@ export class LtcApp {
     // ---- preview --------------------------------------------------------
     this.preview = h("pre", { class: "ltc-preview" }, "");
     this.waveCanvas = h("canvas", {
-      class: "ltc-wave", width: "1200", height: "120",
-      "aria-label": "LTC waveform preview (first 2 frames)",
+      class: "ltc-wave", width: "1200", height: "140",
+      "aria-label": "LTC waveform preview with timeline and playhead",
     }) as HTMLCanvasElement;
+    // Single mode: canvas is interactive — click/drag the playhead to seek.
+    if (this.s.mode === "single") {
+      this.waveCanvas.style.cursor = "ew-resize";
+      let dragging = false;
+      const seek = (e: PointerEvent): void => {
+        const rect = this.waveCanvas.getBoundingClientRect();
+        const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+        this.playheadSec = (x / rect.width) * this.s.durationSec;
+        this.drawWave();
+      };
+      this.waveCanvas.addEventListener("pointerdown", (e) => {
+        dragging = true;
+        this.waveCanvas.setPointerCapture(e.pointerId);
+        seek(e);
+      });
+      this.waveCanvas.addEventListener("pointermove", (e) => { if (dragging) seek(e); });
+      const release = (e: PointerEvent): void => {
+        if (!dragging) return;
+        dragging = false;
+        try { this.waveCanvas.releasePointerCapture(e.pointerId); } catch {/**/}
+        // If audio was playing, restart from the new playhead position.
+        if (this.playingNode) { this.stopPlay(); void this.togglePlay(); }
+      };
+      this.waveCanvas.addEventListener("pointerup", release);
+      this.waveCanvas.addEventListener("pointercancel", release);
+    } else {
+      this.waveCanvas.style.cursor = "default";
+    }
 
     // ---- action bar -----------------------------------------------------
     this.status = h("div", { class: "ltc-status" }, "");
@@ -292,8 +349,10 @@ export class LtcApp {
         "div",
         { class: "ltc-preview-wrap" },
         h("h3", { class: "ltc-card-h" }, "Preview"),
-        this.preview,
+        // Canvas FIRST so the waveform + timeline + playhead stay visible
+        // above the fold; the (potentially long) preview text scrolls below.
         this.waveCanvas,
+        this.preview,
       ),
       h("div", { class: "ltc-actions" }, ...actionChildren),
     );
@@ -309,12 +368,25 @@ export class LtcApp {
       if (!this.audioCtx) this.audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       if (this.audioCtx.state === "suspended") await this.audioCtx.resume();
 
+      // Snap a stale playhead back to the start (e.g. if user changed startTc
+      // while paused; the playhead may now be past the new end).
+      if (this.playheadSec >= this.s.durationSec - 0.01) this.playheadSec = 0;
+
       this.setStatus("Rendering preview…");
-      // Yield so the status flushes before the (small) blocking render.
       await new Promise((r) => setTimeout(r, 0));
+
+      // Render from the playhead offset, not from the start.
+      const fpsActual = Math.abs(this.s.fps - 29.97) < 0.01 ? 30000 / 1001 : this.s.fps;
+      const fpsNom = this.s.dropFrame && Math.abs(this.s.fps - 29.97) < 0.01 ? 30 : Math.round(this.s.fps);
+      const isDf = this.s.dropFrame && Math.abs(this.s.fps - 29.97) < 0.01;
+      const offsetFrames = Math.round(this.playheadSec * fpsActual);
+      const startFr = this.tcToFramesLocal(this.s.startTc, fpsNom, isDf) + offsetFrames;
+      const offsetTc = this.framesToTcLocal(startFr, fpsNom, isDf);
+      const remainingSec = Math.max(0.05, this.s.durationSec - this.playheadSec);
+
       const r = renderLtcPcm({
-        startTc: this.s.startTc, fps: this.s.fps, dropFrame: this.s.dropFrame,
-        durationSec: this.s.durationSec, sampleRate: this.s.sampleRate, level: this.s.level,
+        startTc: offsetTc, fps: this.s.fps, dropFrame: this.s.dropFrame,
+        durationSec: remainingSec, sampleRate: this.s.sampleRate, level: this.s.level,
       });
       const buf = this.audioCtx.createBuffer(1, r.pcm.length, r.sampleRate);
       const ch = buf.getChannelData(0);
@@ -325,14 +397,36 @@ export class LtcApp {
       src.onended = () => { if (this.playingNode === src) this.stopPlay(); };
       src.start();
       this.playingNode = src;
+      this.playStartedAt = this.audioCtx.currentTime;
+      this.playStartOffset = this.playheadSec;
       if (this.playBtn) { this.playBtn.textContent = "◼ Stop"; this.playBtn.classList.add("on"); }
-      this.setStatus(`Playing ${this.s.startTc} → ${r.endTc} (${r.frames} frames)`);
+      this.setStatus(`Playing ${offsetTc} → ${r.endTc} (${r.frames} frames)`);
+      // Animate the playhead.
+      this.tickPlayhead();
     } catch (err) {
       this.setStatus("⚠ " + (err as Error).message);
       this.stopPlay();
     }
   }
+
+  /** RAF loop: advance the playhead based on audioCtx.currentTime, redraw. */
+  private tickPlayhead(): void {
+    if (!this.audioCtx || !this.playingNode) { this.rafId = null; return; }
+    const elapsed = this.audioCtx.currentTime - this.playStartedAt;
+    const pos = this.playStartOffset + elapsed;
+    if (pos >= this.s.durationSec) {
+      this.playheadSec = this.s.durationSec;
+      this.drawWave();
+      this.rafId = null;
+      return;
+    }
+    this.playheadSec = pos;
+    this.drawWave();
+    this.rafId = requestAnimationFrame(() => this.tickPlayhead());
+  }
+
   private stopPlay(): void {
+    if (this.rafId !== null) { cancelAnimationFrame(this.rafId); this.rafId = null; }
     if (this.playingNode) {
       try { this.playingNode.stop(); } catch {/**/}
       try { this.playingNode.disconnect(); } catch {/**/}
@@ -346,7 +440,13 @@ export class LtcApp {
       class: "seg" + (this.s.mode === mode ? " active" : ""),
       type: "button",
     }, label);
-    b.addEventListener("click", () => { this.s.mode = mode; this.render(); });
+    b.addEventListener("click", () => {
+      if (this.s.mode === mode) return;
+      this.stopPlay();
+      this.playheadSec = 0; // fresh slate on tab switch
+      this.s.mode = mode;
+      this.render();
+    });
     return b;
   }
 
@@ -478,6 +578,11 @@ export class LtcApp {
 
   private updatePreview(): void {
     if (!this.preview) return;
+    // Clamp playhead — if duration was shrunk below the current position, the
+    // playhead must come back into range or it'd float off the end of the file.
+    if (this.s.mode === "single") {
+      this.playheadSec = Math.max(0, Math.min(this.s.durationSec, this.playheadSec));
+    }
     const sr = this.s.sampleRate;
     try {
       if (this.s.mode === "single") {
@@ -542,106 +647,153 @@ export class LtcApp {
       this.preview.textContent = "⚠ " + (err as Error).message;
       this.genBtn.disabled = true;
     }
+    this.drawWave();
   }
 
   // ---- waveform canvas -------------------------------------------------
+  // Layout (DPR-aware): top strip is a TC timeline with tick marks + green
+  // playhead handle; bottom strip is an amber LTC square-wave fragment showing
+  // BMC at the playhead's TC position. In Single mode the strip is interactive
+  // (click/drag to seek); in Batch it's static (start of first file).
   private drawWave(): void {
     if (!this.waveCanvas) return;
     const cv = this.waveCanvas;
     const ctx = cv.getContext("2d");
     if (!ctx) return;
-    // Sharp pixels on retina
     const dpr = window.devicePixelRatio || 1;
     const cssW = cv.clientWidth || 1200;
-    const cssH = cv.clientHeight || 120;
+    const cssH = cv.clientHeight || 140;
     if (cv.width !== Math.round(cssW * dpr)) {
       cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssH * dpr);
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, cssW, cssH);
 
-    // Background grid: midline + 80 bit markers spanning frame 1.
+    const TIMELINE_H = 30;
+    const waveTop = TIMELINE_H;
+    const waveH = cssH - TIMELINE_H;
+
+    // --- timeline strip background ---
+    ctx.fillStyle = "#1a1a1a";
+    ctx.fillRect(0, 0, cssW, TIMELINE_H);
     ctx.fillStyle = "#161616";
-    ctx.fillRect(0, 0, cssW, cssH);
-
-    let pcm: Int16Array | null = null;
-    const fpsActual = this.s.fps === 29.97 ? 29.97 : Math.round(this.s.fps);
-    // ~1.5 frames at 8 kHz — coarse enough that BMC cells render as crisp
-    // square steps (~6 px wide) rather than a noisy barcode.
-    const previewSr = 8000;
-    const previewSec = 1.5 / fpsActual;
-    try {
-      const r = renderLtcPcm({
-        startTc: this.s.mode === "single" ? this.s.startTc : this.s.rangeStart + ":00",
-        fps: this.s.fps, dropFrame: this.s.dropFrame,
-        durationSec: previewSec, sampleRate: previewSr,
-        level: Math.max(0.05, this.s.level), // mirror the user's level visually
-      });
-      pcm = r.pcm;
-    } catch {
-      // Bad TC etc. — just draw the empty canvas.
-    }
-
-    // Centerline
+    ctx.fillRect(0, waveTop, cssW, waveH);
+    // separator
     ctx.strokeStyle = "#2a2a2a";
     ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, cssH / 2);
-    ctx.lineTo(cssW, cssH / 2);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, waveTop + 0.5); ctx.lineTo(cssW, waveTop + 0.5); ctx.stroke();
 
-    if (!pcm || pcm.length === 0) {
+    // --- timeline ticks ---
+    const isSingle = this.s.mode === "single";
+    // In Batch mode, span one file's length — the whole-day range would just
+    // be unreadable, and the waveform fragment is the start of file 1 anyway.
+    const totalSec = isSingle ? Math.max(0.5, this.s.durationSec) : Math.max(10, this.s.batchDurationSec);
+    const tickStep = chooseTickStep(totalSec);
+    const majorEvery = chooseMajorEvery(tickStep);
+    ctx.font = "10px ui-monospace, Menlo, monospace";
+    ctx.textBaseline = "middle";
+    for (let t = 0; t <= totalSec + 0.001; t += tickStep) {
+      const x = (t / totalSec) * cssW;
+      const isMajor = Math.round(t / tickStep) % majorEvery === 0;
+      ctx.strokeStyle = isMajor ? "#4a4a4a" : "#2e2e2e";
+      ctx.beginPath();
+      ctx.moveTo(x + 0.5, isMajor ? 12 : 20);
+      ctx.lineTo(x + 0.5, TIMELINE_H - 1);
+      ctx.stroke();
+      if (isMajor) {
+        ctx.fillStyle = "#a5a5a5";
+        const lbl = formatTimeShort(t);
+        const lblW = ctx.measureText(lbl).width;
+        // anchor labels: first stays left-aligned, last right-aligned, middle centred
+        let lx = x - lblW / 2;
+        if (lx < 2) lx = 2;
+        if (lx + lblW > cssW - 2) lx = cssW - lblW - 2;
+        ctx.fillText(lbl, lx, 7);
+      }
+    }
+
+    // --- LTC waveform fragment at playhead TC ---
+    const fpsActual = Math.abs(this.s.fps - 29.97) < 0.01 ? 30000 / 1001 : this.s.fps;
+    const fpsNom = this.s.dropFrame && Math.abs(this.s.fps - 29.97) < 0.01 ? 30 : Math.round(this.s.fps);
+    const isDf = this.s.dropFrame && Math.abs(this.s.fps - 29.97) < 0.01;
+    let pcm: Int16Array | null = null;
+    let fragTc = isSingle ? this.s.startTc : this.s.rangeStart + ":00";
+    try {
+      if (isSingle) {
+        const off = Math.round(this.playheadSec * fpsActual);
+        const fr = this.tcToFramesLocal(this.s.startTc, fpsNom, isDf) + off;
+        fragTc = this.framesToTcLocal(fr, fpsNom, isDf);
+      }
+      const r = renderLtcPcm({
+        startTc: fragTc, fps: this.s.fps, dropFrame: this.s.dropFrame,
+        durationSec: 1.5 / fpsActual, sampleRate: 8000,
+        level: Math.max(0.05, this.s.level),
+      });
+      pcm = r.pcm;
+    } catch {/**/}
+
+    if (pcm && pcm.length) {
+      // sync-word band (right 20%)
+      const samplesPerFrameP = 8000 / fpsActual;
+      for (let f = 0; (f * samplesPerFrameP) < pcm.length; f++) {
+        const xs = ((f + 0.8) * samplesPerFrameP / pcm.length) * cssW;
+        const xe = ((f + 1.0) * samplesPerFrameP / pcm.length) * cssW;
+        ctx.fillStyle = "rgba(245, 165, 36, 0.08)";
+        ctx.fillRect(Math.min(xs, cssW), waveTop, Math.max(0, Math.min(xe, cssW) - xs), waveH);
+      }
+      // amber waveform
+      ctx.strokeStyle = "#f5a524";
+      ctx.lineWidth = 1.6;
+      ctx.lineCap = "square";
+      ctx.lineJoin = "miter";
+      ctx.beginPath();
+      const margin = 8;
+      const amp = (waveH - margin * 2) / 2;
+      const mid = waveTop + waveH / 2;
+      const step = pcm.length / cssW;
+      for (let x = 0; x < cssW; x++) {
+        const i = Math.min(pcm.length - 1, Math.floor(x * step));
+        const v = pcm[i] / 32767;
+        const y = mid - v * amp;
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      // tiny labels — frame TC bottom-left, "sync" bottom-right (scrim'd)
+      ctx.font = "10px ui-monospace, Menlo, monospace";
+      ctx.textBaseline = "bottom";
+      const lbl = `frame ${fragTc}`;
+      const lblW = ctx.measureText(lbl).width;
+      ctx.fillStyle = "rgba(22, 22, 22, 0.85)";
+      ctx.fillRect(4, cssH - 16, lblW + 8, 14);
+      ctx.fillRect(cssW - 36, cssH - 16, 32, 14);
+      ctx.fillStyle = "#a5a5a5";
+      ctx.fillText(lbl, 8, cssH - 4);
+      ctx.fillText("sync", cssW - 33, cssH - 4);
+    } else {
       ctx.fillStyle = "#6a6a6a";
       ctx.font = "12px ui-monospace, Menlo, monospace";
-      ctx.fillText("waveform unavailable — check TC", 12, cssH / 2 - 8);
-      return;
+      ctx.textBaseline = "middle";
+      ctx.fillText("waveform unavailable — check TC", 12, waveTop + waveH / 2);
     }
 
-    // Frame boundary markers (vertical dim line per full frame, sync-word tick at 80%)
-    const samplesPerFrameP = previewSr / fpsActual;
-    ctx.strokeStyle = "#2a2a2a";
-    for (let f = 1; (f * samplesPerFrameP) < pcm.length; f++) {
-      const x = (f * samplesPerFrameP / pcm.length) * cssW;
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cssH); ctx.stroke();
+    // --- playhead (Single mode only) ---
+    if (isSingle) {
+      const phX = Math.round((this.playheadSec / totalSec) * cssW) + 0.5;
+      ctx.strokeStyle = this.playingNode ? "#2ebd6b" : "#7ab7ff";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(phX, 0); ctx.lineTo(phX, cssH); ctx.stroke();
+      // handle triangle at the top
+      ctx.fillStyle = this.playingNode ? "#2ebd6b" : "#7ab7ff";
+      ctx.beginPath();
+      ctx.moveTo(phX - 6, 0);
+      ctx.lineTo(phX + 6, 0);
+      ctx.lineTo(phX, 8);
+      ctx.closePath();
+      ctx.fill();
     }
-    // Sync-word tick (last 16/80 bits of every frame)
-    ctx.strokeStyle = "rgba(245, 165, 36, 0.18)";
-    for (let f = 0; (f * samplesPerFrameP) < pcm.length; f++) {
-      const xs = ((f + 0.8) * samplesPerFrameP / pcm.length) * cssW;
-      const xe = ((f + 1.0) * samplesPerFrameP / pcm.length) * cssW;
-      ctx.fillStyle = "rgba(245, 165, 36, 0.07)";
-      ctx.fillRect(Math.min(xs, cssW), 0, Math.max(0, Math.min(xe, cssW) - xs), cssH);
-    }
-
-    // Waveform — amber square wave
-    ctx.strokeStyle = "#f5a524";
-    ctx.lineWidth = 1.6;
-    ctx.lineJoin = "miter";
-    ctx.lineCap = "square";
-    ctx.beginPath();
-    const margin = 12;
-    const amp = (cssH - margin * 2) / 2;
-    const mid = cssH / 2;
-    const step = pcm.length / cssW;
-    for (let x = 0; x < cssW; x++) {
-      const i = Math.min(pcm.length - 1, Math.floor(x * step));
-      const v = pcm[i] / 32767;
-      const y = mid - v * amp;
-      if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-
-    // Tiny axis labels, with a dark scrim so the waveform doesn't bleed through.
-    ctx.font = "11px ui-monospace, Menlo, monospace";
-    const lbl = `frame ${this.s.mode === "single" ? this.s.startTc : this.s.rangeStart + ":00"}`;
-    const lblW = ctx.measureText(lbl).width;
-    ctx.fillStyle = "rgba(22, 22, 22, 0.85)";
-    ctx.fillRect(4, cssH - 18, lblW + 10, 16);
-    ctx.fillRect(cssW - 44, cssH - 18, 40, 16);
-    ctx.fillStyle = "#a5a5a5";
-    ctx.fillText(lbl, 9, cssH - 6);
-    ctx.fillText("sync", cssW - 38, cssH - 6);
+    ctx.textBaseline = "alphabetic"; // restore default
   }
+
 
   // ---- TC math (mirror of core, kept local for preview labels) ----------
   private estimateEndTc(startTc: string, durationSec: number): string {
