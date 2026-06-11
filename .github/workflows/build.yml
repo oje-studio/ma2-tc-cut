@@ -59,7 +59,7 @@ jobs:
           Compress-Archive -Path "MA2 Timecode Cut" -DestinationPath "MA2-Timecode-Cut-Windows.zip"
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: MA2-Timecode-Cut-${{ matrix.label }}
           path: |
