@@ -386,7 +386,10 @@ footer.site a:focus-visible {
 body.tool-open {
   overflow: hidden;
 }
-body.tool-open .app-view {
+/* only the view whose aria-hidden the JS flipped to "false" — with two
+   .app-view panels on the page, showing all of them stacks the empty one
+   on top of the open tool */
+body.tool-open .app-view[aria-hidden="false"] {
   display: flex;
 }
 .app-bar {
