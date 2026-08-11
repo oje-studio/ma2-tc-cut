@@ -28,6 +28,23 @@ interface Track {
   peaks: Float32Array;
   duration: number;
   name: string;
+  monoPeak: number;            // peak of the 0.5·(L+R) downmix, for normalization
+}
+
+/** Peak of the mono fold-down the playback/export graphs will produce.
+ *  Web Audio downmixes stereo→mono as 0.5·(L+R), which can shave 3–6 dB off
+ *  a wide mix — so the track channel is normalized against THIS peak, not the
+ *  source's. Makes the Track-level slider mean "output peak", like Level
+ *  does for the LTC, regardless of how hot the source file is mastered. */
+function monoDownmixPeak(buffer: AudioBuffer): number {
+  const L = buffer.getChannelData(0);
+  const R = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : L;
+  let pk = 0;
+  for (let i = 0; i < buffer.length; i++) {
+    const m = 0.5 * (L[i] + R[i]);
+    if (m > pk) pk = m; else if (-m > pk) pk = -m;
+  }
+  return pk;
 }
 
 interface State {
@@ -486,7 +503,7 @@ export class LtcApp {
           const tSrc = this.audioCtx.createBufferSource();
           tSrc.buffer = this.track.buffer;
           const g = this.audioCtx.createGain();
-          g.gain.value = this.s.trackLevel;
+          g.gain.value = this.trackGain();
           tSrc.connect(g);
           g.connect(merger, 0, 1 - ltcCh);
           tSrc.start(0, this.playheadSec, remainingSec);
@@ -743,7 +760,10 @@ export class LtcApp {
       this.setStatus(`Decoding ${f.name}…`);
       const dec = await decodeAudio(await f.arrayBuffer());
       this.stopPlay();
-      this.track = { buffer: dec.buffer, peaks: dec.peaks, duration: dec.duration, name: f.name };
+      this.track = {
+        buffer: dec.buffer, peaks: dec.peaks, duration: dec.duration, name: f.name,
+        monoPeak: monoDownmixPeak(dec.buffer),
+      };
       // The file should cover the whole song — snap duration to the track and
       // suggest a filename from it. Both stay editable.
       this.s.durationSec = Math.max(1, Math.ceil(dec.duration));
@@ -1210,6 +1230,12 @@ export class LtcApp {
     this.setStatus(`Saved ${totalFiles} files across ${chunks.length} ZIP${chunks.length > 1 ? "s" : ""}.`);
   }
 
+  /** Normalized track gain: the slider value IS the output peak. Floored so a
+   *  near-silent source can't request an absurd boost. */
+  private trackGain(): number {
+    return this.track ? this.s.trackLevel / Math.max(this.track.monoPeak, 0.05) : this.s.trackLevel;
+  }
+
   /** Resample + downmix the loaded track to mono Float32 at `sr`, exactly
    *  `length` samples (the LTC channel's length). Gain is applied here so the
    *  exported balance matches what the Play button monitors. */
@@ -1221,7 +1247,7 @@ export class LtcApp {
     const src = ctx.createBufferSource();
     src.buffer = this.track!.buffer;
     const g = ctx.createGain();
-    g.gain.value = this.s.trackLevel;
+    g.gain.value = this.trackGain();
     src.connect(g);
     g.connect(ctx.destination);
     src.start(0);
