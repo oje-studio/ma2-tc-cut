@@ -4,6 +4,8 @@ import { describe, it, expect } from "vitest";
 import {
   generateLtcWav,
   renderLtcPcm,
+  writeWavStereo16,
+  floatToInt16,
   planBatch,
   buildZip,
   chunkByBytes,
@@ -116,6 +118,52 @@ describe("generateLtcWav", () => {
     const peak = (p: Int16Array) => Math.max(...Array.from(p, Math.abs));
     expect(peak(loud.pcm)).toBeGreaterThan(30000);
     expect(peak(quiet.pcm)).toBeLessThan(8400);
+  });
+});
+
+describe("writeWavStereo16 — LTC + music track routing", () => {
+  it("emits a valid stereo header and interleaves L/R", () => {
+    const left = Int16Array.from([1000, -1000, 500]);
+    const right = Int16Array.from([-2000, 2000]);
+    const wav = writeWavStereo16(left, right, 48000);
+    const dv = new DataView(wav.buffer, wav.byteOffset);
+    expect(dv.getUint16(22, true)).toBe(2);            // stereo
+    expect(dv.getUint32(24, true)).toBe(48000);        // sample rate
+    expect(dv.getUint32(28, true)).toBe(48000 * 4);    // byte rate
+    expect(dv.getUint16(32, true)).toBe(4);            // block align
+    expect(dv.getUint32(40, true)).toBe(3 * 4);        // data = max(len) frames
+    expect(dv.getInt16(44, true)).toBe(1000);          // L0
+    expect(dv.getInt16(46, true)).toBe(-2000);         // R0
+    expect(dv.getInt16(48, true)).toBe(-1000);         // L1
+    expect(dv.getInt16(50, true)).toBe(2000);          // R1
+    expect(dv.getInt16(52, true)).toBe(500);           // L2
+  });
+
+  it("pads the shorter channel with silence so LTC outlives the song", () => {
+    const ltc = Int16Array.from([1, 2, 3, 4]);
+    const song = Int16Array.from([9]);
+    const wav = writeWavStereo16(ltc, song, 8000);
+    const dv = new DataView(wav.buffer, wav.byteOffset);
+    expect(wav.byteLength).toBe(44 + 4 * 4);
+    expect(dv.getInt16(46 + 4, true)).toBe(0);         // R1 silent
+    expect(dv.getInt16(44 + 3 * 4, true)).toBe(4);     // L3 still ticking
+  });
+});
+
+describe("floatToInt16", () => {
+  it("scales, clamps out-of-range floats and pads to length", () => {
+    const out = floatToInt16(Float32Array.from([0.5, -2, 2]), 1, 5);
+    expect(out[0]).toBe(16384);
+    expect(out[1]).toBe(-32768);
+    expect(out[2]).toBe(32767);
+    expect(out[3]).toBe(0);
+    expect(out[4]).toBe(0);
+  });
+
+  it("applies gain and truncates past length", () => {
+    const out = floatToInt16(Float32Array.from([1, 1]), 0.5, 1);
+    expect(out.length).toBe(1);
+    expect(out[0]).toBe(Math.round(0.5 * 32767));
   });
 });
 

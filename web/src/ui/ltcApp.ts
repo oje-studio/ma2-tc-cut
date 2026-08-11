@@ -6,16 +6,29 @@
 import {
   generateLtcWav,
   renderLtcPcm,
+  writeWavMono16,
+  writeWavStereo16,
+  floatToInt16,
   planBatch,
   buildZip,
   chunkByBytes,
   type BatchSpec,
   type PlannedFile,
 } from "../core/ltc.ts";
+import { decodeAudio } from "./audio.ts";
 
 type Fps = 24 | 25 | 29.97 | 30;
 type SampleRate = 22050 | 44100 | 48000;
 type DurUnit = "s" | "min" | "h";
+type LtcSide = "left" | "right";
+
+/** A decoded music track riding the opposite channel of the LTC. */
+interface Track {
+  buffer: AudioBuffer;
+  peaks: Float32Array;
+  duration: number;
+  name: string;
+}
 
 interface State {
   mode: "single" | "batch";
@@ -28,6 +41,8 @@ interface State {
   durationSec: number;
   durationUnit: DurUnit;
   filename: string;
+  ltcSide: LtcSide;            // which stereo channel carries the LTC
+  trackLevel: number;          // music-channel gain baked into playback + WAV
   // batch
   rangeStart: string;
   rangeEnd: string;
@@ -48,6 +63,8 @@ const DEFAULTS: State = {
   durationSec: 60,
   durationUnit: "s",
   filename: "ltc_00-00-00",          // .wav appended by the tool
+  ltcSide: "left",
+  trackLevel: 0.9,
   rangeStart: "00:00:00",
   rangeEnd: "23:59:00",
   intervalSec: 1800,
@@ -105,12 +122,16 @@ export class LtcApp {
   private fpsBadge!: HTMLElement;
   private srBadge!: HTMLElement;
   private levelBadge!: HTMLElement;
+  private chanBadge!: HTMLElement;
   private genBtn!: HTMLButtonElement;
   private playBtn?: HTMLButtonElement;
   private status!: HTMLElement;
+  // Optional music track (Single mode) — rides the channel opposite the LTC.
+  private track: Track | null = null;
   // Web Audio playback (Single mode "Play" button)
   private audioCtx: AudioContext | null = null;
   private playingNode: AudioBufferSourceNode | null = null;
+  private trackNode: AudioBufferSourceNode | null = null;
   // Playhead — offset in seconds from start of file. Visible as a green vertical
   // line on the timeline strip above the LTC waveform. Click/drag to seek.
   private playheadSec = 0;
@@ -201,6 +222,7 @@ export class LtcApp {
     this.fpsBadge = h("span", { class: "ltc-badge" }, `${this.s.fps}${this.s.dropFrame ? " DF" : ""} fps`);
     this.srBadge = h("span", { class: "ltc-badge" }, `${this.s.sampleRate / 1000} kHz`);
     this.levelBadge = h("span", { class: "ltc-badge" }, `${(20 * Math.log10(this.s.level)).toFixed(1)} dBFS`);
+    this.chanBadge = h("span", { class: "ltc-badge ltc-badge-ch", hidden: "" }, "");
     const transport = h(
       "div",
       { class: "ltc-transport" },
@@ -208,7 +230,7 @@ export class LtcApp {
       h("span", { class: "sep" }, "→"),
       this.endReadout,
       h("span", { class: "ltc-tx-spacer" }),
-      h("span", { class: "ltc-badges" }, this.fpsBadge, this.srBadge, this.levelBadge),
+      h("span", { class: "ltc-badges" }, this.chanBadge, this.fpsBadge, this.srBadge, this.levelBadge),
     );
 
     // ---- mode tabs -------------------------------------------------------
@@ -279,6 +301,10 @@ export class LtcApp {
 
     // ---- mode-specific card ---------------------------------------------
     const modeCard = this.s.mode === "single" ? this.renderSingle() : this.renderBatch();
+    const gridCards: HTMLElement[] = [modeCard, optsCard];
+    // Audio-track card (Single only): music on the opposite channel so one
+    // phone can feed a console (LTC) and a pair of ears (track) at once.
+    if (this.s.mode === "single") gridCards.push(this.renderTrackCard());
 
     // ---- preview --------------------------------------------------------
     this.preview = h("pre", { class: "ltc-preview" }, "");
@@ -383,7 +409,7 @@ export class LtcApp {
     this.el.replaceChildren(
       transport,
       h("div", { class: "ltc-header" }, tabs),
-      h("div", { class: "ltc-grid" }, modeCard, optsCard),
+      h("div", { class: "ltc-grid" }, ...gridCards),
       h(
         "div",
         { class: "ltc-preview-wrap" },
@@ -432,14 +458,36 @@ export class LtcApp {
       for (let i = 0; i < r.pcm.length; i++) ch[i] = r.pcm[i] / 32768;
       const src = this.audioCtx.createBufferSource();
       src.buffer = buf;
-      src.connect(this.audioCtx.destination);
+      let chanNote = "";
+      if (this.track) {
+        // Stereo monitoring mirrors the exported WAV: LTC hard-panned to its
+        // side, the music track on the other. A ChannelMergerNode gives us the
+        // hard split; each input downmixes its source to mono per Web Audio.
+        const merger = this.audioCtx.createChannelMerger(2);
+        merger.connect(this.audioCtx.destination);
+        const ltcCh = this.s.ltcSide === "left" ? 0 : 1;
+        src.connect(merger, 0, ltcCh);
+        if (this.playheadSec < this.track.duration) {
+          const tSrc = this.audioCtx.createBufferSource();
+          tSrc.buffer = this.track.buffer;
+          const g = this.audioCtx.createGain();
+          g.gain.value = this.s.trackLevel;
+          tSrc.connect(g);
+          g.connect(merger, 0, 1 - ltcCh);
+          tSrc.start(0, this.playheadSec, remainingSec);
+          this.trackNode = tSrc;
+        }
+        chanNote = this.s.ltcSide === "left" ? " · L LTC / R track" : " · L track / R LTC";
+      } else {
+        src.connect(this.audioCtx.destination);
+      }
       src.onended = () => { if (this.playingNode === src) this.stopPlay(); };
       src.start();
       this.playingNode = src;
       this.playStartedAt = this.audioCtx.currentTime;
       this.playStartOffset = this.playheadSec;
       if (this.playBtn) { this.playBtn.textContent = "◼ Stop"; this.playBtn.classList.add("on"); }
-      this.setStatus(`Playing ${offsetTc} → ${r.endTc} (${r.frames} frames)`);
+      this.setStatus(`Playing ${offsetTc} → ${r.endTc} (${r.frames} frames)${chanNote}`);
       // Animate the playhead.
       this.tickPlayhead();
     } catch (err) {
@@ -470,6 +518,11 @@ export class LtcApp {
       try { this.playingNode.stop(); } catch {/**/}
       try { this.playingNode.disconnect(); } catch {/**/}
       this.playingNode = null;
+    }
+    if (this.trackNode) {
+      try { this.trackNode.stop(); } catch {/**/}
+      try { this.trackNode.disconnect(); } catch {/**/}
+      this.trackNode = null;
     }
     if (this.playBtn) { this.playBtn.textContent = "▶ Play"; this.playBtn.classList.remove("on"); }
   }
@@ -556,6 +609,113 @@ export class LtcApp {
     );
   }
 
+  // ---- audio track card (Single mode) -----------------------------------
+  private renderTrackCard(): HTMLElement {
+    const h = this.h.bind(this);
+    const has = this.track !== null;
+
+    let trackVal: HTMLElement;
+    if (!this.track) {
+      const btn = h("button", { class: "ltc-load", type: "button" }, "Load audio…");
+      btn.addEventListener("click", () => void this.pickTrack());
+      trackVal = h("div", { class: "ltc-track-val" }, btn);
+    } else {
+      const eject = h("button", {
+        class: "ltc-eject", type: "button",
+        "aria-label": "Remove track", title: "Remove track",
+      }, "✕");
+      eject.addEventListener("click", () => {
+        this.stopPlay();
+        this.track = null;
+        this.render();
+      });
+      trackVal = h("div", { class: "ltc-track-val" },
+        h("span", { class: "ltc-track-name", title: this.track.name }, this.track.name),
+        h("span", { class: "ltc-track-dur" }, formatTimeShort(this.track.duration)),
+        eject,
+      );
+    }
+
+    const routeRow = this.segRow(
+      [
+        { value: "left" as LtcSide, label: "L LTC · R track" },
+        { value: "right" as LtcSide, label: "L track · R LTC" },
+      ] as const,
+      this.s.ltcSide,
+      (v) => { this.s.ltcSide = v as LtcSide; this.stopPlay(); this.render(); },
+      "Channel routing",
+    );
+    if (!has) routeRow.querySelectorAll("button").forEach((b) => { b.disabled = true; });
+
+    const lvl = h("input", {
+      type: "range", min: "0.05", max: "1", step: "0.05",
+      value: String(this.s.trackLevel), class: "ltc-range", "aria-label": "Track level",
+    }) as HTMLInputElement;
+    const lvlOut = h("span", { class: "ltc-range-out" }, `${Math.round(this.s.trackLevel * 100)}%`);
+    lvl.addEventListener("input", () => {
+      this.s.trackLevel = parseFloat(lvl.value);
+      lvlOut.textContent = `${Math.round(this.s.trackLevel * 100)}%`;
+      this.stopPlay(); // running playback would be stale at the new level
+    });
+    if (!has) lvl.disabled = true;
+
+    const card = h("div", { class: "ltc-card ltc-card-wide" },
+      h("h3", { class: "ltc-card-h" }, "Audio track"),
+      h("div", { class: "ltc-row" }, h("label", {}, "Track"), trackVal),
+      h("div", { class: "ltc-row" }, h("label", {}, "Channels"), routeRow),
+      h("div", { class: "ltc-row" }, h("label", {}, "Track level"), lvl, lvlOut),
+      h("p", { class: "ltc-hint" }, has
+        ? "Stereo WAV — split the output with a Y-cable: LTC channel → console, track channel → ears."
+        : "Add your song for a stereo check file: LTC on one channel, the track on the other. Without a track the WAV stays mono."),
+    );
+    // drag & drop an audio file anywhere on the card
+    card.addEventListener("dragover", (e) => { e.preventDefault(); card.classList.add("drag"); });
+    card.addEventListener("dragleave", () => card.classList.remove("drag"));
+    card.addEventListener("drop", (e) => {
+      e.preventDefault();
+      card.classList.remove("drag");
+      const f = e.dataTransfer?.files?.[0];
+      if (f) void this.loadTrack(f);
+    });
+    return card;
+  }
+
+  private pickTrack(): Promise<void> {
+    return new Promise((resolve) => {
+      const inp = this.h("input", {
+        type: "file",
+        accept: ".wav,.mp3,.flac,.ogg,.aif,.aiff,.m4a,audio/*",
+      }) as HTMLInputElement;
+      inp.style.display = "none";
+      inp.addEventListener("change", () => {
+        const f = inp.files?.[0];
+        resolve(f ? this.loadTrack(f) : undefined);
+      });
+      document.body.append(inp);
+      inp.click();
+      setTimeout(() => inp.remove(), 60_000);
+    });
+  }
+
+  private async loadTrack(f: File): Promise<void> {
+    try {
+      this.setStatus(`Decoding ${f.name}…`);
+      const dec = await decodeAudio(await f.arrayBuffer());
+      this.stopPlay();
+      this.track = { buffer: dec.buffer, peaks: dec.peaks, duration: dec.duration, name: f.name };
+      // The file should cover the whole song — snap duration to the track and
+      // suggest a filename from it. Both stay editable.
+      this.s.durationSec = Math.max(1, Math.ceil(dec.duration));
+      this.playheadSec = Math.min(this.playheadSec, this.s.durationSec);
+      const base = f.name.replace(/\.[a-z0-9]+$/i, "");
+      this.s.filename = `${base}_ltc`;
+      this.render();
+      this.setStatus(`${f.name} · ${formatTimeShort(dec.duration)} — duration matched to the track`);
+    } catch (err) {
+      this.setStatus("⚠ Couldn't decode the audio: " + (err as Error).message);
+    }
+  }
+
   private renderBatch(): HTMLElement {
     const h = this.h.bind(this);
     const startIn = h("input", {
@@ -626,20 +786,38 @@ export class LtcApp {
     try {
       if (this.s.mode === "single") {
         const end = this.estimateEndTc(this.s.startTc, this.s.durationSec);
-        const bytes = Math.round(this.s.durationSec * sr * 2 + 44);
+        const stereo = this.track !== null;
+        const bytes = Math.round(this.s.durationSec * sr * (stereo ? 4 : 2) + 44);
         // Left transport TC is overwritten by drawWave() at the end (to the
         // playhead's current TC). We don't preset it here so the readout
         // never momentarily flashes the wrong value.
         this.endReadout.textContent = end;
         this.fpsBadge.textContent = `${this.s.fps}${this.s.dropFrame ? " DF" : ""} fps`;
         this.srBadge.textContent = `${sr / 1000} kHz`;
-        this.preview.textContent = [
-          `1 file · ${this.fmtSec(this.s.durationSec)} · ${this.s.fps}${this.s.dropFrame ? " DF" : ""} fps · ${sr / 1000} kHz mono`,
+        this.chanBadge.hidden = !stereo;
+        if (stereo) {
+          this.chanBadge.textContent = this.s.ltcSide === "left" ? "L LTC · R TRK" : "L TRK · R LTC";
+        }
+        const lines = [
+          `1 file · ${this.fmtSec(this.s.durationSec)} · ${this.s.fps}${this.s.dropFrame ? " DF" : ""} fps · ${sr / 1000} kHz ${stereo ? "stereo" : "mono"}`,
           `${this.s.startTc}   →   ${end}`,
-          `≈ ${this.fmtBytes(bytes)}`,
-        ].join("\n");
+        ];
+        if (stereo && this.track) {
+          const [lName, rName] = this.s.ltcSide === "left"
+            ? ["LTC", this.track.name] : [this.track.name, "LTC"];
+          lines.push(`L: ${lName}   ·   R: ${rName}`);
+          const gap = this.s.durationSec - this.track.duration;
+          if (gap < -0.5) {
+            lines.push(`⚠ track is ${this.fmtSec(Math.round(-gap))} longer than the file — its tail is cut`);
+          } else if (gap > 1) {
+            lines.push(`track ends at ${formatTimeShort(this.track.duration)} — silence after, LTC keeps running`);
+          }
+        }
+        lines.push(`≈ ${this.fmtBytes(bytes)}`);
+        this.preview.textContent = lines.join("\n");
         this.genBtn.disabled = false;
       } else {
+        this.chanBadge.hidden = true;
       // ---- batch ----
       const spec: BatchSpec = {
         rangeStart: this.s.rangeStart, rangeEnd: this.s.rangeEnd,
@@ -729,6 +907,25 @@ export class LtcApp {
     // In Batch mode, span one file's length — the whole-day range would just
     // be unreadable, and the waveform fragment is the start of file 1 anyway.
     const totalSec = isSingle ? Math.max(0.5, this.s.durationSec) : Math.max(10, this.s.batchDurationSec);
+
+    // --- music-track overview (Single, behind the ticks) ---
+    // The strip doubles as a minimap of the song, so seeking lands on the
+    // chorus you meant, not a guess. Blue like the idle playhead — amber
+    // stays reserved for the LTC itself.
+    if (isSingle && this.track && this.track.duration > 0) {
+      const peaks = this.track.peaks;
+      const binsPerSec = peaks.length / this.track.duration;
+      ctx.fillStyle = "rgba(122, 183, 255, 0.30)";
+      const base = TIMELINE_H - 1;
+      const maxH = TIMELINE_H - 9; // keep clear of the label band on top
+      for (let x = 0; x < cssW; x++) {
+        const t = (x / cssW) * totalSec;
+        if (t > this.track.duration) break;
+        const bin = Math.min(peaks.length - 1, Math.floor(t * binsPerSec));
+        const hpx = Math.max(1, peaks[bin] * maxH);
+        ctx.fillRect(x, base - hpx, 1, hpx);
+      }
+    }
     const tickStep = chooseTickStep(totalSec);
     const majorEvery = chooseMajorEvery(tickStep);
     ctx.font = "10px ui-monospace, Menlo, monospace";
@@ -897,15 +1094,30 @@ export class LtcApp {
     this.genBtn.disabled = true;
     try {
       if (this.s.mode === "single") {
-        this.setStatus("Rendering…");
+        this.setStatus("Rendering LTC…");
         await new Promise((r) => setTimeout(r, 0));
-        const r = generateLtcWav({
+        const r = renderLtcPcm({
           startTc: this.s.startTc, fps: this.s.fps, dropFrame: this.s.dropFrame,
           durationSec: this.s.durationSec, sampleRate: this.s.sampleRate, level: this.s.level,
         });
+        let wav: Uint8Array;
+        let chanNote = "";
+        if (this.track) {
+          this.setStatus("Rendering track…");
+          await new Promise((res) => setTimeout(res, 0));
+          // Resample + downmix the song to mono at the export rate, matched
+          // to the LTC's sample count so both channels line up exactly.
+          const mono = await this.renderTrackMono(this.s.sampleRate, r.pcm.length);
+          const trackPcm = floatToInt16(mono, 1, r.pcm.length); // gain baked in offline
+          const [left, right] = this.s.ltcSide === "left" ? [r.pcm, trackPcm] : [trackPcm, r.pcm];
+          wav = writeWavStereo16(left, right, r.sampleRate);
+          chanNote = this.s.ltcSide === "left" ? " · L LTC / R track" : " · L track / R LTC";
+        } else {
+          wav = writeWavMono16(r.pcm, r.sampleRate);
+        }
         const name = this.ensureWav(this.s.filename || "ltc.wav");
-        this.download(r.wav, name, "audio/wav");
-        this.setStatus(`Saved ${name} · ${r.frames} frames · ends ${r.endTc}`);
+        this.download(wav, name, "audio/wav");
+        this.setStatus(`Saved ${name} · ${r.frames} frames · ends ${r.endTc}${chanNote}`);
         return;
       }
 
@@ -955,6 +1167,25 @@ export class LtcApp {
       await new Promise((r) => setTimeout(r, 100));
     }
     this.setStatus(`Saved ${totalFiles} files across ${chunks.length} ZIP${chunks.length > 1 ? "s" : ""}.`);
+  }
+
+  /** Resample + downmix the loaded track to mono Float32 at `sr`, exactly
+   *  `length` samples (the LTC channel's length). Gain is applied here so the
+   *  exported balance matches what the Play button monitors. */
+  private async renderTrackMono(sr: number, length: number): Promise<Float32Array> {
+    const Offline = (window.OfflineAudioContext ||
+      (window as unknown as { webkitOfflineAudioContext: typeof OfflineAudioContext })
+        .webkitOfflineAudioContext) as typeof OfflineAudioContext;
+    const ctx = new Offline(1, length, sr);
+    const src = ctx.createBufferSource();
+    src.buffer = this.track!.buffer;
+    const g = ctx.createGain();
+    g.gain.value = this.s.trackLevel;
+    src.connect(g);
+    g.connect(ctx.destination);
+    src.start(0);
+    const rendered = await ctx.startRendering();
+    return rendered.getChannelData(0);
   }
 
   private download(data: Uint8Array, filename: string, mime: string): void {

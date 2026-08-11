@@ -29,29 +29,65 @@ export interface LtcResult {
   frames: number;              // total frames written
 }
 
-/** Build a stereo-or-mono WAV header + PCM payload. */
-function writeWavMono16(samples: Int16Array, sampleRate: number): Uint8Array {
-  const byteLen = samples.byteLength;
-  const buf = new Uint8Array(44 + byteLen);
-  const dv = new DataView(buf.buffer);
+/** Write the 44-byte canonical PCM WAV header into `buf`. */
+function writeWavHeader(
+  buf: Uint8Array, dv: DataView,
+  channels: number, sampleRate: number, dataBytes: number,
+): void {
   const setStr = (off: number, s: string) => {
     for (let i = 0; i < s.length; i++) buf[off + i] = s.charCodeAt(i);
   };
   setStr(0, "RIFF");
-  dv.setUint32(4, 36 + byteLen, true);
+  dv.setUint32(4, 36 + dataBytes, true);
   setStr(8, "WAVE");
   setStr(12, "fmt ");
-  dv.setUint32(16, 16, true);     // PCM chunk size
+  dv.setUint32(16, 16, true);      // PCM chunk size
   dv.setUint16(20, 1, true);       // PCM format
-  dv.setUint16(22, 1, true);       // channels
+  dv.setUint16(22, channels, true);
   dv.setUint32(24, sampleRate, true);
-  dv.setUint32(28, sampleRate * 2, true); // byte rate
-  dv.setUint16(32, 2, true);       // block align
+  dv.setUint32(28, sampleRate * 2 * channels, true); // byte rate
+  dv.setUint16(32, 2 * channels, true);              // block align
   dv.setUint16(34, 16, true);      // bits/sample
   setStr(36, "data");
-  dv.setUint32(40, byteLen, true);
+  dv.setUint32(40, dataBytes, true);
+}
+
+export function writeWavMono16(samples: Int16Array, sampleRate: number): Uint8Array {
+  const byteLen = samples.byteLength;
+  const buf = new Uint8Array(44 + byteLen);
+  const dv = new DataView(buf.buffer);
+  writeWavHeader(buf, dv, 1, sampleRate, byteLen);
   buf.set(new Uint8Array(samples.buffer, samples.byteOffset, byteLen), 44);
   return buf;
+}
+
+/** Interleave two mono channels into a 16-bit stereo WAV. The shorter channel
+ *  is padded with silence so LTC can keep running after the track ends. */
+export function writeWavStereo16(
+  left: Int16Array, right: Int16Array, sampleRate: number,
+): Uint8Array {
+  const n = Math.max(left.length, right.length);
+  const buf = new Uint8Array(44 + n * 4);
+  const dv = new DataView(buf.buffer);
+  writeWavHeader(buf, dv, 2, sampleRate, n * 4);
+  let off = 44;
+  for (let i = 0; i < n; i++) {
+    dv.setInt16(off, i < left.length ? left[i] : 0, true);
+    dv.setInt16(off + 2, i < right.length ? right[i] : 0, true);
+    off += 4;
+  }
+  return buf;
+}
+
+/** Float32 (−1..1) → Int16 with gain, hard-clamped, padded/truncated to `length`. */
+export function floatToInt16(src: Float32Array, gain: number, length: number): Int16Array {
+  const out = new Int16Array(length);
+  const n = Math.min(length, src.length);
+  for (let i = 0; i < n; i++) {
+    const v = Math.round(src[i] * gain * 32767);
+    out[i] = v > 32767 ? 32767 : v < -32768 ? -32768 : v;
+  }
+  return out;
 }
 
 // --- TC math ----------------------------------------------------------------

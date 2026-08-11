@@ -1168,7 +1168,9 @@ footer.site .wrap {
 }
 .tools-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  /* min() keeps the 380px card floor from overflowing narrow phones —
+   * a hard 380px minimum forces sideways scroll on a 375px viewport. */
+  grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr));
   gap: 20px;
 }
 .tool-card {
@@ -1537,6 +1539,57 @@ body.detail-open {
   align-items: center;
   gap: 8px;
 }
+/* Audio-track card — spans both grid columns; drop target for audio files. */
+.ltc-card-wide { grid-column: 1 / -1; }
+.ltc-card.drag {
+  border-color: var(--info);
+  background: var(--bg-raised);
+}
+.ltc-track-val {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.ltc-load {
+  background: var(--bg-raised);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.ltc-load:hover { border-color: var(--border-strong); background: var(--bg-hover); }
+.ltc-track-name {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.ltc-track-dur {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.ltc-eject {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  width: 26px;
+  height: 26px;
+  flex: none;
+  cursor: pointer;
+  line-height: 1;
+  font-size: 12px;
+}
+.ltc-eject:hover { color: var(--text-bright); border-color: var(--border-strong); }
+
 .ltc-check {
   display: inline-flex;
   align-items: center;
@@ -1683,9 +1736,29 @@ body:has(#consent-banner:not([hidden])) .ltc-actions {
   outline-offset: 2px;
 }
 
+/* Phone layout — the LTC Generator is meant to run from a phone at the venue
+ * (stereo WAV out of the headphone jack: LTC → console, track → ears). */
 @media (max-width: 620px) {
-  .ltc-transport { flex-wrap: wrap; gap: 10px; }
+  .ltc-tool { padding: 0 14px; }
+  .ltc-transport { flex-wrap: wrap; gap: 8px 10px; padding: 10px 14px; }
   .ltc-transport .tc-disp { font-size: 17px; }
+  .ltc-badges { flex-wrap: wrap; }
   .ltc-row { grid-template-columns: 92px 1fr; }
   .ltc-row .ltc-suffix { display: none; }
+  .ltc-row .seg-row.small { flex-wrap: wrap; }
+  .ltc-card { padding: 14px 14px 12px; }
+  .ltc-preview-wrap { padding: 12px 14px 14px; }
+  .ltc-wave { height: 120px; }
+  /* Thumb-sized action bar: Play + Download share the row, status wraps under.
+   * Safe-area padding keeps the buttons above the iPhone home indicator when
+   * the site is launched standalone. */
+  .ltc-actions {
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 -14px -32px;
+    padding: 12px 14px calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+  .btn-play { flex: 1; min-width: 110px; padding: 13px 12px; }
+  .ltc-actions .btn-cut { flex: 2; min-width: 0; padding: 13px 12px; }
+  .ltc-status { flex-basis: 100%; white-space: normal; }
 }

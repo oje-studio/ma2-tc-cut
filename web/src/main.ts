@@ -53,13 +53,11 @@ function closeTool(): void {
 }
 
 // ---- LTC Generator (lazy mount on first open) ----
+// No isMobile() gate here — unlike the canvas-heavy MA2 tool, the generator
+// works fine on phones (that's the point: play LTC + track straight off one).
 const ltcView = document.getElementById("app-view-ltc")!;
 let ltcMounted = false;
 async function openLtc(): Promise<void> {
-  if (isMobile()) {
-    document.getElementById("mobile-notice")?.removeAttribute("hidden");
-    return;
-  }
   track("LTC Generator", "#tool/ltc");
   if (!ltcMounted) {
     const { LtcApp } = await import("./ui/ltcApp.ts");
