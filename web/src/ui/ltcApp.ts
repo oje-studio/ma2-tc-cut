@@ -112,6 +112,12 @@ function formatTimeShort(secOffset: number): string {
   return h > 0 ? `${h}:${p(m)}:${p(s)}` : `${p(m)}:${p(s)}`;
 }
 
+/** iPhone/iPad detection — iPadOS ≥ 13 masquerades as macOS but is touch-first. */
+function isIOS(): boolean {
+  return /iP(hone|ad|od)/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
 export class LtcApp {
   readonly el: HTMLElement;
   private s: State = { ...DEFAULTS };
@@ -132,6 +138,12 @@ export class LtcApp {
   private audioCtx: AudioContext | null = null;
   private playingNode: AudioBufferSourceNode | null = null;
   private trackNode: AudioBufferSourceNode | null = null;
+  // iOS output path: Web Audio alone is muted by the ring/silent switch
+  // (ambient audio session). Routing the mix through a hidden <audio> element
+  // playing a MediaStream flips the session to "playback", which ignores the
+  // switch — the whole point is LTC out of a pocketed, silenced phone.
+  private mediaDest: MediaStreamAudioDestinationNode | null = null;
+  private mediaEl: HTMLAudioElement | null = null;
   // Playhead — offset in seconds from start of file. Visible as a green vertical
   // line on the timeline strip above the LTC waveform. Click/drag to seek.
   private playheadSec = 0;
@@ -431,6 +443,9 @@ export class LtcApp {
     if (this.playingNode) { this.stopPlay(); return; }
     try {
       if (!this.audioCtx) this.audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      // Grab the output sink synchronously, while the tap's user activation is
+      // still fresh — on iOS this play()s the hidden <audio> element.
+      const out = this.acquireOutput();
       if (this.audioCtx.state === "suspended") await this.audioCtx.resume();
 
       // Snap a stale playhead back to the start (e.g. if user changed startTc
@@ -464,7 +479,7 @@ export class LtcApp {
         // side, the music track on the other. A ChannelMergerNode gives us the
         // hard split; each input downmixes its source to mono per Web Audio.
         const merger = this.audioCtx.createChannelMerger(2);
-        merger.connect(this.audioCtx.destination);
+        merger.connect(out);
         const ltcCh = this.s.ltcSide === "left" ? 0 : 1;
         src.connect(merger, 0, ltcCh);
         if (this.playheadSec < this.track.duration) {
@@ -479,7 +494,7 @@ export class LtcApp {
         }
         chanNote = this.s.ltcSide === "left" ? " · L LTC / R track" : " · L track / R LTC";
       } else {
-        src.connect(this.audioCtx.destination);
+        src.connect(out);
       }
       src.onended = () => { if (this.playingNode === src) this.stopPlay(); };
       src.start();
@@ -494,6 +509,31 @@ export class LtcApp {
       this.setStatus("⚠ " + (err as Error).message);
       this.stopPlay();
     }
+  }
+
+  /** Where the playback graph terminates. Desktop: ctx.destination. iOS: a
+   *  MediaStreamAudioDestinationNode feeding a hidden <audio> element, which
+   *  puts the output in a "playback" media session — audible with the ring
+   *  switch on silent, unlike bare Web Audio. Must be called synchronously
+   *  inside the tap so play() carries user activation. */
+  private acquireOutput(): AudioNode {
+    const ctx = this.audioCtx!;
+    if (!isIOS()) return ctx.destination;
+    if (!this.mediaDest) {
+      this.mediaDest = ctx.createMediaStreamDestination();
+      this.mediaEl = document.createElement("audio");
+      this.mediaEl.setAttribute("playsinline", "");
+      this.mediaEl.style.display = "none";
+      this.mediaEl.srcObject = this.mediaDest.stream;
+      document.body.append(this.mediaEl);
+    }
+    void this.mediaEl!.play().catch(() => {
+      // Autoplay guard rejected (shouldn't happen off a real tap) — tell the
+      // user instead of playing silently into a paused element.
+      this.setStatus("⚠ audio output blocked — tap Play again");
+      this.stopPlay();
+    });
+    return this.mediaDest;
   }
 
   /** RAF loop: advance the playhead based on audioCtx.currentTime, redraw. */
@@ -524,6 +564,7 @@ export class LtcApp {
       try { this.trackNode.disconnect(); } catch {/**/}
       this.trackNode = null;
     }
+    this.mediaEl?.pause();
     if (this.playBtn) { this.playBtn.textContent = "▶ Play"; this.playBtn.classList.remove("on"); }
   }
 
