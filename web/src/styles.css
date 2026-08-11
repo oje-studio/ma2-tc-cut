@@ -1,32 +1,42 @@
-/* Design tokens — mirror of theme.py / theme.ts. */
+/* Design tokens — ØJE design system (mirror of theme.ts).
+   Base palette, typography and brand accent align with oje.studio; the functional
+   operator colors (lighting blue / audio amber) and destructive red are kept for
+   in-tool legibility per the redesign brief. */
+@font-face { font-family:'Cygre'; src:url('/fonts/Cygre-Book.ttf') format('truetype'); font-weight:350; font-style:normal; font-display:swap; }
+@font-face { font-family:'Cygre'; src:url('/fonts/Cygre-Regular.ttf') format('truetype'); font-weight:400; font-style:normal; font-display:swap; }
+@font-face { font-family:'Cygre'; src:url('/fonts/Cygre-Medium.ttf') format('truetype'); font-weight:500; font-style:normal; font-display:swap; }
+@font-face { font-family:'Cygre'; src:url('/fonts/Cygre-SemiBold.ttf') format('truetype'); font-weight:600; font-style:normal; font-display:swap; }
 :root {
-  --bg-app: #0f0f0f;
-  --bg-surface: #1a1a1a;
-  --bg-raised: #242424;
-  --bg-hover: #2e2e2e;
-  --bg-input: #1e1e1e;
-  --bg-header: #161616;
-  --text-primary: #f0f0f0;
+  --bg-app: #0a0a0a;
+  --bg-surface: #121212;
+  --bg-raised: #191919;
+  --bg-hover: #1f1f1f;
+  --bg-input: #121212;
+  --bg-header: #000000;
+  --text-primary: #ffffff;
   --text-bright: #ffffff;
-  --text-muted: #a5a5a5;
-  --text-dim: #6a6a6a;
-  --text-disabled: #4a4a4a;
-  --border-subtle: #2a2a2a;
-  --border: #3a3a3a;
-  --border-strong: #4a4a4a;
+  --text-muted: #a8a8a8;
+  --text-dim: #818181;
+  --text-disabled: #5c5c5c;
+  --border-subtle: #1f1f1f;
+  --border: #2b2b2b;
+  --border-strong: #5c5c5c;
   --danger: #e5484d;
   --warning: #f5a524;
   --warning-hover: #ffbe4d;
   --info: #7ab7ff;
   --info-hover: #93c5fd;
   --info-active: #5a96d6;
-  --action: #2ebd6b;
-  --action-hover: #37d079;
-  --action-active: #28a85e;
+  /* brand accent + primary action — ØJE coral */
+  --accent: #ff6b5e;
+  --accent-ink: #2c0602;
+  --action: #ff6b5e;
+  --action-hover: #ff5647;
+  --action-active: #f04334;
   --op-lighting: #85b7eb;
   --op-audio: #ef9f27;
-  --mono: "Menlo", "SF Mono", "Roboto Mono", ui-monospace, monospace;
-  --sans: "Helvetica Neue", "Inter", system-ui, -apple-system, sans-serif;
+  --mono: "SF Mono", "Menlo", "Roboto Mono", ui-monospace, monospace;
+  --sans: "Cygre", "Helvetica Neue", "Inter", system-ui, -apple-system, sans-serif;
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 10px;
@@ -198,7 +208,7 @@ footer.site a:focus-visible {
   margin: 0 0 20px;
 }
 .hero h1 .accent {
-  color: var(--op-audio);
+  color: var(--accent);
 }
 .hero p.lede {
   font-size: clamp(15px, 1.5vw, 18px);
@@ -222,12 +232,12 @@ footer.site a:focus-visible {
 }
 .cta.primary {
   background: var(--action);
-  color: var(--bg-app);
+  color: var(--accent-ink);
   border: none;
 }
 .cta.primary:hover {
   background: var(--action-hover);
-  color: var(--bg-app);
+  color: var(--accent-ink);
 }
 .cta.ghost {
   background: transparent;
@@ -256,7 +266,7 @@ footer.site a:focus-visible {
 .eyebrow {
   letter-spacing: 0.5px;
   font-size: 13px;
-  color: var(--op-audio);
+  color: var(--accent);
   margin: 0 0 12px;
   font-weight: 500;
 }
@@ -345,7 +355,7 @@ footer.site a:focus-visible {
   color: var(--text-primary);
   background: var(--bg-header);
   border: 1px solid var(--border-subtle);
-  border-left: 3px solid var(--op-audio);
+  border-left: 3px solid var(--accent);
   border-radius: var(--radius-md);
   padding: 12px 14px;
   margin: 0 0 14px;
@@ -404,7 +414,7 @@ body.tool-open .app-view[aria-hidden="false"] {
   border-bottom: 1px solid var(--border-subtle);
 }
 .app-bar .brand-mark {
-  color: var(--op-audio);
+  color: var(--accent);
   font-size: 18px;
 }
 .app-bar .brand-name {
@@ -443,7 +453,7 @@ body.tool-open .app-view[aria-hidden="false"] {
   color: var(--text-primary);
 }
 :fullscreen .app-fs {
-  color: var(--op-audio);
+  color: var(--accent);
 }
 #tool-mount {
   width: 100%;
@@ -474,7 +484,7 @@ body.tool-open .app-view[aria-hidden="false"] {
   }
   .rotate-hint .rotate-glyph {
     font-size: 52px;
-    color: var(--op-audio);
+    color: var(--accent);
     margin-bottom: 14px;
   }
   .rotate-hint strong {
@@ -1227,7 +1237,7 @@ footer.site .wrap {
   padding: 2px 9px;
 }
 .tool-tag.alt {
-  color: var(--op-audio);
+  color: var(--accent);
 }
 .tool-line {
   color: var(--text-muted);
@@ -1362,7 +1372,7 @@ body.detail-open {
 }
 .consent-btn.primary {
   background: var(--action);
-  color: var(--bg-app);
+  color: var(--accent-ink);
   border-color: transparent;
 }
 .consent-btn.primary:hover { background: var(--action-hover); }
@@ -1437,7 +1447,7 @@ body.detail-open {
   font-family: var(--mono);
 }
 .ltc-tx-glyph {
-  color: var(--op-audio); /* amber, like .app-bar .brand-mark */
+  color: var(--accent); /* amber, like .app-bar .brand-mark */
   font-size: 18px;
   line-height: 1;
 }
