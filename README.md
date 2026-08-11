@@ -31,6 +31,20 @@ Nothing to install. Python 3, standard library only. Copy `ma2_tc_cut.py` and yo
 done. Deliberately no `lxml`, so it runs on a show laptop / MA onPC machine where pip
 and a compiler usually aren't available.
 
+## Web tools — [tools.oje.studio](https://tools.oje.studio)
+
+The same core also runs in the browser. Everything renders client-side; nothing
+is uploaded. Source lives in [`web/`](web/).
+
+- **MA2 Timecode Tools** — the ripple cut / insert / erase with the timeline,
+  bar grid, waveform, playback and metronome, as a web app.
+- **LTC Generator** — SMPTE LTC timecode WAV files: a single file with any start
+  TC, fps (drop-frame included) and length, or a whole day's batch as a ZIP.
+  Load a music track and it renders a stereo check file — LTC on one channel,
+  the song on the other, track level normalized — so one phone with a Y-cable
+  feeds the console and a pair of headphones at once. Runs on a phone; Play
+  auditions the same stereo pair straight from the browser.
+
 ## Desktop app (macOS & Windows)
 
 Prefer a UI over the command line? There's a PySide6 desktop app:

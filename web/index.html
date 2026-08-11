@@ -28,7 +28,7 @@
     <title>ØJE Tools — software for live shows</title>
     <meta
       name="description"
-      content="Tools from ØJE Studio for live shows — MA2 Timecode Tools (ripple-cut a grandMA2 show in the browser) and ØJE Cue Monitor (LTC timecode reader + cue list with a phone remote)."
+      content="Tools from ØJE Studio for live shows — MA2 Timecode Tools (ripple-cut a grandMA2 show in the browser), LTC Generator (SMPTE timecode WAVs with your track on the second channel, phone-ready) and ØJE Cue Monitor (LTC reader + cue list with a phone remote)."
     />
     <link rel="icon" type="image/png" href="./icon.png" />
     <meta name="theme-color" content="#0f0f0f" />
@@ -38,17 +38,17 @@
     <link rel="apple-touch-icon" href="./icon.png" />
     <link rel="canonical" href="https://tools.oje.studio/" />
     <meta property="og:title" content="ØJE Tools — software for live shows" />
-    <meta property="og:description" content="MA2 Timecode Tools and ØJE Cue Monitor — software written at front of house." />
+    <meta property="og:description" content="MA2 Timecode Tools, LTC Generator and ØJE Cue Monitor — software written at front of house." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://tools.oje.studio/" />
     <meta property="og:site_name" content="ØJE Tools" />
     <meta property="og:image" content="https://tools.oje.studio/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="ØJE Tools — MA2 Timecode Tools and ØJE Cue Monitor" />
+    <meta property="og:image:alt" content="ØJE Tools — MA2 Timecode Tools, LTC Generator and ØJE Cue Monitor" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="ØJE Tools — software for live shows" />
-    <meta name="twitter:description" content="MA2 Timecode Tools and ØJE Cue Monitor — software written at front of house." />
+    <meta name="twitter:description" content="MA2 Timecode Tools, LTC Generator and ØJE Cue Monitor — software written at front of house." />
     <meta name="twitter:image" content="https://tools.oje.studio/og.png" />
     <script type="application/ld+json">
       {
@@ -62,6 +62,15 @@
             "applicationCategory": "MultimediaApplication",
             "operatingSystem": "Web, macOS, Windows",
             "url": "https://tools.oje.studio/#t/ma2",
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+            "publisher": { "@type": "Organization", "name": "ØJE Studio" }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "LTC Generator",
+            "applicationCategory": "MultimediaApplication",
+            "operatingSystem": "Web",
+            "url": "https://tools.oje.studio/#t/ltc",
             "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
             "publisher": { "@type": "Organization", "name": "ØJE Studio" }
           },
@@ -287,7 +296,7 @@
         <div class="detail-hero">
           <div class="detail-shot"><img src="./tools/ltc.png" alt="LTC Generator" /></div>
           <div class="detail-intro">
-            <p class="eyebrow">web tool</p>
+            <p class="eyebrow">web tool · runs on your phone</p>
             <h2>LTC Generator</h2>
             <p class="sub">
               Render SMPTE Linear Timecode (LTC) WAV files in the browser. A single file with a
