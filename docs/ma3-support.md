@@ -19,7 +19,9 @@ has been validated yet; do not describe this as verified 2.5.1 compatibility.
    The original audio/bar-grid origin is retained after MA3 edits, including
    erasing the first events and changing the display FPS.
 5. Save the XML to the timecodes library on the selected drive. On USB this is
-   `grandMA3/shared/lib_timecodes`. Import into an empty slot, for example:
+   `grandMA3/gma3_library/datapools/timecodes`. On Windows onPC the folder is
+   `C:\ProgramData\MALightingTechnology\gma3_library\datapools\timecodes`.
+   Import into an empty slot, for example:
    `Import Timecode Library "tc_show_cut.xml" At Timecode 40`.
 6. Check cue destinations, absolute event times, range boundaries and fader
    transitions in grandMA3 before using the file in a show.
@@ -73,6 +75,8 @@ pool slot, compare event counts/times/targets, and play across both edit edges.
 
 ## Format evidence
 
+- [MA Lighting: Folder Structure](https://help.malighting.com/grandMA3/2.5/HTML/fm_folder_structure.html)
+  documents the current library hierarchy, including `datapools/timecodes`.
 - [MA Lighting: Time Ranges](https://help.malighting.com/grandMA3/2.4/HTML/timceode_time_ranges.html)
   documents that events are children of ranges and that absolute time is event
   time plus range start.
