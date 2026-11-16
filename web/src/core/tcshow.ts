@@ -99,6 +99,10 @@ export function summary(text: string): ShowSummary {
 export function estimateBeat(text: string): { beatFrames: number; bpm: number } | null {
   const fps = getFps(text);
   const subs = eventsBySubtrack(text);
+  return estimateBeatGrid(subs, fps);
+}
+
+export function estimateBeatGrid(subs: number[][], fps: number): { beatFrames: number; bpm: number } | null {
   const hits = new Map<number, Set<number>>();
   subs.forEach((times, si) => {
     for (const t of times) {

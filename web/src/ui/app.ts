@@ -1,8 +1,8 @@
 // MA2 Timecode Cut — the tool UI. Port of gui.py (MainWindow), wired to the
 // shared TS core. Pure DOM + the canvas Timeline + the Web Audio Player.
 import { tcToFrames, framesToTc } from "../core/frames.ts";
-import { rippleCut, rippleInsert, eraseRange, moveEvent } from "../core/cut.ts";
-import { decodeShow, encodeShow, summary, lanes, estimateBeat } from "../core/tcshow.ts";
+import { decodeShow, encodeShow, inspectShow, editShow, moveShowEvent } from "../core/show.ts";
+import type { ShowFormat } from "../core/show.ts";
 import type { ShowSummary } from "../core/tcshow.ts";
 import { decodeAudio, estimateBpmFromPeaks } from "./audio.ts";
 import { Player } from "./player.ts";
@@ -12,7 +12,7 @@ import { VolumeKnob } from "./knob.ts";
 export const APP_VERSION = "0.1.0";
 const AUDIO_EXT = [".wav", ".mp3", ".flac", ".ogg", ".aif", ".aiff", ".m4a"];
 const DROP_HINT = "↓ drop your own .xml on the cues + audio on the waveform — or click a lane to browse";
-const DROP_HINT_EMPTY = "↓ drop a grandMA2 .xml here — or click the cue area to browse";
+const DROP_HINT_EMPTY = "↓ drop a grandMA2 or grandMA3 .xml here — or click the cue area to browse";
 
 function h<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -34,7 +34,15 @@ export class ToolApp {
   private text: string | null = null;
   private hasBom = false;
   private fps = 30;
+  private format: ShowFormat = "ma2";
+  private ma3Fps: number | undefined;
+  private needsFps = false;
+  private fpsSelect!: HTMLSelectElement;
+  private fpsControl!: HTMLElement;
+  private formatNote!: HTMLElement;
+  private active = true;
   private anchor = 0;
+  private originSeconds = 0;
   private appliedBpm = 0;
   private info: ShowSummary | null = null;
   private showName = "";
@@ -166,7 +174,18 @@ export class ToolApp {
     // info line: summary (left, may ellipsis) + an always-visible load hint (right)
     this.infoLabel = h("div", { class: "info-label" }, "No show loaded");
     this.infoTip = h("div", { class: "info-tip" }, DROP_HINT);
-    const info = h("div", { class: "info-row" }, this.infoLabel, this.infoTip);
+    const openShow = h("button", { class: "file-open", "aria-label": "Open show XML" }, "Open XML");
+    const openAudio = h("button", { class: "file-open", "aria-label": "Open audio track" }, "Add audio");
+    openShow.addEventListener("click", () => this.pickShow());
+    openAudio.addEventListener("click", () => this.pickAudio());
+    const info = h("div", { class: "info-row" }, this.infoLabel, h("div", { class: "file-actions" }, openShow, openAudio), this.infoTip);
+    this.fpsSelect = h("select", { class: "ma3-fps", "aria-label": "MA3 editing FPS" },
+      h("option", { value: "" }, "Choose FPS"),
+      ...[24, 25, 30, 60].map(fps => h("option", { value: String(fps) }, `${fps} fps`)));
+    this.fpsSelect.addEventListener("change", () => this.changeFps());
+    this.formatNote = h("span", { class: "format-note" });
+    this.fpsControl = h("div", { class: "format-row", hidden: "" },
+      h("label", {}, "MA3 editing grid ", this.fpsSelect), this.formatNote);
 
     // timeline
     const tlWrap = h("div", { class: "tl-wrap" }, this.timeline.el);
@@ -199,7 +218,7 @@ export class ToolApp {
     const cutPanel = h("div", { class: "panel cut-panel" }, tabRow, cutStack);
 
     // preview
-    this.report = h("pre", { class: "report" }, "Load a grandMA2 timecode .xml to begin.") as HTMLPreElement;
+    this.report = h("pre", { class: "report" }, "Load a grandMA2 or grandMA3 timecode .xml to begin.") as HTMLPreElement;
     const previewPanel = h("div", { class: "panel preview-panel" }, this.report);
 
     const cols = h("div", { class: "cols" }, cutPanel, previewPanel);
@@ -210,7 +229,7 @@ export class ToolApp {
     this.saveBtn = h("button", { class: "btn-save", disabled: "" }, "SAVE FILE");
     const actions = h("div", { class: "actions" }, this.cutBtn, this.uncutBtn, this.saveBtn);
 
-    root.append(header, info, tlWrap, cols, actions);
+    root.append(header, info, this.fpsControl, tlWrap, cols, actions);
 
     // setup-time wiring
     this.autoBtn.addEventListener("click", () => this.autoBpm(true));
@@ -232,6 +251,11 @@ export class ToolApp {
     const ro = new ResizeObserver(() => this.fit());
     ro.observe(wrap); // tl-wrap grows with the window → timeline fills width AND height
     this.fit();
+  }
+
+  setActive(active: boolean): void {
+    this.active = active;
+    if (!active) this.engine.pause();
   }
 
   /** Re-measure the timeline to its container (content box) — fills width + height. */
@@ -295,7 +319,7 @@ export class ToolApp {
     this.saveBtn.addEventListener("click", () => this.saveFile());
 
     window.addEventListener("keydown", (e) => {
-      if (e.key === " " && this.text && !isTyping()) {
+      if (e.key === " " && this.active && this.text && !isTyping()) {
         e.preventDefault();
         this.togglePlay();
       }
@@ -308,7 +332,7 @@ export class ToolApp {
   }
   private pickAudio(): void {
     if (!this.text) {
-      this.toast("Load a show first — open a grandMA2 .xml before adding audio.");
+      this.toast("Load a show first — open a grandMA2 or grandMA3 .xml before adding audio.");
       return;
     }
     pickFile(AUDIO_EXT.join(",") + ",audio/*").then((f) => f && this.loadAudioFile(f));
@@ -325,11 +349,19 @@ export class ToolApp {
     try {
       const buf = await f.arrayBuffer();
       const { hasBom, text } = decodeShow(buf);
-      summary(text); // throws if not a timecode show
+      if (new DOMParser().parseFromString(text, "application/xml").querySelector("parsererror")) {
+        throw new Error("Invalid XML. Export the Timecode pool object again.");
+      }
+      const loaded = inspectShow(text); // validate before replacing the current show
+      this.engine.pause();
+      this.ma3Fps = loaded.format === "ma3" && !loaded.needsFps ? loaded.info.fps : undefined;
+      this.originSeconds = loaded.info.firstFrame / loaded.info.fps;
       this.text = text;
       this.hasBom = hasBom;
       this.showName = f.name;
       this.undo = [];
+      this.uncutBtn.disabled = true;
+      this.refreshSave();
       this.reloadWorking(this.song === null);
       this.setLoaded(true);
       this.autoBpm(false);
@@ -378,27 +410,56 @@ export class ToolApp {
 
   private reloadWorking(resetAudio: boolean, keepView = false): void {
     const prevHead = this.timeline.playhead; // keep the playhead across in-place edits
-    const info = summary(this.text!);
+    const loaded = inspectShow(this.text!, this.ma3Fps);
+    const info = loaded.info;
+    const audioFirst = loaded.format === "ma3" ? this.originSeconds * info.fps : info.firstFrame;
+    if (loaded.format === "ma3") {
+      info.firstFrame = info.nEvents === 0 ? audioFirst : Math.min(info.firstFrame, audioFirst);
+      info.lastFrame = Math.max(info.firstFrame, info.lastFrame);
+      info.firstTc = framesToTc(info.firstFrame, info.fps);
+      info.lastTc = framesToTc(info.lastFrame, info.fps);
+    }
+    this.format = loaded.format;
+    this.needsFps = loaded.needsFps;
+    this.fpsControl.hidden = this.format !== "ma3";
+    this.fpsSelect.value = this.needsFps ? "" : String(info.fps);
+    this.formatNote.textContent = this.needsFps
+      ? "Frame Readout is Default / Seconds. Choose the FPS of your show to enable editing."
+      : "MA3 preview · verify playback after import. TC-slot offset, audio and cue fades stay unchanged.";
+    this.el.querySelector(".brand-name")!.textContent = `${this.format.toUpperCase()} TIMECODE TOOLS`;
     this.info = info;
     this.fps = info.fps;
-    this.anchor = info.firstFrame;
+    this.anchor = audioFirst;
     this.infoLabel.textContent =
-      `${info.name} · ${info.fps} FPS · ${info.firstTc}–${info.lastTc} · ${info.nEvents} cues · ${info.nSubtracks} tracks`;
+      `${this.format.toUpperCase()} · ${info.name} · ${this.needsFps ? "choose FPS" : `${info.fps} FPS`} · ${info.firstTc}–${info.lastTc} · ${info.nEvents} events · ${info.nSubtracks} tracks`;
     this.infoTip.textContent = DROP_HINT;
-    this.timeline.setShow(info.fps, lanes(this.text!), info.firstFrame, info.lastFrame, this.showName, keepView);
+    this.timeline.setShow(info.fps, loaded.lanes, info.firstFrame, info.lastFrame, this.showName, keepView, audioFirst);
     this.timeline.setGrid(this.appliedBpm, this.anchor);
     if (resetAudio) {
       this.song = null;
       this.timeline.clearAudio();
     }
-    this.engine.setShow(info.firstFrame, info.lastFrame, info.fps);
+    this.engine.setShow(info.firstFrame, info.lastFrame, info.fps, audioFirst);
     this.engine.setVolume(this.knob.value() / 100);
     const head = keepView && prevHead !== null ? prevHead : this.firstFrame();
     this.engine.seekFrame(head); // clamps to the new length, so it can't strand
     this.applyMetro();
     this.playBtn.disabled = false;
-    this.timeline.setPlayhead(head);
-    this.updateHead(head);
+    this.timeline.setPlayhead(this.engine.positionFrame());
+    this.updateHead(this.engine.positionFrame());
+  }
+
+  private changeFps(): void {
+    if (!this.text || this.format !== "ma3") return;
+    const oldFps = this.fps;
+    const cin = this.pointFrame(this.cinInput.value, this.cinUnit);
+    const cout = this.pointFrame(this.coutInput.value, this.coutUnit);
+    this.ma3Fps = this.fpsSelect.value ? Number(this.fpsSelect.value) : undefined;
+    this.engine.pause();
+    this.reloadWorking(false);
+    if (this.cinUnit === "tc" && cin !== null) this.cinInput.value = framesToTc(Math.round(cin / oldFps * this.fps), this.fps);
+    if (this.coutUnit === "tc" && cout !== null) this.coutInput.value = framesToTc(Math.round(cout / oldFps * this.fps), this.fps);
+    this.recompute();
   }
 
   private unloadShow(): void {
@@ -406,6 +467,9 @@ export class ToolApp {
     this.engine.pause();
     this.text = null;
     this.info = null;
+    this.fpsControl.hidden = true;
+    this.ma3Fps = undefined;
+    this.needsFps = false;
     this.song = null;
     this.showName = "";
     this.appliedBpm = 0;
@@ -420,7 +484,7 @@ export class ToolApp {
     this.setLoaded(false);
     this.infoLabel.textContent = "No show loaded";
     this.infoTip.textContent = DROP_HINT_EMPTY;
-    this.report.textContent = "Load a grandMA2 timecode .xml to begin.";
+    this.report.textContent = "Load a grandMA2 or grandMA3 timecode .xml to begin.";
     this.bpmInput.value = "";
     this.songPeaks = null;
     this.setAutoActive(true);
@@ -449,9 +513,9 @@ export class ToolApp {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    this.report.textContent =
-      `Cut saved → ${name}\n\nImport into grandMA2 (empty slot, filename first, no .xml):\n\n` +
-      `    Import "${base}_cut" At Timecode <N>`;
+    this.report.textContent = this.format === "ma3"
+      ? `Saved → ${name}\n\nCopy to the grandMA3 timecodes library folder on your selected drive, then import into an empty slot:\n\n    Import Timecode Library "${name}" At Timecode <N>\n\nCheck playback in grandMA3 2.5.1 before using the edited show.`
+      : `Saved → ${name}\n\nImport into grandMA2 (empty slot, filename first, no .xml):\n\n    Import "${base}_cut" At Timecode <N>`;
   }
 
   // ---------- cut compute ----------
@@ -470,11 +534,13 @@ export class ToolApp {
     return bf > 0 ? (fr - this.anchor) / bf + 1 : 1;
   }
   private tcSafe(s: string): number | null {
-    try {
-      return tcToFrames(s, this.fps);
-    } catch {
-      return null;
-    }
+    const parts = s.trim().split(":");
+    if (parts.length > 4 || parts.some(p => !/^\d+$/.test(p))) return null;
+    while (parts.length < 4) parts.unshift("0");
+    const [, m, sec, f] = parts.map(Number);
+    if (m >= 60 || sec >= 60 || f >= this.fps) return null;
+    const frame = tcToFrames(s, this.fps);
+    return Number.isSafeInteger(frame) && frame >= 0 ? frame : null;
   }
   private pointFrame(value: string, unit: "tc" | "bar"): number | null {
     return unit === "bar" ? this.barToFrame(parseFloat(value)) : this.tcSafe(value);
@@ -488,7 +554,7 @@ export class ToolApp {
   private cutWindow(): { cin: number; len: number } | null {
     if (!this.text) return null;
     const cin = this.pointFrame(this.cinInput.value, this.cinUnit);
-    if (cin === null) return null;
+    if (cin === null || !Number.isFinite(cin) || cin < 0) return null;
     let len: number;
     if (this.endIsDuration()) {
       const v = parseFloat(this.durInput.value);
@@ -509,6 +575,21 @@ export class ToolApp {
   }
 
   private recompute(): void {
+    if (!this.text) return;
+    if (this.needsFps) {
+      this.timeline.setCut(null, null);
+      this.cutBtn.disabled = true;
+      this.report.textContent = "Choose the MA3 editing FPS above. The XML stores seconds; Default / Seconds does not specify your source frame rate.";
+      return;
+    }
+    try { this.renderPreview(); }
+    catch (error) {
+      this.cutBtn.disabled = true;
+      this.report.textContent = (error as Error).message;
+    }
+  }
+
+  private renderPreview(): void {
     if (!this.text) return;
     const insert = this.cutMode === "insert";
     const erase = this.cutMode === "erase";
@@ -543,39 +624,40 @@ export class ToolApp {
     };
 
     if (insert) {
-      const { shifted } = rippleInsert(this.text, cin, len);
+      const { shifted } = editShow(this.text, this.format, "insert", cin, len, this.fps);
       lines.push("PENDING — press INSERT! to apply", "");
       lines.push(`Insert at:   ${framesToTc(cin, this.fps)}`);
       lines.push(`Length:      ${len} frames  /  ${(len / this.fps).toFixed(3)} s`);
       barsLine("gap ends at");
       lines.push("");
-      lines.push(`SHIFT ${shifted} cues right by ${len} frames.`);
+      lines.push(`SHIFT ${shifted} events right by ${len} frames.`);
       lines.push("Opens a gap — nothing is deleted.");
     } else if (erase) {
-      const { deleted } = eraseRange(this.text, cin, cout);
+      const { deleted } = editShow(this.text, this.format, "erase", cin, len, this.fps);
       lines.push("PENDING — press ERASE! to apply", "");
       lines.push(`Erase window:  ${framesToTc(cin, this.fps)}  →  ${framesToTc(cout, this.fps)}`);
       lines.push(`Length:      ${len} frames  /  ${(len / this.fps).toFixed(3)} s`);
       barsLine("window ends at");
       lines.push("");
-      lines.push(`ERASE ${deleted.length} cues:`);
+      lines.push(`ERASE ${deleted.length} events:`);
       for (const [fr, nm] of deleted.slice(0, 18)) lines.push(`    ${framesToTc(fr, this.fps)}  ${nm}`);
       if (deleted.length > 18) lines.push(`    … and ${deleted.length - 18} more`);
       lines.push("");
-      lines.push("Timeline length unchanged — later cues stay put.");
+      lines.push("Later events stay at their original times.");
     } else {
-      const { deleted, shifted } = rippleCut(this.text, cin, len);
+      const { deleted, shifted } = editShow(this.text, this.format, "cut", cin, len, this.fps);
       lines.push("PENDING — press CUT! to apply", "");
       lines.push(`Cut window:  ${framesToTc(cin, this.fps)}  →  ${framesToTc(cout, this.fps)}`);
       lines.push(`Length:      ${len} frames  /  ${(len / this.fps).toFixed(3)} s`);
       barsLine("cut out");
       lines.push("");
-      lines.push(`DELETE ${deleted.length} cues:`);
+      lines.push(`DELETE ${deleted.length} events:`);
       for (const [fr, nm] of deleted.slice(0, 18)) lines.push(`    ${framesToTc(fr, this.fps)}  ${nm}`);
       if (deleted.length > 18) lines.push(`    … and ${deleted.length - 18} more`);
       lines.push("");
-      lines.push(`SHIFT ${shifted} cues left by ${len} frames.`);
+      lines.push(`SHIFT ${shifted} events left by ${len} frames.`);
     }
+    if (this.format === "ma3") lines.push("", "Time Ranges and markers follow the edit. Check fader transitions at the seam.");
     this.report.textContent = lines.join("\n");
     this.cutBtn.disabled = false;
   }
@@ -594,69 +676,59 @@ export class ToolApp {
   }
 
   private applyCut(): void {
-    if (!this.text) return;
-    const w = this.cutWindow();
-    if (!w || w.len <= 0) return;
-    this.undo.push(this.text);
-    const { text } = rippleCut(this.text, w.cin, w.len);
-    this.text = text;
-    this.reloadWorking(false, true);
-    this.timeline.setCut(null, null);
-    this.uncutBtn.disabled = false;
-    this.refreshSave();
-    const n = this.undo.length;
-    this.report.textContent = `✓ CUT APPLIED  (UNDO to revert · ${n} edit${n === 1 ? "" : "s"})`;
+    this.applyEdit("cut", "CUT APPLIED");
   }
 
   private applyInsert(): void {
-    if (!this.text) return;
-    const w = this.cutWindow(); // cin = insert point, len = gap length
-    if (!w || w.len <= 0) return;
-    this.undo.push(this.text);
-    const { text } = rippleInsert(this.text, w.cin, w.len);
-    this.text = text;
-    this.reloadWorking(false, true);
-    this.timeline.setCut(null, null);
-    this.uncutBtn.disabled = false;
-    this.refreshSave();
-    const n = this.undo.length;
-    this.report.textContent = `✓ INSERTED  (UNDO to revert · ${n} edit${n === 1 ? "" : "s"})`;
+    this.applyEdit("insert", "INSERTED");
   }
 
   private applyErase(): void {
-    if (!this.text) return;
+    this.applyEdit("erase", "ERASED");
+  }
+
+  private applyEdit(mode: "cut" | "insert" | "erase", label: string): void {
+    if (!this.text || this.needsFps) return;
     const w = this.cutWindow();
     if (!w || w.len <= 0) return;
+    let text: string;
+    try {
+      text = editShow(this.text, this.format, mode, w.cin, w.len, this.fps).text;
+      inspectShow(text, this.ma3Fps);
+    } catch (error) { this.toast((error as Error).message); return; }
+    if (text === this.text) { this.toast("No events or ranges changed."); return; }
+    this.engine.pause();
     this.undo.push(this.text);
-    const { text } = eraseRange(this.text, w.cin, w.cin + w.len);
     this.text = text;
     this.reloadWorking(false, true);
     this.timeline.setCut(null, null);
     this.uncutBtn.disabled = false;
     this.refreshSave();
     const n = this.undo.length;
-    this.report.textContent = `✓ ERASED  (UNDO to revert · ${n} edit${n === 1 ? "" : "s"})`;
+    this.report.textContent = `✓ ${label}  (UNDO to revert · ${n} edit${n === 1 ? "" : "s"})`;
   }
 
   private doUncut(): void {
     if (!this.undo.length) return;
+    this.engine.pause();
     this.text = this.undo.pop()!;
     this.reloadWorking(false, true);
     this.uncutBtn.disabled = this.undo.length === 0;
     this.refreshSave();
     this.recompute(); // keep the segment selected and re-show its preview
     const n = this.undo.length;
-    this.toast("Reverted last cut" + (n ? ` · ${n} left` : ""));
+    this.toast("Reverted last edit" + (n ? ` · ${n} left` : ""));
   }
 
   private onEventMoved(lane: number, fromFrame: number, toFrame: number): void {
-    if (!this.text || fromFrame === toFrame) return;
+    if (!this.text || fromFrame === toFrame || this.needsFps) return;
+    let result;
+    try { result = moveShowEvent(this.text, this.format, lane, fromFrame, toFrame, this.fps); }
+    catch (error) { this.toast((error as Error).message); return; }
+    const { text, moved } = result;
+    if (!moved) return;
+    this.engine.pause();
     this.undo.push(this.text);
-    const { text, moved } = moveEvent(this.text, lane, fromFrame, toFrame);
-    if (!moved) {
-      this.undo.pop();
-      return;
-    }
     this.text = text;
     this.reloadWorking(false, true); // keep zoom/playhead — you're working in a spot
     this.uncutBtn.disabled = false;
@@ -676,6 +748,7 @@ export class ToolApp {
     this.timeline.setGrid(this.appliedBpm, this.anchor);
     this.applyMetro();
     this.recompute();
+    this.updateHead(this.engine.positionFrame());
     this.timeline.relayout();
   }
   private applyBpm(): void {
@@ -695,7 +768,7 @@ export class ToolApp {
     // prefer the audio (real tempo) when loaded, else the cue grid
     let bpm: number | null = this.songPeaks ? estimateBpmFromPeaks(this.songPeaks, this.songPeaksRate) : null;
     if (bpm === null) {
-      const est = estimateBeat(this.text);
+      const est = inspectShow(this.text, this.ma3Fps).beat;
       bpm = est ? Math.round(est.bpm * 10) / 10 : null;
     }
     if (bpm) {
@@ -915,15 +988,15 @@ function metroSvg(): SVGSVGElement {
 }
 function isTyping(): boolean {
   const a = document.activeElement;
-  return !!a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA");
+  return !!a && ["INPUT", "TEXTAREA", "SELECT"].includes(a.tagName);
 }
 function pickFile(accept: string): Promise<File | null> {
   return new Promise((resolve) => {
     const inp = h("input", { type: "file", accept });
     inp.style.display = "none";
-    inp.addEventListener("change", () => resolve(inp.files?.[0] ?? null));
+    inp.addEventListener("change", () => { resolve(inp.files?.[0] ?? null); inp.remove(); }, { once: true });
+    inp.addEventListener("cancel", () => { resolve(null); inp.remove(); }, { once: true });
     document.body.append(inp);
     inp.click();
-    setTimeout(() => inp.remove(), 1000);
   });
 }

@@ -3,6 +3,7 @@
 // eject glyphs and the moving playhead. Mouse-driven, same interaction model.
 import * as t from "../theme.ts";
 import type { Lane } from "../core/tcshow.ts";
+import { framesToTc as tc } from "../core/frames.ts";
 
 const LBL_W = 134;
 const AXIS_H = 30;
@@ -14,19 +15,6 @@ const HANDLE_H = 11;
 const SCROLL_H = 11; // bottom scrollbar lane (shown when zoomed)
 
 type Zone = "left" | "right" | "move" | null;
-
-function pad2(n: number): string {
-  return String(n).padStart(2, "0");
-}
-function tc(fr: number, fps: number): string {
-  let s = Math.floor(fr / fps);
-  const f = Math.round(fr) - s * fps;
-  const h = Math.floor(s / 3600);
-  s -= h * 3600;
-  const m = Math.floor(s / 60);
-  s -= m * 60;
-  return `${pad2(h)}:${pad2(m)}:${pad2(s)}:${pad2(f)}`;
-}
 
 function blend(c1: string, c2: string, k: number): string {
   const a = c1.replace("#", "");
@@ -108,8 +96,10 @@ export class Timeline {
   // ---------- data ----------
   /** Effective right edge spans the longer of the show and the audio.
    *  keepView preserves the current zoom/pan (clamped); otherwise zoom-to-fit. */
+  private audioFirst = 0;
+
   private applyRange(keepView = false): void {
-    const audioEnd = this.audioDur > 0 ? Math.round(this.first + this.audioDur * this.fps) : this.first;
+    const audioEnd = this.audioDur > 0 ? Math.round(this.audioFirst + this.audioDur * this.fps) : this.first;
     this.last = Math.max(this.showLast, audioEnd, this.first + 1);
     const full = this.last - this.first;
     if (keepView) {
@@ -124,10 +114,11 @@ export class Timeline {
       this.onZoom(1);
     }
   }
-  setShow(fps: number, lanes: Lane[], first: number, last: number, name = "", keepView = false): void {
+  setShow(fps: number, lanes: Lane[], first: number, last: number, name = "", keepView = false, audioFirst = first): void {
     this.fps = Math.max(1, fps);
     this.lanes = lanes || [];
     this.first = first;
+    this.audioFirst = audioFirst;
     this.showLast = Math.max(last, first + 1);
     this.anchor = first;
     if (name) this.showName = name;
@@ -352,7 +343,7 @@ export class Timeline {
       p.font = this.font(13);
       p.textAlign = "center";
       p.textBaseline = "middle";
-      p.fillText("Click or drop a grandMA2 timecode .xml here", W / 2, H / 2);
+      p.fillText("Click or drop a grandMA2 / grandMA3 timecode .xml here", W / 2, H / 2);
       p.textAlign = "left";
       return;
     }
@@ -621,8 +612,8 @@ export class Timeline {
     const audioFrames = this.audioDur * this.fps;
     // amplitude for a column's [f0,f1) frame range = max peak in that range
     const ampAt = (f0: number, f1: number): number => {
-      let i0 = Math.floor(((f0 - this.first) / audioFrames) * m);
-      let i1 = Math.ceil(((f1 - this.first) / audioFrames) * m);
+      let i0 = Math.floor(((f0 - this.audioFirst) / audioFrames) * m);
+      let i1 = Math.ceil(((f1 - this.audioFirst) / audioFrames) * m);
       i0 = Math.max(0, i0);
       i1 = Math.min(m, Math.max(i0 + 1, i1));
       let mx = 0;
@@ -635,7 +626,7 @@ export class Timeline {
     p.beginPath();
     for (let px = LBL_W; px <= right; px++) {
       const f0 = this.frameAt(px);
-      if (f0 < this.first || f0 > this.first + audioFrames) continue;
+      if (f0 < this.audioFirst || f0 > this.audioFirst + audioFrames) continue;
       const a = ampAt(f0, this.frameAt(px + 1));
       p.moveTo(px + 0.5, yc - a);
       p.lineTo(px + 0.5, yc + a);
@@ -646,7 +637,7 @@ export class Timeline {
       p.beginPath();
       for (let px = LBL_W; px <= right; px++) {
         const f0 = this.frameAt(px);
-        if (f0 < win[0] || f0 >= win[1] || f0 < this.first || f0 > this.first + audioFrames) continue;
+        if (f0 < win[0] || f0 >= win[1] || f0 < this.audioFirst || f0 > this.audioFirst + audioFrames) continue;
         const a = ampAt(f0, this.frameAt(px + 1));
         p.moveTo(px + 0.5, yc - a);
         p.lineTo(px + 0.5, yc + a);

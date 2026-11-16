@@ -38,6 +38,11 @@ is uploaded. Source lives in [`web/`](web/).
 
 - **MA2 Timecode Tools** — the ripple cut / insert / erase with the timeline,
   bar grid, waveform, playback and metronome, as a web app.
+- **MA3 Timecode Tools** — the same browser workflow for grandMA3 Timecode XML,
+  with command/fader events, Time Range offsets, markers, undo and export.
+  **Compatibility preview targeting 2.5.1**: reading and editing a real 2.5.1.1
+  export have been checked; import and playback on MA3 still need validation. See
+  [MA3 support and validation](docs/ma3-support.md).
 - **LTC Generator** — SMPTE LTC timecode WAV files: a single file with any start
   TC, fps (drop-frame included) and length, or a whole day's batch as a ZIP.
   Load a music track and it renders a stereo check file — LTC on one channel,
@@ -213,8 +218,9 @@ equivalence, and that only `<Event>` lines changed.
 - Moves timecode events only. Cue fade times and the audio are on you.
 - Doesn't "stitch" light across the seam: whatever lands in the window is deleted (that's
   what cutting is).
-- Built for the grandMA2 export structure (`<Timecode>/<Track>/<SubTrack>/<Event>`), one
-  `<Cue>` per event. grandMA3 uses a different format.
+- The Python CLI/desktop app is built for the grandMA2 export structure
+  (`<Timecode>/<Track>/<SubTrack>/<Event>`), one `<Cue>` per event.
+  MA3 support is in the browser editor only and uses its own XML adapter.
 
 ## License
 

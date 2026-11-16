@@ -26,6 +26,7 @@ export class Player {
   private fps = 30;
   private totalSec = 1;
   private audioSec = 0;
+  private audioOffsetSec = 0;
 
   private playing = false;
   private positionSec = 0; // playback position, 0 = show start (showFirst)
@@ -70,10 +71,11 @@ export class Player {
     if (ctx.state === "suspended") await ctx.resume();
   }
 
-  setShow(firstFrame: number, lastFrame: number, fps: number): void {
+  setShow(firstFrame: number, lastFrame: number, fps: number, audioFirstFrame = firstFrame): void {
     this.showFirst = firstFrame;
     this.showLast = Math.max(lastFrame, firstFrame + 1);
     this.fps = Math.max(1, fps);
+    this.audioOffsetSec = (audioFirstFrame - firstFrame) / this.fps;
     this.recalcTotal();
   }
 
@@ -101,7 +103,7 @@ export class Player {
 
   private recalcTotal(): void {
     const showSec = (this.showLast - this.showFirst) / this.fps;
-    this.totalSec = Math.max(showSec, this.audioSec, 0.001);
+    this.totalSec = Math.max(showSec, this.audioOffsetSec + this.audioSec, 0.001);
   }
 
   setVolume(v: number): void {
@@ -180,8 +182,9 @@ export class Player {
     const src = this.ctx.createBufferSource();
     src.buffer = this.buffer;
     src.connect(this.master);
-    const off = Math.max(0, Math.min(this.buffer.duration, offsetSec));
-    if (off < this.buffer.duration) src.start(this.ctx.currentTime, off);
+    const audioPosition = offsetSec - this.audioOffsetSec;
+    const off = Math.max(0, Math.min(this.buffer.duration, audioPosition));
+    if (off < this.buffer.duration) src.start(this.ctx.currentTime + Math.max(0, -audioPosition), off);
     this.source = src;
   }
 

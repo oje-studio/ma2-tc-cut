@@ -1,3 +1,24 @@
+/* Show formats share the existing editor and theme. */
+.tool[hidden], .format-row[hidden] { display: none; }
+.format-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 8px 14px; border-bottom: 1px solid var(--border); background: var(--bg-surface); font-size: 12px; }
+.format-row label { white-space: nowrap; }
+.ma3-fps { margin-left: 6px; padding: 5px 8px; color: inherit; background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; font: inherit; }
+.ma3-fps:focus-visible { outline: 2px solid #ff6b5e; outline-offset: 2px; }
+.format-note { color: #aaa; }
+.file-actions { display: flex; gap: 6px; }
+.file-open { color: var(--text-primary); background: var(--bg-raised); border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; font: inherit; cursor: pointer; }
+.file-open:hover, .file-open:focus-visible { border-color: var(--accent); }
+.ma3-preview { display: flex; flex-direction: column; justify-content: center; gap: 24px; padding: 32px; box-sizing: border-box; background: #101010; color: #e8e8e8; }
+.ma3-preview-label { display: flex; align-items: center; justify-content: space-between; font-size: 12px; letter-spacing: .12em; }
+.ma3-preview-label b { font-size: 28px; letter-spacing: -.03em; color: #ff6b5e; }
+.ma3-preview-grid { display: flex; flex-direction: column; gap: 8px; position: relative; padding: 10px 0; background: repeating-linear-gradient(90deg, transparent 0, transparent calc(12.5% - 1px), #303030 calc(12.5% - 1px), #303030 12.5%); }
+.ma3-preview-grid i { display: block; height: 12px; background: repeating-linear-gradient(90deg, transparent 0, transparent 8%, #71a7df 8%, #71a7df 8.7%, transparent 8.7%, transparent 20%); }
+.ma3-preview-grid i:nth-child(2) { margin-left: 12%; }
+.ma3-preview-grid i:nth-child(3) { margin-left: 4%; }
+.ma3-preview-grid i:nth-child(4) { margin-left: 18%; }
+.ma3-preview-cut { position: absolute; top: 0; bottom: 0; left: 38%; width: 23%; border: 1px solid #ff6b5e; background: #ff6b5e20; }
+.ma3-preview-caption { font-size: 10px; letter-spacing: .15em; color: #999; }
+
 /* Design tokens — ØJE design system (mirror of theme.ts).
    Base palette, typography and brand accent align with oje.studio; the functional
    operator colors (lighting blue / audio amber) and destructive red are kept for
@@ -507,7 +528,7 @@ body.tool-open .app-view[aria-hidden="false"] {
   background: var(--bg-app);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: auto;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -932,6 +953,11 @@ body.tool-open .app-view[aria-hidden="false"] {
   display: flex;
   gap: 10px;
   padding: 0 16px 16px;
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  background: var(--bg-app);
+  z-index: 1;
 }
 .actions button {
   flex: 1;
