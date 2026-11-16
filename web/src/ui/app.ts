@@ -425,7 +425,7 @@ export class ToolApp {
     this.fpsSelect.value = this.needsFps ? "" : String(info.fps);
     this.formatNote.textContent = this.needsFps
       ? "Frame Readout is Default / Seconds. Choose the FPS of your show to enable editing."
-      : "Times are relative to the show; TC-slot offset is preserved. Audio and cue fades stay unchanged.";
+      : "MA3 preview · verify playback after import. TC-slot offset, audio and cue fades stay unchanged.";
     this.el.querySelector(".brand-name")!.textContent = `${this.format.toUpperCase()} TIMECODE TOOLS`;
     this.info = info;
     this.fps = info.fps;

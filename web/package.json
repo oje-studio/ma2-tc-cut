@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "ØJE Studio software hub — MA2 Timecode Tools and the LTC Generator, on the web.",
+  "description": "ØJE Studio software hub — MA2 and MA3 Timecode Tools and the LTC Generator, on the web.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
