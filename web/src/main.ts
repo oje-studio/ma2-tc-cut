@@ -2,8 +2,11 @@ import "./styles.css";
 import { ToolApp } from "./ui/app.ts";
 
 const mount = document.getElementById("tool-mount")!;
-const app = new ToolApp();
-app.mount(mount);
+const ma2App = new ToolApp();
+ma2App.mount(mount);
+ma2App.setActive(false);
+let ma3App: ToolApp | undefined;
+let app = ma2App;
 (window as unknown as { tool: ToolApp }).tool = app;
 
 // GA4 virtual pageviews for in-page overlays (#tool, #t/ma2, #t/cuemon)
@@ -20,11 +23,13 @@ const appView = document.getElementById("app-view")!;
 
 // Load the bundled demo (show + audio) lazily, the first time the tool opens —
 // so the landing never pays for the ~1.6 MB demo track.
-let demoLoaded = false;
-function loadDemoOnce(): void {
-  if (demoLoaded) return;
-  demoLoaded = true;
-  void app.loadDemo("./demo/demo_show.xml", 140).then(() => app.loadAudioUrl("./demo/demo_audio.mp3"));
+const demoLoaded = new Set<string>();
+function loadDemoOnce(format: "ma2" | "ma3"): void {
+  if (demoLoaded.has(format)) return;
+  demoLoaded.add(format);
+  const target = app;
+  void target.loadDemo(format === "ma3" ? "./demo/demo_ma3.xml" : "./demo/demo_show.xml", 140)
+    .then(() => target.loadAudioUrl("./demo/demo_audio.mp3"));
 }
 
 /** True on phones and tablets — the canvas tool doesn't work well on touch-only
@@ -33,14 +38,27 @@ function isMobile(): boolean {
   return window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768;
 }
 
-function openTool(): void {
+function openTool(format: "ma2" | "ma3" = "ma2"): void {
   if (isMobile()) {
     // show the desktop-only notice instead of a broken tool
     document.getElementById("mobile-notice")?.removeAttribute("hidden");
     return;
   }
-  loadDemoOnce();
-  track("MA2 Timecode Tools", "#tool");
+  app.setActive(false);
+  app.el.hidden = true;
+  if (format === "ma3" && !ma3App) {
+    ma3App = new ToolApp();
+    ma3App.mount(mount);
+  }
+  app = format === "ma3" ? ma3App! : ma2App;
+  app.el.hidden = false;
+  app.setActive(true);
+  (window as unknown as { tool: ToolApp }).tool = app;
+  loadDemoOnce(format);
+  const hash = format === "ma3" ? "#tool/ma3" : "#tool";
+  appView.querySelector(".app-bar-tool")!.textContent = `${format.toUpperCase()} Timecode Tools`;
+  history.replaceState(null, "", hash);
+  track(`${format.toUpperCase()} Timecode Tools`, hash);
   document.body.classList.add("tool-open");
   appView.setAttribute("aria-hidden", "false");
   void appView.offsetWidth; // force a synchronous reflow so fit() reads the real width
@@ -48,8 +66,10 @@ function openTool(): void {
   requestAnimationFrame(() => app.fit()); // backup once layout fully settles
 }
 function closeTool(): void {
+  app.setActive(false);
   document.body.classList.remove("tool-open");
   appView.setAttribute("aria-hidden", "true");
+  if (location.hash === "#tool" || location.hash === "#tool/ma3") history.replaceState(null, "", location.pathname + location.search);
 }
 
 // ---- LTC Generator (lazy mount on first open) ----
@@ -81,6 +101,7 @@ ltcView.querySelector("[data-close-ltc]")?.addEventListener("click", () => close
 // ---- per-tool detail overlays ----
 const DETAIL_TITLES: Record<string, string> = {
   ma2: "MA2 Timecode Tools — details",
+  ma3: "MA3 Timecode Tools — details",
   cuemon: "ØJE Cue Monitor — details",
   ltc: "LTC Generator — details",
 };
@@ -113,7 +134,7 @@ document.querySelectorAll<HTMLElement>("[data-close-detail]").forEach((b) =>
 document.querySelectorAll<HTMLElement>("[data-open-tool]").forEach((el) =>
   el.addEventListener("click", (e) => {
     e.preventDefault();
-    openTool();
+    openTool(el.dataset.openTool === "ma3" ? "ma3" : "ma2");
   }),
 );
 appView.querySelector(".app-close")?.addEventListener("click", () => closeTool());
@@ -133,7 +154,7 @@ document.querySelector(".app-fs")?.addEventListener("click", () => toggleFullscr
 document.addEventListener("fullscreenchange", () => requestAnimationFrame(() => app.fit()));
 
 window.addEventListener("keydown", (e) => {
-  const typing = document.activeElement && ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName);
+  const typing = document.activeElement && ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName);
   const appOpen = document.body.classList.contains("tool-open");
   if (e.key === "Escape" && !typing) {
     if (appOpen && !document.fullscreenElement) {
@@ -144,12 +165,23 @@ window.addEventListener("keydown", (e) => {
   if ((e.key === "f" || e.key === "F") && appOpen && !typing && ltcView.getAttribute("aria-hidden") !== "false") toggleFullscreen();
 });
 
-// deep links
-if (location.hash === "#tool") openTool();
-else if (location.hash === "#tool/ltc") void openLtc();
-else if (location.hash === "#t/ma2") openDetail("ma2");
-else if (location.hash === "#t/cuemon") openDetail("cuemon");
-else if (location.hash === "#t/ltc") openDetail("ltc");
+// Deep links also work when the URL hash changes without reloading the page.
+function route(): void {
+  const hash = location.hash;
+  if (hash === "#tool" || hash === "#tool/ma3") {
+    closeLtc();
+    openTool(hash === "#tool/ma3" ? "ma3" : "ma2");
+  } else if (hash === "#tool/ltc") {
+    closeTool();
+    void openLtc();
+  } else if (["#t/ma2", "#t/ma3", "#t/cuemon", "#t/ltc"].includes(hash)) {
+    closeTool();
+    closeLtc();
+    openDetail(hash.slice(3));
+  }
+}
+window.addEventListener("hashchange", route);
+route();
 
 // ---- smooth-scroll in-page anchors (e.g. about), skipping the tool opener ----
 document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]:not([data-open-tool])').forEach((a) => {

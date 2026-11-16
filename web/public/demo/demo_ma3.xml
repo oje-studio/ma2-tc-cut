@@ -1,0 +1,531 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic editor demo. No real show data or assigned sequences. -->
+<GMA3 DataVersion="2.5.1.0">
+  <Timecode Name="CONCEPTS · MA3 DEMO" FrameReadout="30 fps" Duration="102.133">
+    <TrackGroup Name="Lighting">
+      <MarkerTrack Name="Markers"/>
+      <Track Name="Key Look 1.1">
+        <TimeRange Start="0.000" Duration="To End">
+          <CmdSubTrack>
+            <CmdEvent Name="Goto" Time="0.000" CueDestination="Cold Open 1"/>
+            <CmdEvent Name="Goto" Time="13.7" CueDestination="First Light 2"/>
+            <CmdEvent Name="Goto" Time="27.433333333" CueDestination="Steel 3"/>
+            <CmdEvent Name="Goto" Time="41.133333333" CueDestination="Ignite 4"/>
+            <CmdEvent Name="Goto" Time="54.866666667" CueDestination="Full Spectrum 5"/>
+            <CmdEvent Name="Goto" Time="61.7" CueDestination="Void 6"/>
+            <CmdEvent Name="Goto" Time="68.566666667" CueDestination="Resurface 7"/>
+            <CmdEvent Name="Goto" Time="82.3" CueDestination="Hammer 8"/>
+            <CmdEvent Name="Goto" Time="96.000" CueDestination="Drive 9"/>
+          </CmdSubTrack>
+        </TimeRange>
+      </Track>
+      <Track Name="Colour Wash 1.2">
+        <TimeRange Start="0.000" Duration="To End">
+          <CmdSubTrack>
+            <CmdEvent Name="Goto" Time="0.000" CueDestination="Amber 1"/>
+            <CmdEvent Name="Goto" Time="3.433333333" CueDestination="Deep Blue 2"/>
+            <CmdEvent Name="Goto" Time="6.866666667" CueDestination="Magenta 3"/>
+            <CmdEvent Name="Goto" Time="10.3" CueDestination="Cyan 4"/>
+            <CmdEvent Name="Goto" Time="13.7" CueDestination="Crimson 5"/>
+            <CmdEvent Name="Goto" Time="17.133333333" CueDestination="Teal 6"/>
+            <CmdEvent Name="Goto" Time="20.566666667" CueDestination="Violet 7"/>
+            <CmdEvent Name="Goto" Time="24.000" CueDestination="Gold 8"/>
+            <CmdEvent Name="Goto" Time="27.433333333" CueDestination="Amber 9"/>
+            <CmdEvent Name="Goto" Time="30.866666667" CueDestination="Deep Blue 10"/>
+            <CmdEvent Name="Goto" Time="34.3" CueDestination="Magenta 11"/>
+            <CmdEvent Name="Goto" Time="37.7" CueDestination="Cyan 12"/>
+            <CmdEvent Name="Goto" Time="41.133333333" CueDestination="Crimson 13"/>
+            <CmdEvent Name="Goto" Time="44.566666667" CueDestination="Teal 14"/>
+            <CmdEvent Name="Goto" Time="48.000" CueDestination="Violet 15"/>
+            <CmdEvent Name="Goto" Time="51.433333333" CueDestination="Gold 16"/>
+            <CmdEvent Name="Goto" Time="54.866666667" CueDestination="Amber 17"/>
+            <CmdEvent Name="Goto" Time="58.3" CueDestination="Deep Blue 18"/>
+            <CmdEvent Name="Goto" Time="61.7" CueDestination="Magenta 19"/>
+            <CmdEvent Name="Goto" Time="68.566666667" CueDestination="Cyan 20"/>
+            <CmdEvent Name="Goto" Time="72.000" CueDestination="Crimson 21"/>
+            <CmdEvent Name="Goto" Time="75.433333333" CueDestination="Teal 22"/>
+            <CmdEvent Name="Goto" Time="78.866666667" CueDestination="Violet 23"/>
+            <CmdEvent Name="Goto" Time="82.3" CueDestination="Gold 24"/>
+            <CmdEvent Name="Goto" Time="85.7" CueDestination="Amber 25"/>
+            <CmdEvent Name="Goto" Time="89.133333333" CueDestination="Deep Blue 26"/>
+            <CmdEvent Name="Goto" Time="92.566666667" CueDestination="Magenta 27"/>
+            <CmdEvent Name="Goto" Time="96.000" CueDestination="Cyan 28"/>
+            <CmdEvent Name="Goto" Time="99.433333333" CueDestination="Crimson 29"/>
+          </CmdSubTrack>
+        </TimeRange>
+      </Track>
+      <Track Name="Spots SR 1.3">
+        <TimeRange Start="0.000" Duration="To End">
+          <CmdSubTrack>
+            <CmdEvent Name="Goto" Time="8.566666667" CueDestination="SR Chase 1"/>
+            <CmdEvent Name="Goto" Time="9.433333333" CueDestination="SR Chase 2"/>
+            <CmdEvent Name="Goto" Time="10.3" CueDestination="SR Chase 3"/>
+            <CmdEvent Name="Goto" Time="13.7" CueDestination="SR Chase 4"/>
+            <CmdEvent Name="Goto" Time="14.566666667" CueDestination="SR Chase 5"/>
+            <CmdEvent Name="Goto" Time="15.433333333" CueDestination="SR Chase 6"/>
+            <CmdEvent Name="Goto" Time="16.3" CueDestination="SR Chase 7"/>
+            <CmdEvent Name="Goto" Time="17.133333333" CueDestination="SR Chase 8"/>
+            <CmdEvent Name="Goto" Time="18.866666667" CueDestination="SR Chase 9"/>
+            <CmdEvent Name="Goto" Time="21.433333333" CueDestination="SR Chase 10"/>
+            <CmdEvent Name="Goto" Time="21.866666667" CueDestination="SR Chase 11"/>
+            <CmdEvent Name="Goto" Time="22.3" CueDestination="SR Chase 12"/>
+            <CmdEvent Name="Goto" Time="23.133333333" CueDestination="SR Chase 13"/>
+            <CmdEvent Name="Goto" Time="24.000" CueDestination="SR Chase 14"/>
+            <CmdEvent Name="Goto" Time="24.866666667" CueDestination="SR Chase 15"/>
+            <CmdEvent Name="Goto" Time="25.7" CueDestination="SR Chase 16"/>
+            <CmdEvent Name="Goto" Time="26.566666667" CueDestination="SR Chase 17"/>
+            <CmdEvent Name="Goto" Time="27.000" CueDestination="SR Chase 18"/>
+            <CmdEvent Name="Goto" Time="27.433333333" CueDestination="SR Chase 19"/>
+            <CmdEvent Name="Goto" Time="27.866666667" CueDestination="SR Chase 20"/>
+            <CmdEvent Name="Goto" Time="28.3" CueDestination="SR Chase 21"/>
+            <CmdEvent Name="Goto" Time="28.7" CueDestination="SR Chase 22"/>
+            <CmdEvent Name="Goto" Time="28.933333333" CueDestination="SR Chase 23"/>
+            <CmdEvent Name="Goto" Time="29.133333333" CueDestination="SR Chase 24"/>
+            <CmdEvent Name="Goto" Time="29.566666667" CueDestination="SR Chase 25"/>
+            <CmdEvent Name="Goto" Time="29.8" CueDestination="SR Chase 26"/>
+            <CmdEvent Name="Goto" Time="30.000" CueDestination="SR Chase 27"/>
+            <CmdEvent Name="Goto" Time="30.433333333" CueDestination="SR Chase 28"/>
+            <CmdEvent Name="Goto" Time="30.633333333" CueDestination="SR Chase 29"/>
+            <CmdEvent Name="Goto" Time="30.866666667" CueDestination="SR Chase 30"/>
+            <CmdEvent Name="Goto" Time="31.7" CueDestination="SR Chase 31"/>
+            <CmdEvent Name="Goto" Time="32.566666667" CueDestination="SR Chase 32"/>
+            <CmdEvent Name="Goto" Time="33.433333333" CueDestination="SR Chase 33"/>
+            <CmdEvent Name="Goto" Time="34.3" CueDestination="SR Chase 34"/>
+            <CmdEvent Name="Goto" Time="35.133333333" CueDestination="SR Chase 35"/>
+            <CmdEvent Name="Goto" Time="35.566666667" CueDestination="SR Chase 36"/>
+            <CmdEvent Name="Goto" Time="36.000" CueDestination="SR Chase 37"/>
+            <CmdEvent Name="Goto" Time="36.433333333" CueDestination="SR Chase 38"/>
+            <CmdEvent Name="Goto" Time="36.866666667" CueDestination="SR Chase 39"/>
+            <CmdEvent Name="Goto" Time="37.3" CueDestination="SR Chase 40"/>
+            <CmdEvent Name="Goto" Time="37.7" CueDestination="SR Chase 41"/>
+            <CmdEvent Name="Goto" Time="38.566666667" CueDestination="SR Chase 42"/>
+            <CmdEvent Name="Goto" Time="39.433333333" CueDestination="SR Chase 43"/>
+            <CmdEvent Name="Goto" Time="40.3" CueDestination="SR Chase 44"/>
+            <CmdEvent Name="Goto" Time="41.133333333" CueDestination="SR Chase 45"/>
+            <CmdEvent Name="Goto" Time="42.000" CueDestination="SR Chase 46"/>
+            <CmdEvent Name="Goto" Time="42.433333333" CueDestination="SR Chase 47"/>
+            <CmdEvent Name="Goto" Time="42.633333333" CueDestination="SR Chase 48"/>
+            <CmdEvent Name="Goto" Time="42.866666667" CueDestination="SR Chase 49"/>
+            <CmdEvent Name="Goto" Time="43.3" CueDestination="SR Chase 50"/>
+            <CmdEvent Name="Goto" Time="43.5" CueDestination="SR Chase 51"/>
+            <CmdEvent Name="Goto" Time="43.7" CueDestination="SR Chase 52"/>
+            <CmdEvent Name="Goto" Time="44.133333333" CueDestination="SR Chase 53"/>
+            <CmdEvent Name="Goto" Time="44.566666667" CueDestination="SR Chase 54"/>
+            <CmdEvent Name="Goto" Time="45.433333333" CueDestination="SR Chase 55"/>
+            <CmdEvent Name="Goto" Time="46.3" CueDestination="SR Chase 56"/>
+            <CmdEvent Name="Goto" Time="47.133333333" CueDestination="SR Chase 57"/>
+            <CmdEvent Name="Goto" Time="48.000" CueDestination="SR Chase 58"/>
+            <CmdEvent Name="Goto" Time="48.866666667" CueDestination="SR Chase 59"/>
+            <CmdEvent Name="Goto" Time="49.3" CueDestination="SR Chase 60"/>
+            <CmdEvent Name="Goto" Time="49.7" CueDestination="SR Chase 61"/>
+            <CmdEvent Name="Goto" Time="50.133333333" CueDestination="SR Chase 62"/>
+            <CmdEvent Name="Goto" Time="50.566666667" CueDestination="SR Chase 63"/>
+            <CmdEvent Name="Goto" Time="51.000" CueDestination="SR Chase 64"/>
+            <CmdEvent Name="Goto" Time="51.433333333" CueDestination="SR Chase 65"/>
+            <CmdEvent Name="Goto" Time="51.866666667" CueDestination="SR Chase 66"/>
+            <CmdEvent Name="Goto" Time="52.3" CueDestination="SR Chase 67"/>
+            <CmdEvent Name="Goto" Time="53.133333333" CueDestination="SR Chase 68"/>
+            <CmdEvent Name="Goto" Time="53.566666667" CueDestination="SR Chase 69"/>
+            <CmdEvent Name="Goto" Time="54.000" CueDestination="SR Chase 70"/>
+            <CmdEvent Name="Goto" Time="54.433333333" CueDestination="SR Chase 71"/>
+            <CmdEvent Name="Goto" Time="54.866666667" CueDestination="SR Chase 72"/>
+            <CmdEvent Name="Goto" Time="55.3" CueDestination="SR Chase 73"/>
+            <CmdEvent Name="Goto" Time="55.7" CueDestination="SR Chase 74"/>
+            <CmdEvent Name="Goto" Time="56.133333333" CueDestination="SR Chase 75"/>
+            <CmdEvent Name="Goto" Time="56.366666667" CueDestination="SR Chase 76"/>
+            <CmdEvent Name="Goto" Time="56.566666667" CueDestination="SR Chase 77"/>
+            <CmdEvent Name="Goto" Time="57.000" CueDestination="SR Chase 78"/>
+            <CmdEvent Name="Goto" Time="57.2" CueDestination="SR Chase 79"/>
+            <CmdEvent Name="Goto" Time="57.433333333" CueDestination="SR Chase 80"/>
+            <CmdEvent Name="Goto" Time="57.866666667" CueDestination="SR Chase 81"/>
+            <CmdEvent Name="Goto" Time="58.3" CueDestination="SR Chase 82"/>
+            <CmdEvent Name="Goto" Time="58.7" CueDestination="SR Chase 83"/>
+            <CmdEvent Name="Goto" Time="59.133333333" CueDestination="SR Chase 84"/>
+            <CmdEvent Name="Goto" Time="59.566666667" CueDestination="SR Chase 85"/>
+            <CmdEvent Name="Goto" Time="60.000" CueDestination="SR Chase 86"/>
+            <CmdEvent Name="Goto" Time="69.433333333" CueDestination="SR Chase 87"/>
+            <CmdEvent Name="Goto" Time="69.866666667" CueDestination="SR Chase 88"/>
+            <CmdEvent Name="Goto" Time="70.3" CueDestination="SR Chase 89"/>
+            <CmdEvent Name="Goto" Time="70.7" CueDestination="SR Chase 90"/>
+            <CmdEvent Name="Goto" Time="71.133333333" CueDestination="SR Chase 91"/>
+            <CmdEvent Name="Goto" Time="72.000" CueDestination="SR Chase 92"/>
+            <CmdEvent Name="Goto" Time="72.866666667" CueDestination="SR Chase 93"/>
+            <CmdEvent Name="Goto" Time="73.7" CueDestination="SR Chase 94"/>
+            <CmdEvent Name="Goto" Time="76.3" CueDestination="SR Chase 95"/>
+            <CmdEvent Name="Goto" Time="77.133333333" CueDestination="SR Chase 96"/>
+            <CmdEvent Name="Goto" Time="78.000" CueDestination="SR Chase 97"/>
+            <CmdEvent Name="Goto" Time="78.866666667" CueDestination="SR Chase 98"/>
+            <CmdEvent Name="Goto" Time="79.7" CueDestination="SR Chase 99"/>
+            <CmdEvent Name="Goto" Time="80.566666667" CueDestination="SR Chase 100"/>
+            <CmdEvent Name="Goto" Time="81.433333333" CueDestination="SR Chase 101"/>
+            <CmdEvent Name="Goto" Time="82.3" CueDestination="SR Chase 102"/>
+            <CmdEvent Name="Goto" Time="83.133333333" CueDestination="SR Chase 103"/>
+            <CmdEvent Name="Goto" Time="83.566666667" CueDestination="SR Chase 104"/>
+            <CmdEvent Name="Goto" Time="84.000" CueDestination="SR Chase 105"/>
+            <CmdEvent Name="Goto" Time="84.433333333" CueDestination="SR Chase 106"/>
+            <CmdEvent Name="Goto" Time="84.866666667" CueDestination="SR Chase 107"/>
+            <CmdEvent Name="Goto" Time="85.7" CueDestination="SR Chase 108"/>
+            <CmdEvent Name="Goto" Time="86.133333333" CueDestination="SR Chase 109"/>
+            <CmdEvent Name="Goto" Time="86.566666667" CueDestination="SR Chase 110"/>
+            <CmdEvent Name="Goto" Time="87.000" CueDestination="SR Chase 111"/>
+            <CmdEvent Name="Goto" Time="87.433333333" CueDestination="SR Chase 112"/>
+            <CmdEvent Name="Goto" Time="88.3" CueDestination="SR Chase 113"/>
+            <CmdEvent Name="Goto" Time="89.133333333" CueDestination="SR Chase 114"/>
+            <CmdEvent Name="Goto" Time="90.000" CueDestination="SR Chase 115"/>
+            <CmdEvent Name="Goto" Time="90.433333333" CueDestination="SR Chase 116"/>
+            <CmdEvent Name="Goto" Time="90.866666667" CueDestination="SR Chase 117"/>
+            <CmdEvent Name="Goto" Time="91.3" CueDestination="SR Chase 118"/>
+            <CmdEvent Name="Goto" Time="91.7" CueDestination="SR Chase 119"/>
+            <CmdEvent Name="Goto" Time="92.133333333" CueDestination="SR Chase 120"/>
+            <CmdEvent Name="Goto" Time="92.566666667" CueDestination="SR Chase 121"/>
+            <CmdEvent Name="Goto" Time="93.000" CueDestination="SR Chase 122"/>
+            <CmdEvent Name="Goto" Time="93.433333333" CueDestination="SR Chase 123"/>
+            <CmdEvent Name="Goto" Time="93.866666667" CueDestination="SR Chase 124"/>
+            <CmdEvent Name="Goto" Time="94.3" CueDestination="SR Chase 125"/>
+            <CmdEvent Name="Goto" Time="95.133333333" CueDestination="SR Chase 126"/>
+            <CmdEvent Name="Goto" Time="96.000" CueDestination="SR Chase 127"/>
+            <CmdEvent Name="Goto" Time="96.866666667" CueDestination="SR Chase 128"/>
+            <CmdEvent Name="Goto" Time="97.3" CueDestination="SR Chase 129"/>
+            <CmdEvent Name="Goto" Time="97.5" CueDestination="SR Chase 130"/>
+            <CmdEvent Name="Goto" Time="97.7" CueDestination="SR Chase 131"/>
+            <CmdEvent Name="Goto" Time="98.133333333" CueDestination="SR Chase 132"/>
+            <CmdEvent Name="Goto" Time="98.366666667" CueDestination="SR Chase 133"/>
+            <CmdEvent Name="Goto" Time="98.566666667" CueDestination="SR Chase 134"/>
+            <CmdEvent Name="Goto" Time="99.000" CueDestination="SR Chase 135"/>
+            <CmdEvent Name="Goto" Time="99.433333333" CueDestination="SR Chase 136"/>
+          </CmdSubTrack>
+        </TimeRange>
+      </Track>
+      <Track Name="Spots SL 1.4">
+        <TimeRange Start="0.000" Duration="To End">
+          <CmdSubTrack>
+            <CmdEvent Name="Goto" Time="8.133333333" CueDestination="SL Chase 1"/>
+            <CmdEvent Name="Goto" Time="9.000" CueDestination="SL Chase 2"/>
+            <CmdEvent Name="Goto" Time="9.866666667" CueDestination="SL Chase 3"/>
+            <CmdEvent Name="Goto" Time="10.7" CueDestination="SL Chase 4"/>
+            <CmdEvent Name="Goto" Time="13.3" CueDestination="SL Chase 5"/>
+            <CmdEvent Name="Goto" Time="14.133333333" CueDestination="SL Chase 6"/>
+            <CmdEvent Name="Goto" Time="15.000" CueDestination="SL Chase 7"/>
+            <CmdEvent Name="Goto" Time="15.866666667" CueDestination="SL Chase 8"/>
+            <CmdEvent Name="Goto" Time="16.7" CueDestination="SL Chase 9"/>
+            <CmdEvent Name="Goto" Time="17.566666667" CueDestination="SL Chase 10"/>
+            <CmdEvent Name="Goto" Time="18.433333333" CueDestination="SL Chase 11"/>
+            <CmdEvent Name="Goto" Time="19.3" CueDestination="SL Chase 12"/>
+            <CmdEvent Name="Goto" Time="20.133333333" CueDestination="SL Chase 13"/>
+            <CmdEvent Name="Goto" Time="21.000" CueDestination="SL Chase 14"/>
+            <CmdEvent Name="Goto" Time="22.066666667" CueDestination="SL Chase 15"/>
+            <CmdEvent Name="Goto" Time="22.7" CueDestination="SL Chase 16"/>
+            <CmdEvent Name="Goto" Time="23.566666667" CueDestination="SL Chase 17"/>
+            <CmdEvent Name="Goto" Time="24.433333333" CueDestination="SL Chase 18"/>
+            <CmdEvent Name="Goto" Time="25.3" CueDestination="SL Chase 19"/>
+            <CmdEvent Name="Goto" Time="26.133333333" CueDestination="SL Chase 20"/>
+            <CmdEvent Name="Goto" Time="27.2" CueDestination="SL Chase 21"/>
+            <CmdEvent Name="Goto" Time="28.066666667" CueDestination="SL Chase 22"/>
+            <CmdEvent Name="Goto" Time="28.5" CueDestination="SL Chase 23"/>
+            <CmdEvent Name="Goto" Time="28.933333333" CueDestination="SL Chase 24"/>
+            <CmdEvent Name="Goto" Time="29.366666667" CueDestination="SL Chase 25"/>
+            <CmdEvent Name="Goto" Time="29.8" CueDestination="SL Chase 26"/>
+            <CmdEvent Name="Goto" Time="30.2" CueDestination="SL Chase 27"/>
+            <CmdEvent Name="Goto" Time="30.633333333" CueDestination="SL Chase 28"/>
+            <CmdEvent Name="Goto" Time="31.3" CueDestination="SL Chase 29"/>
+            <CmdEvent Name="Goto" Time="32.133333333" CueDestination="SL Chase 30"/>
+            <CmdEvent Name="Goto" Time="33.000" CueDestination="SL Chase 31"/>
+            <CmdEvent Name="Goto" Time="33.866666667" CueDestination="SL Chase 32"/>
+            <CmdEvent Name="Goto" Time="34.7" CueDestination="SL Chase 33"/>
+            <CmdEvent Name="Goto" Time="35.8" CueDestination="SL Chase 34"/>
+            <CmdEvent Name="Goto" Time="36.633333333" CueDestination="SL Chase 35"/>
+            <CmdEvent Name="Goto" Time="37.5" CueDestination="SL Chase 36"/>
+            <CmdEvent Name="Goto" Time="38.133333333" CueDestination="SL Chase 37"/>
+            <CmdEvent Name="Goto" Time="39.000" CueDestination="SL Chase 38"/>
+            <CmdEvent Name="Goto" Time="39.866666667" CueDestination="SL Chase 39"/>
+            <CmdEvent Name="Goto" Time="40.7" CueDestination="SL Chase 40"/>
+            <CmdEvent Name="Goto" Time="41.566666667" CueDestination="SL Chase 41"/>
+            <CmdEvent Name="Goto" Time="42.633333333" CueDestination="SL Chase 42"/>
+            <CmdEvent Name="Goto" Time="43.066666667" CueDestination="SL Chase 43"/>
+            <CmdEvent Name="Goto" Time="43.5" CueDestination="SL Chase 44"/>
+            <CmdEvent Name="Goto" Time="43.933333333" CueDestination="SL Chase 45"/>
+            <CmdEvent Name="Goto" Time="44.366666667" CueDestination="SL Chase 46"/>
+            <CmdEvent Name="Goto" Time="45.000" CueDestination="SL Chase 47"/>
+            <CmdEvent Name="Goto" Time="45.866666667" CueDestination="SL Chase 48"/>
+            <CmdEvent Name="Goto" Time="46.7" CueDestination="SL Chase 49"/>
+            <CmdEvent Name="Goto" Time="47.566666667" CueDestination="SL Chase 50"/>
+            <CmdEvent Name="Goto" Time="48.433333333" CueDestination="SL Chase 51"/>
+            <CmdEvent Name="Goto" Time="49.5" CueDestination="SL Chase 52"/>
+            <CmdEvent Name="Goto" Time="49.933333333" CueDestination="SL Chase 53"/>
+            <CmdEvent Name="Goto" Time="50.366666667" CueDestination="SL Chase 54"/>
+            <CmdEvent Name="Goto" Time="51.2" CueDestination="SL Chase 55"/>
+            <CmdEvent Name="Goto" Time="52.066666667" CueDestination="SL Chase 56"/>
+            <CmdEvent Name="Goto" Time="52.7" CueDestination="SL Chase 57"/>
+            <CmdEvent Name="Goto" Time="53.8" CueDestination="SL Chase 58"/>
+            <CmdEvent Name="Goto" Time="54.633333333" CueDestination="SL Chase 59"/>
+            <CmdEvent Name="Goto" Time="55.5" CueDestination="SL Chase 60"/>
+            <CmdEvent Name="Goto" Time="55.933333333" CueDestination="SL Chase 61"/>
+            <CmdEvent Name="Goto" Time="56.366666667" CueDestination="SL Chase 62"/>
+            <CmdEvent Name="Goto" Time="56.8" CueDestination="SL Chase 63"/>
+            <CmdEvent Name="Goto" Time="57.2" CueDestination="SL Chase 64"/>
+            <CmdEvent Name="Goto" Time="57.633333333" CueDestination="SL Chase 65"/>
+            <CmdEvent Name="Goto" Time="58.066666667" CueDestination="SL Chase 66"/>
+            <CmdEvent Name="Goto" Time="58.933333333" CueDestination="SL Chase 67"/>
+            <CmdEvent Name="Goto" Time="59.366666667" CueDestination="SL Chase 68"/>
+            <CmdEvent Name="Goto" Time="59.8" CueDestination="SL Chase 69"/>
+            <CmdEvent Name="Goto" Time="61.3" CueDestination="SL Chase 70"/>
+            <CmdEvent Name="Goto" Time="69.000" CueDestination="SL Chase 71"/>
+            <CmdEvent Name="Goto" Time="70.066666667" CueDestination="SL Chase 72"/>
+            <CmdEvent Name="Goto" Time="70.933333333" CueDestination="SL Chase 73"/>
+            <CmdEvent Name="Goto" Time="71.566666667" CueDestination="SL Chase 74"/>
+            <CmdEvent Name="Goto" Time="72.433333333" CueDestination="SL Chase 75"/>
+            <CmdEvent Name="Goto" Time="73.3" CueDestination="SL Chase 76"/>
+            <CmdEvent Name="Goto" Time="74.133333333" CueDestination="SL Chase 77"/>
+            <CmdEvent Name="Goto" Time="75.000" CueDestination="SL Chase 78"/>
+            <CmdEvent Name="Goto" Time="75.866666667" CueDestination="SL Chase 79"/>
+            <CmdEvent Name="Goto" Time="76.7" CueDestination="SL Chase 80"/>
+            <CmdEvent Name="Goto" Time="77.566666667" CueDestination="SL Chase 81"/>
+            <CmdEvent Name="Goto" Time="78.433333333" CueDestination="SL Chase 82"/>
+            <CmdEvent Name="Goto" Time="79.3" CueDestination="SL Chase 83"/>
+            <CmdEvent Name="Goto" Time="80.133333333" CueDestination="SL Chase 84"/>
+            <CmdEvent Name="Goto" Time="81.000" CueDestination="SL Chase 85"/>
+            <CmdEvent Name="Goto" Time="81.866666667" CueDestination="SL Chase 86"/>
+            <CmdEvent Name="Goto" Time="82.7" CueDestination="SL Chase 87"/>
+            <CmdEvent Name="Goto" Time="83.8" CueDestination="SL Chase 88"/>
+            <CmdEvent Name="Goto" Time="84.2" CueDestination="SL Chase 89"/>
+            <CmdEvent Name="Goto" Time="84.633333333" CueDestination="SL Chase 90"/>
+            <CmdEvent Name="Goto" Time="85.3" CueDestination="SL Chase 91"/>
+            <CmdEvent Name="Goto" Time="86.366666667" CueDestination="SL Chase 92"/>
+            <CmdEvent Name="Goto" Time="87.2" CueDestination="SL Chase 93"/>
+            <CmdEvent Name="Goto" Time="87.866666667" CueDestination="SL Chase 94"/>
+            <CmdEvent Name="Goto" Time="88.7" CueDestination="SL Chase 95"/>
+            <CmdEvent Name="Goto" Time="89.566666667" CueDestination="SL Chase 96"/>
+            <CmdEvent Name="Goto" Time="90.633333333" CueDestination="SL Chase 97"/>
+            <CmdEvent Name="Goto" Time="91.066666667" CueDestination="SL Chase 98"/>
+            <CmdEvent Name="Goto" Time="91.5" CueDestination="SL Chase 99"/>
+            <CmdEvent Name="Goto" Time="91.933333333" CueDestination="SL Chase 100"/>
+            <CmdEvent Name="Goto" Time="92.366666667" CueDestination="SL Chase 101"/>
+            <CmdEvent Name="Goto" Time="92.8" CueDestination="SL Chase 102"/>
+            <CmdEvent Name="Goto" Time="93.2" CueDestination="SL Chase 103"/>
+            <CmdEvent Name="Goto" Time="94.066666667" CueDestination="SL Chase 104"/>
+            <CmdEvent Name="Goto" Time="94.7" CueDestination="SL Chase 105"/>
+            <CmdEvent Name="Goto" Time="95.566666667" CueDestination="SL Chase 106"/>
+            <CmdEvent Name="Goto" Time="96.433333333" CueDestination="SL Chase 107"/>
+            <CmdEvent Name="Goto" Time="97.5" CueDestination="SL Chase 108"/>
+            <CmdEvent Name="Goto" Time="97.933333333" CueDestination="SL Chase 109"/>
+            <CmdEvent Name="Goto" Time="98.366666667" CueDestination="SL Chase 110"/>
+            <CmdEvent Name="Goto" Time="98.8" CueDestination="SL Chase 111"/>
+            <CmdEvent Name="Goto" Time="99.2" CueDestination="SL Chase 112"/>
+          </CmdSubTrack>
+        </TimeRange>
+      </Track>
+      <Track Name="Beams 1.5">
+        <TimeRange Start="0.000" Duration="To End">
+          <CmdSubTrack>
+            <CmdEvent Name="Goto" Time="0.000" CueDestination="Beam 1"/>
+            <CmdEvent Name="Goto" Time="1.7" CueDestination="Beam 2"/>
+            <CmdEvent Name="Goto" Time="3.433333333" CueDestination="Beam 3"/>
+            <CmdEvent Name="Goto" Time="5.133333333" CueDestination="Beam 4"/>
+            <CmdEvent Name="Goto" Time="6.866666667" CueDestination="Beam 5"/>
+            <CmdEvent Name="Goto" Time="8.566666667" CueDestination="Beam 6"/>
+            <CmdEvent Name="Goto" Time="9.433333333" CueDestination="Beam 7"/>
+            <CmdEvent Name="Goto" Time="10.3" CueDestination="Beam 8"/>
+            <CmdEvent Name="Goto" Time="12.000" CueDestination="Beam 9"/>
+            <CmdEvent Name="Goto" Time="13.7" CueDestination="Beam 10"/>
+            <CmdEvent Name="Goto" Time="14.566666667" CueDestination="Beam 11"/>
+            <CmdEvent Name="Goto" Time="15.433333333" CueDestination="Beam 12"/>
+            <CmdEvent Name="Goto" Time="16.3" CueDestination="Beam 13"/>
+            <CmdEvent Name="Goto" Time="17.133333333" CueDestination="Beam 14"/>
+            <CmdEvent Name="Goto" Time="18.866666667" CueDestination="Beam 15"/>
+            <CmdEvent Name="Goto" Time="20.566666667" CueDestination="Beam 16"/>
+            <CmdEvent Name="Goto" Time="21.433333333" CueDestination="Beam 17"/>
+            <CmdEvent Name="Goto" Time="21.866666667" CueDestination="Beam 18"/>
+            <CmdEvent Name="Goto" Time="22.3" CueDestination="Beam 19"/>
+            <CmdEvent Name="Goto" Time="23.133333333" CueDestination="Beam 20"/>
+            <CmdEvent Name="Goto" Time="24.000" CueDestination="Beam 21"/>
+            <CmdEvent Name="Goto" Time="24.866666667" CueDestination="Beam 22"/>
+            <CmdEvent Name="Goto" Time="25.7" CueDestination="Beam 23"/>
+            <CmdEvent Name="Goto" Time="26.566666667" CueDestination="Beam 24"/>
+            <CmdEvent Name="Goto" Time="27.000" CueDestination="Beam 25"/>
+            <CmdEvent Name="Goto" Time="27.1" CueDestination="Build 26"/>
+            <CmdEvent Name="Goto" Time="27.2" CueDestination="Build 27"/>
+            <CmdEvent Name="Goto" Time="27.333333333" CueDestination="Build 28"/>
+            <CmdEvent Name="Goto" Time="27.433333333" CueDestination="Beam 29"/>
+            <CmdEvent Name="Goto" Time="27.866666667" CueDestination="Beam 30"/>
+            <CmdEvent Name="Goto" Time="28.3" CueDestination="Beam 31"/>
+            <CmdEvent Name="Goto" Time="28.7" CueDestination="Beam 32"/>
+            <CmdEvent Name="Goto" Time="29.133333333" CueDestination="Beam 33"/>
+            <CmdEvent Name="Goto" Time="29.566666667" CueDestination="Beam 34"/>
+            <CmdEvent Name="Goto" Time="30.000" CueDestination="Beam 35"/>
+            <CmdEvent Name="Goto" Time="30.433333333" CueDestination="Beam 36"/>
+            <CmdEvent Name="Goto" Time="30.866666667" CueDestination="Beam 37"/>
+            <CmdEvent Name="Goto" Time="31.7" CueDestination="Beam 38"/>
+            <CmdEvent Name="Goto" Time="32.566666667" CueDestination="Beam 39"/>
+            <CmdEvent Name="Goto" Time="33.433333333" CueDestination="Beam 40"/>
+            <CmdEvent Name="Goto" Time="34.3" CueDestination="Beam 41"/>
+            <CmdEvent Name="Goto" Time="35.133333333" CueDestination="Beam 42"/>
+            <CmdEvent Name="Goto" Time="35.566666667" CueDestination="Beam 43"/>
+            <CmdEvent Name="Goto" Time="36.000" CueDestination="Beam 44"/>
+            <CmdEvent Name="Goto" Time="36.433333333" CueDestination="Beam 45"/>
+            <CmdEvent Name="Goto" Time="36.866666667" CueDestination="Beam 46"/>
+            <CmdEvent Name="Goto" Time="37.3" CueDestination="Beam 47"/>
+            <CmdEvent Name="Goto" Time="37.7" CueDestination="Beam 48"/>
+            <CmdEvent Name="Goto" Time="38.566666667" CueDestination="Beam 49"/>
+            <CmdEvent Name="Goto" Time="39.433333333" CueDestination="Beam 50"/>
+            <CmdEvent Name="Goto" Time="40.3" CueDestination="Beam 51"/>
+            <CmdEvent Name="Goto" Time="41.133333333" CueDestination="Beam 52"/>
+            <CmdEvent Name="Goto" Time="42.000" CueDestination="Beam 53"/>
+            <CmdEvent Name="Goto" Time="42.433333333" CueDestination="Beam 54"/>
+            <CmdEvent Name="Goto" Time="42.866666667" CueDestination="Beam 55"/>
+            <CmdEvent Name="Goto" Time="43.3" CueDestination="Beam 56"/>
+            <CmdEvent Name="Goto" Time="43.7" CueDestination="Beam 57"/>
+            <CmdEvent Name="Goto" Time="44.133333333" CueDestination="Beam 58"/>
+            <CmdEvent Name="Goto" Time="44.566666667" CueDestination="Beam 59"/>
+            <CmdEvent Name="Goto" Time="45.433333333" CueDestination="Beam 60"/>
+            <CmdEvent Name="Goto" Time="46.3" CueDestination="Beam 61"/>
+            <CmdEvent Name="Goto" Time="47.133333333" CueDestination="Beam 62"/>
+            <CmdEvent Name="Goto" Time="48.000" CueDestination="Beam 63"/>
+            <CmdEvent Name="Goto" Time="48.866666667" CueDestination="Beam 64"/>
+            <CmdEvent Name="Goto" Time="49.3" CueDestination="Beam 65"/>
+            <CmdEvent Name="Goto" Time="49.7" CueDestination="Beam 66"/>
+            <CmdEvent Name="Goto" Time="50.133333333" CueDestination="Beam 67"/>
+            <CmdEvent Name="Goto" Time="50.566666667" CueDestination="Beam 68"/>
+            <CmdEvent Name="Goto" Time="51.000" CueDestination="Beam 69"/>
+            <CmdEvent Name="Goto" Time="51.433333333" CueDestination="Beam 70"/>
+            <CmdEvent Name="Goto" Time="51.866666667" CueDestination="Beam 71"/>
+            <CmdEvent Name="Goto" Time="52.3" CueDestination="Beam 72"/>
+            <CmdEvent Name="Goto" Time="53.133333333" CueDestination="Beam 73"/>
+            <CmdEvent Name="Goto" Time="53.566666667" CueDestination="Beam 74"/>
+            <CmdEvent Name="Goto" Time="54.000" CueDestination="Beam 75"/>
+            <CmdEvent Name="Goto" Time="54.433333333" CueDestination="Beam 76"/>
+            <CmdEvent Name="Goto" Time="54.866666667" CueDestination="Beam 77"/>
+            <CmdEvent Name="Goto" Time="55.3" CueDestination="Beam 78"/>
+            <CmdEvent Name="Goto" Time="55.7" CueDestination="Beam 79"/>
+            <CmdEvent Name="Goto" Time="56.133333333" CueDestination="Beam 80"/>
+            <CmdEvent Name="Goto" Time="56.566666667" CueDestination="Beam 81"/>
+            <CmdEvent Name="Goto" Time="57.000" CueDestination="Beam 82"/>
+            <CmdEvent Name="Goto" Time="57.433333333" CueDestination="Beam 83"/>
+            <CmdEvent Name="Goto" Time="57.866666667" CueDestination="Beam 84"/>
+            <CmdEvent Name="Goto" Time="58.3" CueDestination="Beam 85"/>
+            <CmdEvent Name="Goto" Time="58.7" CueDestination="Beam 86"/>
+            <CmdEvent Name="Goto" Time="59.133333333" CueDestination="Beam 87"/>
+            <CmdEvent Name="Goto" Time="59.566666667" CueDestination="Beam 88"/>
+            <CmdEvent Name="Goto" Time="60.000" CueDestination="Beam 89"/>
+            <CmdEvent Name="Goto" Time="68.133333333" CueDestination="Build 90"/>
+            <CmdEvent Name="Goto" Time="68.266666667" CueDestination="Build 91"/>
+            <CmdEvent Name="Goto" Time="68.366666667" CueDestination="Build 92"/>
+            <CmdEvent Name="Goto" Time="68.466666667" CueDestination="Build 93"/>
+            <CmdEvent Name="Goto" Time="68.566666667" CueDestination="Beam 94"/>
+            <CmdEvent Name="Goto" Time="69.433333333" CueDestination="Beam 95"/>
+            <CmdEvent Name="Goto" Time="69.866666667" CueDestination="Beam 96"/>
+            <CmdEvent Name="Goto" Time="70.3" CueDestination="Beam 97"/>
+            <CmdEvent Name="Goto" Time="70.7" CueDestination="Beam 98"/>
+            <CmdEvent Name="Goto" Time="71.133333333" CueDestination="Beam 99"/>
+            <CmdEvent Name="Goto" Time="72.000" CueDestination="Beam 100"/>
+            <CmdEvent Name="Goto" Time="72.866666667" CueDestination="Beam 101"/>
+            <CmdEvent Name="Goto" Time="73.7" CueDestination="Beam 102"/>
+            <CmdEvent Name="Goto" Time="75.433333333" CueDestination="Beam 103"/>
+            <CmdEvent Name="Goto" Time="76.3" CueDestination="Beam 104"/>
+            <CmdEvent Name="Goto" Time="77.133333333" CueDestination="Beam 105"/>
+            <CmdEvent Name="Goto" Time="78.000" CueDestination="Beam 106"/>
+            <CmdEvent Name="Goto" Time="78.866666667" CueDestination="Beam 107"/>
+            <CmdEvent Name="Goto" Time="79.7" CueDestination="Beam 108"/>
+            <CmdEvent Name="Goto" Time="80.566666667" CueDestination="Beam 109"/>
+            <CmdEvent Name="Goto" Time="81.433333333" CueDestination="Beam 110"/>
+            <CmdEvent Name="Goto" Time="82.3" CueDestination="Beam 111"/>
+            <CmdEvent Name="Goto" Time="83.133333333" CueDestination="Beam 112"/>
+            <CmdEvent Name="Goto" Time="83.566666667" CueDestination="Beam 113"/>
+            <CmdEvent Name="Goto" Time="84.000" CueDestination="Beam 114"/>
+            <CmdEvent Name="Goto" Time="84.433333333" CueDestination="Beam 115"/>
+            <CmdEvent Name="Goto" Time="84.866666667" CueDestination="Beam 116"/>
+            <CmdEvent Name="Goto" Time="85.7" CueDestination="Beam 117"/>
+            <CmdEvent Name="Goto" Time="86.133333333" CueDestination="Beam 118"/>
+            <CmdEvent Name="Goto" Time="86.566666667" CueDestination="Beam 119"/>
+            <CmdEvent Name="Goto" Time="87.000" CueDestination="Beam 120"/>
+            <CmdEvent Name="Goto" Time="87.433333333" CueDestination="Beam 121"/>
+            <CmdEvent Name="Goto" Time="88.3" CueDestination="Beam 122"/>
+            <CmdEvent Name="Goto" Time="89.133333333" CueDestination="Beam 123"/>
+            <CmdEvent Name="Goto" Time="90.000" CueDestination="Beam 124"/>
+            <CmdEvent Name="Goto" Time="90.433333333" CueDestination="Beam 125"/>
+            <CmdEvent Name="Goto" Time="90.866666667" CueDestination="Beam 126"/>
+            <CmdEvent Name="Goto" Time="91.3" CueDestination="Beam 127"/>
+            <CmdEvent Name="Goto" Time="91.7" CueDestination="Beam 128"/>
+            <CmdEvent Name="Goto" Time="92.133333333" CueDestination="Beam 129"/>
+            <CmdEvent Name="Goto" Time="92.566666667" CueDestination="Beam 130"/>
+            <CmdEvent Name="Goto" Time="93.000" CueDestination="Beam 131"/>
+            <CmdEvent Name="Goto" Time="93.433333333" CueDestination="Beam 132"/>
+            <CmdEvent Name="Goto" Time="93.866666667" CueDestination="Beam 133"/>
+            <CmdEvent Name="Goto" Time="94.3" CueDestination="Beam 134"/>
+            <CmdEvent Name="Goto" Time="95.133333333" CueDestination="Beam 135"/>
+            <CmdEvent Name="Goto" Time="96.000" CueDestination="Beam 136"/>
+            <CmdEvent Name="Goto" Time="96.866666667" CueDestination="Beam 137"/>
+            <CmdEvent Name="Goto" Time="97.3" CueDestination="Beam 138"/>
+            <CmdEvent Name="Goto" Time="97.7" CueDestination="Beam 139"/>
+            <CmdEvent Name="Goto" Time="98.133333333" CueDestination="Beam 140"/>
+            <CmdEvent Name="Goto" Time="98.566666667" CueDestination="Beam 141"/>
+            <CmdEvent Name="Goto" Time="99.000" CueDestination="Beam 142"/>
+            <CmdEvent Name="Goto" Time="99.433333333" CueDestination="Beam 143"/>
+            <CmdEvent Name="Goto" Time="101.133333333" CueDestination="Beam 144"/>
+          </CmdSubTrack>
+        </TimeRange>
+      </Track>
+      <Track Name="Strobe FX 1.6">
+        <TimeRange Start="0.000" Duration="To End">
+          <CmdSubTrack>
+            <CmdEvent Name="Goto" Time="16.7" CueDestination="Strobe 1"/>
+            <CmdEvent Name="Goto" Time="17.566666667" CueDestination="Strobe 2"/>
+            <CmdEvent Name="Goto" Time="18.433333333" CueDestination="Strobe 3"/>
+            <CmdEvent Name="Goto" Time="19.3" CueDestination="Strobe 4"/>
+            <CmdEvent Name="Goto" Time="20.133333333" CueDestination="Strobe 5"/>
+            <CmdEvent Name="Goto" Time="21.000" CueDestination="Strobe 6"/>
+            <CmdEvent Name="Goto" Time="21.866666667" CueDestination="Strobe 7"/>
+            <CmdEvent Name="Goto" Time="23.566666667" CueDestination="Strobe 8"/>
+            <CmdEvent Name="Goto" Time="25.3" CueDestination="Strobe 9"/>
+            <CmdEvent Name="Goto" Time="25.7" CueDestination="Riser 10"/>
+            <CmdEvent Name="Goto" Time="25.933333333" CueDestination="Riser 11"/>
+            <CmdEvent Name="Goto" Time="26.133333333" CueDestination="Riser 12"/>
+            <CmdEvent Name="Goto" Time="26.366666667" CueDestination="Riser 13"/>
+            <CmdEvent Name="Goto" Time="26.566666667" CueDestination="Riser 14"/>
+            <CmdEvent Name="Goto" Time="26.8" CueDestination="Riser 15"/>
+            <CmdEvent Name="Goto" Time="27.000" CueDestination="Riser 16"/>
+            <CmdEvent Name="Goto" Time="27.2" CueDestination="Riser 17"/>
+            <CmdEvent Name="Goto" Time="32.133333333" CueDestination="Strobe 18"/>
+            <CmdEvent Name="Goto" Time="42.433333333" CueDestination="Strobe 19"/>
+            <CmdEvent Name="Goto" Time="45.866666667" CueDestination="Strobe 20"/>
+            <CmdEvent Name="Goto" Time="52.7" CueDestination="Strobe 21"/>
+            <CmdEvent Name="Goto" Time="53.566666667" CueDestination="Strobe 22"/>
+            <CmdEvent Name="Goto" Time="66.866666667" CueDestination="Riser 23"/>
+            <CmdEvent Name="Goto" Time="67.066666667" CueDestination="Riser 24"/>
+            <CmdEvent Name="Goto" Time="67.3" CueDestination="Riser 25"/>
+            <CmdEvent Name="Goto" Time="67.5" CueDestination="Riser 26"/>
+            <CmdEvent Name="Goto" Time="67.7" CueDestination="Riser 27"/>
+            <CmdEvent Name="Goto" Time="67.933333333" CueDestination="Riser 28"/>
+            <CmdEvent Name="Goto" Time="68.133333333" CueDestination="Riser 29"/>
+            <CmdEvent Name="Goto" Time="68.366666667" CueDestination="Riser 30"/>
+            <CmdEvent Name="Goto" Time="69.866666667" CueDestination="Strobe 31"/>
+            <CmdEvent Name="Goto" Time="75.866666667" CueDestination="Strobe 32"/>
+            <CmdEvent Name="Goto" Time="83.566666667" CueDestination="Strobe 33"/>
+            <CmdEvent Name="Goto" Time="89.566666667" CueDestination="Strobe 34"/>
+            <CmdEvent Name="Goto" Time="90.433333333" CueDestination="Strobe 35"/>
+            <CmdEvent Name="Goto" Time="95.566666667" CueDestination="Strobe 36"/>
+            <CmdEvent Name="Goto" Time="97.3" CueDestination="Strobe 37"/>
+          </CmdSubTrack>
+        </TimeRange>
+      </Track>
+      <Track Name="Blinders 1.7">
+        <TimeRange Start="0.000" Duration="To End">
+          <CmdSubTrack>
+            <CmdEvent Name="Goto" Time="27.433333333" CueDestination="Blinder 1"/>
+            <CmdEvent Name="Goto" Time="54.866666667" CueDestination="Blinder 2"/>
+            <CmdEvent Name="Goto" Time="68.566666667" CueDestination="Blinder 3"/>
+          </CmdSubTrack>
+        </TimeRange>
+      </Track>
+      <Track Name="Haze 1.8">
+        <TimeRange Start="0.000" Duration="To End">
+          <CmdSubTrack>
+            <CmdEvent Name="Goto" Time="0.000" CueDestination="Haze 1"/>
+            <CmdEvent Name="Goto" Time="27.433333333" CueDestination="Haze 2"/>
+            <CmdEvent Name="Goto" Time="54.866666667" CueDestination="Haze 3"/>
+            <CmdEvent Name="Goto" Time="82.3" CueDestination="Haze 4"/>
+          </CmdSubTrack>
+        </TimeRange>
+      </Track>
+    </TrackGroup>
+  </Timecode>
+</GMA3>

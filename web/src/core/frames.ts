@@ -9,7 +9,9 @@ export function tcToFrames(tc: string, fps: number): number {
 }
 
 export function framesToTc(fr: number, fps: number): string {
-  fr = Math.trunc(fr);
+  // MA3 decimal-second exports can land a few nanoseconds below an exact frame.
+  // Stabilize the display without quantizing stored event times.
+  fr = Math.trunc(fr + (fr >= 0 ? 1e-6 : 0));
   // floor division / modulo that matches Python divmod for non-negative frames
   let s = Math.floor(fr / fps);
   const f = fr - s * fps;

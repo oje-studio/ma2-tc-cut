@@ -128,6 +128,24 @@
             </span>
           </button>
 
+          <!-- MA3 Timecode Tools -->
+          <button class="tool-card" type="button" data-detail="ma3">
+            <span class="tool-thumb ma3-preview" aria-hidden="true">
+              <span class="ma3-preview-label">TIMECODE TOOLS <b>MA3</b></span>
+              <span class="ma3-preview-grid"><i></i><i></i><i></i><i></i><span class="ma3-preview-cut"></span></span>
+              <span class="ma3-preview-caption">CUT · INSERT · ERASE · MOVE</span>
+            </span>
+            <span class="tool-info">
+              <span class="tool-head">
+                <img class="tool-ic" src="./tools/ma2-icon.png" alt="" />
+                <span class="tool-name">MA3 Timecode Tools</span>
+                <span class="tool-tag">Web · Preview</span>
+              </span>
+              <span class="tool-line">The same editing workflow for grandMA3: cue and fader events, Time Ranges, a musical grid and your audio. Edit locally, export MA3 XML.</span>
+              <span class="tool-go">Open ▸</span>
+            </span>
+          </button>
+
           <!-- LTC Generator -->
           <button class="tool-card" type="button" data-detail="ltc">
             <span class="tool-thumb"><img src="./tools/ltc.png" alt="LTC Generator — SMPTE timecode WAV exporter" /></span>
@@ -276,6 +294,42 @@
             <p><code>Import Timecode 40 "…"</code> gives <strong>Error #12: EXPECTED NAME</strong> — the order is the reverse of Export.</p>
             <p>Import into an empty slot, keep the original as a backup, and check the length.</p>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── MA3 Timecode Tools — detail ───────── -->
+    <div id="detail-ma3" class="tool-detail" aria-hidden="true">
+      <header class="app-bar">
+        <div class="brand-lock"><span class="nav-logo"><img src="./oje-logo.svg" alt="ØJE Studio" /></span><span class="brand-tools">TOOLS</span></div>
+        <span class="app-bar-sep">·</span><span class="app-bar-tool">MA3 Timecode Tools</span>
+        <span class="nav-spacer"></span><button class="app-close" type="button" data-close-detail>← back</button>
+      </header>
+      <div class="detail-body">
+        <div class="detail-hero">
+          <div class="detail-shot ma3-preview" aria-hidden="true">
+            <span class="ma3-preview-label">TIMECODE TOOLS <b>MA3</b></span>
+            <span class="ma3-preview-grid"><i></i><i></i><i></i><i></i><span class="ma3-preview-cut"></span></span>
+            <span class="ma3-preview-caption">YOUR SHOW. THE NEW ARRANGEMENT.</span>
+          </div>
+          <div class="detail-intro">
+            <p class="eyebrow">web tool · compatibility preview for grandMA3 2.5.1</p>
+            <h2>MA3 Timecode Tools</h2>
+            <p class="sub">A shorter chorus, an extra intro, one cue that needs to move. Edit your grandMA3 timecode against the music with the same timeline, waveform, bar grid and metronome as our MA2 tool.</p>
+            <div class="cta-row"><a class="cta primary" href="#tool/ma3" data-open-tool="ma3">Open the tool ▸</a><a class="cta ghost" href="https://github.com/oje-studio/ma2-tc-cut" target="_blank" rel="noopener">Source</a></div>
+          </div>
+        </div>
+        <div class="features">
+          <div class="feature"><h3>Cut · insert · erase · move</h3><p>Preview the affected events, apply the edit and undo any step. Use timecode or whole bars at your track BPM.</p></div>
+          <div class="feature"><h3>Time Ranges included</h3><p>Edits account for range starts, move later ranges, adjust their durations and keep events at their correct show time.</p></div>
+          <div class="feature"><h3>Your references stay intact</h3><p>Cue destinations, sequence links, GUIDs and command payloads stay attached to their events. Untouched XML keeps its original formatting.</p></div>
+          <div class="feature"><h3>Stays on your machine</h3><p>Show XML and audio stay in your browser. Choose the editing FPS when your export uses Default or Seconds.</p></div>
+        </div>
+        <div class="guide-grid">
+          <div class="guide-card"><h3>Export from grandMA3</h3><p>Export one Timecode pool object as XML from grandMA3 2.5.1. Open that XML here, then add the song on the waveform lane.</p><pre class="cmd">Export Timecode 14 "tc_show"</pre><p>Choose the FPS used by your timecode source. Existing subframe event times are preserved; the FPS selector controls the editing grid.</p></div>
+          <div class="guide-card"><h3>Import and check</h3><p>Save the edited XML to <code>grandMA3/shared/lib_timecodes</code> on the selected USB drive, or the timecodes library folder on your onPC machine. Import into an empty pool slot:</p><pre class="cmd">Import Timecode Library "tc_show_cut.xml" At Timecode 40</pre><p>This is a compatibility preview. Verify the edit and playback on grandMA3 2.5.1; console round-trip validation is still pending.</p></div>
+          <div class="guide-card"><h3>What changes</h3><p>Cut and insert shift events, markers and range boundaries. Erase removes events and markers in the window without shifting later times. Audio, cue fades and TC-slot offset are unchanged. Fader points move with the edit; check the fader transition at the seam.</p></div>
+          <div class="guide-card"><h3>Supported exports</h3><p>One timecode show with command and fader subtracks and Time Ranges at Speed Factor 1. Other speed factors or unrecognized structures show an error. This tool edits MA3 files; it does not convert MA2 shows to MA3.</p></div>
         </div>
       </div>
     </div>
