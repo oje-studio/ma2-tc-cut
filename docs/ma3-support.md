@@ -3,9 +3,10 @@
 Browser editor entry: `#tool/ma3`. The existing MA2 entry and the Python CLI/GUI
 remain available. This edits a grandMA3 export; it does not convert MA2 shows.
 
-Target: **grandMA3 2.5.1**. Status: **compatibility preview**. The demo and regression
-fixtures are synthetic. Neither a real 2.5.1 export nor an onPC/console round-trip
-has been validated yet; do not describe this as verified 2.5.1 compatibility.
+Target: **grandMA3 2.5.1**. Status: **compatibility preview**. Parsing, editing and
+browser XML download have been checked against a real **2.5.1.1** export. Import
+and playback on onPC/console have not been validated yet. The public demo and
+regression fixtures remain synthetic; the user's original export is not included.
 
 ## Workflow
 
@@ -68,6 +69,21 @@ Tests cover half-open boundaries, nonzero range starts, cuts crossing range
 starts, multiple ranges, faders, markers, fractional seconds, 30 fps rounding,
 insert/cut inversion, sorting after a move, empty results, BOM/CRLF, malformed
 input, reference preservation and the existing MA2 demo.
+
+The real 2.5.1.1 sample contains 50 Goto command events across six tracks/ranges,
+30 fps Frame Readout and a four-hour time origin. Its ranges omit Start and use
+Duration="To End"; its MarkerTrack is empty. A cut from 04:00:10:00 to
+04:00:15:00 removes one event and shifts 40 events by exactly five seconds,
+leaving 49 events and a show duration of 14479.77 seconds. Insert, Erase, event
+movement and Undo were also checked. The browser-saved cut XML is checked with
+an independent XML parser against the expected event times and command payloads.
+This sample does not validate fader events, populated markers, multiple ranges
+within one track or nonzero range starts; those remain covered by synthetic tests.
+
+The sample stores event times to milliseconds, which can lie slightly off a
+30 fps frame boundary (for example, .233 seconds). Raw XML seconds remain
+authoritative and are not snapped to whole frames. TC labels truncate subframes;
+compare XML seconds as well as frame labels during the console round-trip.
 
 Release check still needed on 2.5.1: export a small representative show containing
 multiple ranges, Go+/Goto/Off and fader events, edit it, import into an unused

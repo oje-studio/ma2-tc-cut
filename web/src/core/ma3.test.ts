@@ -31,6 +31,61 @@ const fixture = `<?xml version="1.0" encoding="UTF-8"?>
 </GMA3>`;
 const seconds = (xml: string) => readMa3(xml).lanes.map(l => l.events.map(e => e.time / 1e9));
 
+// Synthetic reproduction of the structure observed in a real 2.5.1.1 export.
+// The user's show, cue names, destinations and GUIDs are not repository fixtures.
+const consoleStyle = `<?xml version="1.0" encoding="UTF-8"?>
+<GMA3 DataVersion="2.5.1.1">
+  <Timecode Name="Console layout test" Cursor="1h00m30.03" Duration="1h00m25.77" LoopCount="0" TCSlot="1" AutoStop="No" SwitchOff="Keep Playbacks" TimeDisplayFormat="" FrameReadout="30 fps">
+    <TrackGroup Name="Test group" Play="" Rec="">
+      <MarkerTrack Name="Marker" Guid="synthetic.marker"/>
+      <Track Name="Test track" Target="ShowData.DataPools.Default.Sequences.Test" Play="" Rec="">
+        <TimeRange Guid="synthetic.range" Duration="To End" Play="" Rec="">
+          <CmdSubTrack>
+            <CmdEvent Name="Goto" Time="1h00m00.000" CueDestination="A"><RealtimeCmd ExecToken="Goto" ValCueDestination="synthetic.a"/></CmdEvent>
+            <CmdEvent Name="Goto" Time="1h00m02.867" CueDestination="B"><RealtimeCmd ExecToken="Goto" ValCueDestination="synthetic.b"/></CmdEvent>
+            <CmdEvent Name="Goto" Time="1h00m14.233" CueDestination="C"><RealtimeCmd ExecToken="Goto" ValCueDestination="synthetic.c"/></CmdEvent>
+            <CmdEvent Name="Goto" Time="1h00m25.733" CueDestination="D"><RealtimeCmd ExecToken="Goto" ValCueDestination="synthetic.d"/></CmdEvent>
+          </CmdSubTrack>
+        </TimeRange>
+      </Track>
+    </TrackGroup>
+  </Timecode>
+</GMA3>`;
+
+describe('2.5.1.1 console export structure', () => {
+  it('reads omitted range starts, empty marker tracks and h/m time strings with mixed precision', () => {
+    const parsed = inspectShow(consoleStyle);
+    expect(parsed.needsFps).toBe(false);
+    expect(parsed.info.fps).toBe(30);
+    expect(parsed.info.firstTc).toBe('01:00:00:00');
+    expect(parsed.info.nEvents).toBe(4);
+    expect(parsed.info.nSubtracks).toBe(1);
+    expect(seconds(consoleStyle)).toEqual([[3600, 3602.867, 3614.233, 3625.733]]);
+    expect(readMa3(consoleStyle).duration).toBe(3625.77e9);
+    expect(editMa3(consoleStyle, 'erase', 3700 * 30, 30, 30).text).toBe(consoleStyle);
+  });
+  it('cuts in seconds without rounding millisecond timestamps to the display frame grid', () => {
+    const result = editMa3(consoleStyle, 'cut', 3610 * 30, 5 * 30, 30);
+    expect(result.deleted.map(e => e[1])).toEqual(['C']);
+    expect(result.shifted).toBe(1);
+    expect(seconds(result.text)).toEqual([[3600, 3602.867, 3620.733]]);
+    expect(readMa3(result.text).duration).toBe(3620.77e9);
+    expect(result.text).toContain('Time="1h00m02.867"');
+    expect(result.text).toContain('<RealtimeCmd ExecToken="Goto" ValCueDestination="synthetic.d"/>');
+    expect(result.text).toContain('Duration="To End" Play="" Rec=""');
+    expect(result.text).toContain('Cursor="1h00m30.03"');
+    expect(result.text).not.toContain('Start=');
+  });
+  it('finds events from fractional timeline frames and reverses a gap without timing drift', () => {
+    const from = ma3Lanes(readMa3(consoleStyle), 30)[0].events[1][0];
+    const moved = moveMa3Event(consoleStyle, 0, from, from + 30, 30);
+    expect(moved.moved).toBe(true);
+    expect(seconds(moved.text)[0][1]).toBe(3603.867);
+    const inserted = editMa3(consoleStyle, 'insert', 3610 * 30, 5 * 30, 30).text;
+    expect(seconds(editMa3(inserted, 'cut', 3610 * 30, 5 * 30, 30).text)).toEqual(seconds(consoleStyle));
+  });
+});
+
 describe('MA3 timestamp semantics', () => {
   it('displays decimal-second frame boundaries without losing a frame or showing frame 30', () => {
     expect(framesToTc(3.433333333 * 30, 30)).toBe('00:00:03:13');
